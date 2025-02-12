@@ -4,40 +4,29 @@ This document contains the user stories for the Flight Ticket Sales application 
 
 ---
 
-## **Template for User Stories**
-
 ### **User Story Format**
 As a [role], I want to [action] so that [goal].
 
 ---
 
-## **Story Sections**
 
 ### **Flight Officer Stories**
-- Placeholder for stories related to flight management tasks.
 
-As a **Flight Officer** I want to **register flights** so that **the agency can sell tickets on them**
-As a **Flight Officer**
-As a **Flight Officer**
-As a **Flight Officer** 
+- As a **Flight officer**, I want to **register upcoming flights** so that **sales employees can start selling tickets**.
+- As a **Flight Officer**, I want to **create and enable temporary price reductions** so that **flights can be sold at discounted prices**
 
 ---
 
 ### **Sales Employee Stories**
-- Placeholder for stories related to ticket sales and bookings.
 
-As a **Sales Employee** I want to...
-As a **Sales Employee** I want to...
-As a **Sales Employee** I want to...
-As a **Sales Employee** I want to...
+- As a **Sales Employee**, I want to **create a trip based on available flights** so that **customers can purchase a complete travel package**
+- As a **Sales Employee**, I want to **search and filter available flights by date, destination, and price** so that **I can quickly find suitable options for customers**
+- As a **Sales Employee**, I want to **view real-time seat availability** so that **I can inform customers of their options**.
 
 ---
 
 ### **Account Manager Stories**
-- Placeholder for stories related to management dashboards and performance tracking.
 
-As an **Account Manager** I want to see the revenue of the agency to see if it was successful
-As an **Account Manager** I want to...
-As an **Account Manager** I want to...
+- As an **Account Manager**, I want to **view total revenue for each flight** so that **I can analyze sales performance**
 
 ---
