@@ -49,3 +49,6 @@ Create flight (plane, weekly, departure airport, arrival airport, duration, depa
 
 
 16. Is it possible to apply more than 1 discount?
+
+
+17. Do you have preferences color-wise or design-wise?
