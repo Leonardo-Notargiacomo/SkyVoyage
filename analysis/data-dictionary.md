@@ -1,5 +1,10 @@
 | Word  | Definition |
 | ------------- | ------------- |
+| Flight Officer  |  A person who organises the flights |
+| Account Manager  |  A person who gets the financial data regarding different flights |
+| Sales Employee  |  A person who does the booking of the flghts |
+| Airport  | Location where the planes can start and end  |
+| Airport  | Location where the planes can start and end  |
 | Flight  | Airport to airport  |
 | Trip  | Departure to Arrival  |
 | Return trip  |  Arrival to Departure  |
