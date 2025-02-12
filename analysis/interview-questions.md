@@ -52,3 +52,6 @@ Create flight (plane, weekly, departure airport, arrival airport, duration, depa
 
 
 17. Do you have preferences color-wise or design-wise?
+
+
+18. We have only three user groups? (sales employee, flight officer and account manager)
