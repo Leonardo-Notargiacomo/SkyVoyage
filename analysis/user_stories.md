@@ -15,6 +15,9 @@ As a [role], I want to [action] so that [goal].
 - As a **Flight officer**, I want to **register upcoming flights** so that **sales employees can start selling tickets**.
 - As a **Flight Officer**, I want to **create and enable temporary price reductions** so that **flights can be sold at discounted prices**
 
+- As a **Flight Officer**, I want to **manage connected flights** so that **passengers can book seamless trips.**
+
+- As a **Flight Officer**, I want to **update flight details** (departure time, arrival time, available seats) so that **customers receive accurate flight information**.
 ---
 
 ### **Sales Employee Stories**
@@ -29,4 +32,5 @@ As a [role], I want to [action] so that [goal].
 
 - As an **Account Manager**, I want to **view total revenue for each flight** so that **I can analyze sales performance**
 
+- As an **Account Manager**, I want to **see a dashboard with flight statistics** (number of tickets sold, class distribution, total revenue, and most popular routes) so that **I can track company performance**.
 ---
