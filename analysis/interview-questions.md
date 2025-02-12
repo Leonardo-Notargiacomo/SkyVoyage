@@ -13,7 +13,7 @@
 Create plane (nr of seats, classes, options)
 Create flight (plane, weekly, departure airport, arrival airport, duration, departure time)
 
-5. Which discounts can be applied?
+5. Which discounts specifically can be applied?
 
 
 6. Should dynamic discounts be automatically updated based on external factors, like last-minute booking or amount of sun hours?
