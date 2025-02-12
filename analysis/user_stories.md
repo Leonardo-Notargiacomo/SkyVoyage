@@ -16,28 +16,20 @@ As a [role], I want to [action] so that [goal].
 ### **Flight Officer Stories**
 - Placeholder for stories related to flight management tasks.
 
+As a flight Officer I want to...
+
 ---
 
 ### **Sales Employee Stories**
 - Placeholder for stories related to ticket sales and bookings.
 
----
-
-### **Customer Stories**
-- Placeholder for stories related to customer interactions with the system.
+As a flight Officer I want to...
 
 ---
 
 ### **Account Manager Stories**
 - Placeholder for stories related to management dashboards and performance tracking.
 
----
-
-### **System Stories**
-- Placeholder for stories related to system behavior and technical requirements.
+As an Account Manager I want to...
 
 ---
-
-## **Additional Notes**
-- Ensure that each user story is concise and captures the who, what, and why.
-- Update this document as new user stories are added or refined during the project.
