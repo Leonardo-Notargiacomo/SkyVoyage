@@ -1,11 +1,53 @@
 # Attendance Table
 
-| Name     | 12-Feb | 12-Feb Remarks | 14-Feb | 14-Feb Remarks | 18-Feb | 18-Feb Remarks | 19-Feb | 19-Feb Remarks | 21-Feb | 21-Feb Remarks |
-|----------|--------|---------------|--------|---------------|--------|---------------|--------|---------------|--------|---------------|
-| Furkan   | ✅      |               | ✅      |               |✅     |               |        |               |        |               |
-| Leonardo | ✅      |               | ✅      | Web Camp      |✅     |               |        |               |        |               |
-| Soheil   | ✅      |               | ✅      |               |✅     |               |        |               |        |               |
-| Thomas   | ✅      |               | ✅      |               |✅     |               |        |               |        |               |
-| Til      | ✅      |               | ✅      |               |✅     |               |        |               |        |               |
+**Week 1 (10th-16th February):**
+
+| Name     | 12-Feb | 12-Feb Remarks | 14-Feb | 14-Feb Remarks 
+|----------|--------|---------------|--------|---------------|
+| Furkan   | ✅      |               | ✅      |               
+| Leonardo | ✅      |               | ✅      | Web Camp      |
+| Soheil   | ✅      |               | ✅      |               |
+| Thomas   | ✅      |               | ✅      |               |
+| Til      | ✅      |               | ✅      |               |
+
+**Week 2 (17th-23d February):**
+
+| Name     | 18-Feb | 18-Feb Remarks | 19-Feb | 19-Feb Remarks | 21-Feb | 21-Feb Remarks |
+|----------|--------|---------------|--------|---------------|--------|---------------|
+| Furkan   |✅     |               |        |               |        |               |
+| Leonardo |✅     |               |        |               |        |               |
+| Soheil   |✅     |               |        |               |        |               |
+| Thomas   |✅     |               |        |               |        |               |
+| Til      |✅     |               |        |               |        |               |
+
+**Week 3 (24th-2nd February-March):**
+
+| Name     | 25-Feb | 25-Feb Remarks | 26-Feb | 26-Feb Remarks | 28-Feb | 28-Feb Remarks |
+|----------|--------|---------------|--------|---------------|--------|---------------|
+| Furkan   |     |               |        |               |        |               |
+| Leonardo |     |               |        |               |        |               |
+| Soheil   |     |               |        |               |        |               |
+| Thomas   |     |               |        |               |        |               |
+| Til      |     |               |        |               |        |               |
+
+**Week 4 (3d-9th March):**
+
+| Name     | 4-Mar | 4-Mar Remarks | 5-Mar | 5-Mar Remarks | 7-Mar | 7-Mar Remarks |
+|----------|--------|---------------|--------|---------------|--------|---------------|
+| Furkan   |     |               |        |               |        |               |
+| Leonardo |     |               |        |               |        |               |
+| Soheil   |     |               |        |               |        |               |
+| Thomas   |     |               |        |               |        |               |
+| Til      |     |               |        |               |        |               |
+
+**Template:**
+
+| Name     | xx-mon | xx-mon Remarks | xx-mon | xx-mon Remarks | xx-mon | xx-mon Remarks |
+|----------|--------|---------------|--------|---------------|--------|---------------|
+| Furkan   |     |               |        |               |        |               |
+| Leonardo |     |               |        |               |        |               |
+| Soheil   |     |               |        |               |        |               |
+| Thomas   |     |               |        |               |        |               |
+| Til      |     |               |        |               |        |               |
 
 > ✅ - Present | ❌ - Absent
