@@ -16,3 +16,4 @@
 | Discount  | Static or Dynamic price reduction. Dynamic price reduction can be dependent on time (early bird, last minute), or on availability of plane (the fewer seats available, the higher the price), or on both.  |
 | Booking  | One or more trips |
 | Ticket | All informations of booked flight & customer |
+| Customer | Is a person who does the booking or doing the trip |
