@@ -14,11 +14,11 @@
 
 | Name     | 18-Feb | 18-Feb Remarks | 19-Feb | 19-Feb Remarks | 21-Feb | 21-Feb Remarks |
 |----------|--------|---------------|--------|---------------|--------|---------------|
-| Furkan   |✅     |               |        |               |        |               |
-| Leonardo |✅     |               |        |               |        |               |
-| Soheil   |✅     |               |        |               |        |               |
-| Thomas   |✅     |               |        |               |        |               |
-| Til      |✅     |               |        |               |        |               |
+| Furkan   |✅     |               |✅        |               |        |               |
+| Leonardo |✅     |               |✅        |               |        |               |
+| Soheil   |✅     |               |✅        |               |        |               |
+| Thomas   |✅     |               |✅        |               |        |               |
+| Til      |✅     |               |✅        |               |        |               |
 
 **Week 3 (24th-2nd February-March):**
 
