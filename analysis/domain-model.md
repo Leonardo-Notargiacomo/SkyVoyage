@@ -4,22 +4,22 @@ title: Domain Model For A Travel Agency
 ---
 classDiagram
 
-    Discount-->Ticket
-    Discount-->Sales Manager
+    Discount--Ticket
+    Discount--Sales Manager
 
-    Ticket-->Customer
-    Ticket-->Flight
+    Ticket--Customer
+    Ticket--Flight
 
-    Flight-->Trip
-    Flight-->Airport
-    Flight-->Plane
-    Flight-->KPI
+    Flight--Trip
+    Flight--Airport
+    Flight--Plane
+    Flight--KPI
 
     Employee<|--SalesEmployee
     Employee<|--SalesManager
     Employee<|--AccountManager
 
-    Booking-->SalesEmployee
+    Booking--SalesEmployee
 
     class Discount{
     }
