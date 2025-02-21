@@ -17,3 +17,4 @@
 | Booking  | One or more trips |
 | Ticket | All informations of booked flight & customer |
 | Customer | Is a person who does the booking or doing the trip |
+| KPI | ... |
