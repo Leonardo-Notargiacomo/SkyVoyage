@@ -24,11 +24,11 @@
 
 | Name     | 25-Feb | 25-Feb Remarks | 26-Feb | 26-Feb Remarks | 28-Feb | 28-Feb Remarks |
 |----------|--------|---------------|--------|---------------|--------|---------------|
-| Furkan   |     |               |        |               |        |               |
-| Leonardo |     |               |        |               |        |               |
-| Soheil   |     |               |        |               |        |               |
-| Thomas   |     |               |        |               |        |               |
-| Til      |     |               |        |               |        |               |
+| Furkan   | ✅  |               |        |               |        |               |
+| Leonardo | ✅  |               |        |               |        |               |
+| Soheil   | ✅  |               |        |               |        |               |
+| Thomas   | ✅  |               |        |               |        |               |
+| Til      | ✅  |               |        |               |        |               |
 
 **Week 4 (3d-9th March):**
 
