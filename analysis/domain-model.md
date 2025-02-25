@@ -57,6 +57,5 @@ classDiagram
     Flight "1..*" -- "*" Trip
     Flight "*" -- "2" Airport
     Flight "1" -- "1" Plane
-    Airport "1" -- "*" Plane
 
 ```
