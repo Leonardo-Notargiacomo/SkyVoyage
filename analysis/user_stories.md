@@ -12,56 +12,43 @@ As a [role], I want to [action] so that [goal].
 
 ---
 
-## **Flight Officer User Stories**
-- As a **Flight Officer**, I want to **register new flights with details such as plane, departure, arrival, duration, and time zones** so that **the sales process can begin**.
-- As a **Flight Officer**, I want to **register upcoming flights** so that **sales employees can start selling tickets**.
-- As a **Flight Officer**, I want to **create and enable temporary price reductions** so that **flights can be sold at discounted prices**.
-- As a **Flight Officer**, I want to **manage connected flights** so that **passengers can book seamless trips**.
-- As a **Flight Officer**, I want to **update flight details (departure time, arrival time, available seats)** so that **customers receive accurate flight information**.
-- As a **Flight Officer**, I want to **modify existing flights** so that **I can make corrections or updates before tickets are sold**.
-- As a **Flight Officer**, I want to **cancel flights** so that **they are no longer available for booking**.
-- As a **Flight Officer**, I want to **create airports with details like country, land, and timezone** so that **correct departure and arrival information can be maintained**.
-- As a **Flight Officer**, I want to **define planes with different seating classes and capacities** so that **flights can be scheduled accordingly**.
-- As a **Flight Officer**, I want to **save all flight data in the system** so that **flights remain available for reference and booking**.
+### Sales Employee
+
+- As a Sales Employee, I want to search for available flights based on customer preferences (destination, price, duration, stops) so that I can provide the best options to customers.
+- As a Sales Employee, I want to view available seats in real-time so that I can inform customers accordingly.
+- As a Sales Employee, I want to reserve seats while awaiting payment confirmation so that the seats are held for the customer.
+- As a Sales Employee, I want to enter customer details (name, passport number) accurately so that the booking is correct.
+- As a Sales Employee, I want to enter details of the person making the booking (name, email, phone, address) so that I have all necessary information.
+- As a Sales Employee, I want to finalize bookings only after payment is confirmed so that the booking process is complete.
+- As a Sales Employee, I want to handle booking changes and cancellations so that I can manage customer requests.
+- As a Sales Employee, I want to ensure no more tickets are sold than available seats so that overbooking is prevented.
+- As a Sales Employee, I want to review a summary of the booking details before finalization so that I can confirm all information is correct.
+- As a Sales Employee, I want to register infants without assigning seats so that infants are accounted for without taking up a seat.
+- As a Sales Employee, I want to automatically generate return trips for customers so that the booking process is streamlined.
+- As a Sales Employee, I want to search for the cheapest flight or shortest trip so that I can offer the best options to customers.
+- As a Sales Employee, I want to allow customers to select seats manually or automatically for groups so that seating preferences are accommodated.
+- As a Sales Employee, I want to send tickets via email or provide printed copies so that customers receive their tickets in their preferred format.
 
 ---
 
-## **Sales Employee User Stories**
-- As a **Sales Employee**, I want to **search for available flights based on departure, destination, and date** so that **I can offer options to customers**.
-- As a **Sales Employee**, I want to **filter and sort available flights by date, destination, price, travel time, and number of stops** so that **I can quickly find suitable options for customers**.
-- As a **Sales Employee**, I want to **view real-time seat availability** so that **I can inform customers of their options**.
-- As a **Sales Employee**, I want to **offer seat selection with a visual seating layout** so that **customers can easily choose their preferred seats**.
-- As a **Sales Employee**, I want to **reserve tickets for customers** so that **they can complete their payment within the allowed time frame**.
-- As a **Sales Employee**, I want to **book trips for one or multiple passengers** so that **customers can complete their travel plans**.
-- As a **Sales Employee**, I want to **create a trip based on available flights** so that **customers can purchase a complete travel package**.
-- As a **Sales Employee**, I want to **apply multiple discounts to a booking** so that **customers can benefit from valid promotions**.
-- As a **Sales Employee**, I want to **create quotations for trips** so that **customers can review details before confirming a booking**.
-- As a **Sales Employee**, I want to **finalize bookings only after payment confirmation** so that **unpaid bookings are not processed**.
-- As a **Sales Employee**, I want to **handle booking modifications and cancellations** so that **customers can adjust their travel plans if needed**.
-- As a **Sales Employee**, I want to **upgrade a customer’s ticket** so that **they can switch to a higher class or additional services**.
-- As a **Sales Employee**, I want to **offer customizable ticket options (e.g., extra legroom, meal, luggage, class upgrade)** so that **customers can tailor their travel experience**.
-- As a **Sales Employee**, I want to **handle group bookings** so that **large parties can be accommodated**.
-- As a **Sales Employee**, I want to **ensure overbookings are prevented** so that **no more tickets are sold than available seats**.
-- As a **Sales Employee**, I want to **see a summary of booking details, including passenger names, flights, options, and pricing** so that **I can confirm accuracy before finalizing**.
-- As a **Sales Employee**, I want to **register infants without requiring a seat** so that **lap infants can be included in bookings**.
-- As a **Sales Employee**, I want to **automatically generate return trips** so that **customers can book round trips easily**.
-- As a **Sales Employee**, I want to **search for the cheapest flight or shortest trip** so that **I can offer the best deal to customers**.
+### Sales Manager
+
+- As a Sales Manager, I want to set the price per kilometer for flights so that pricing is consistent.
+- As a Sales Manager, I want to adjust prices based on demand during peak seasons so that revenue is maximized.
+- As a Sales Manager, I want to manage early bird and last-minute discount offers so that I can attract more customers.
+- As a Sales Manager, I want to set different prices for economy and business class tickets so that pricing reflects the class of service.
+- As a Sales Manager, I want to define payment deadlines (e.g., instant payment, bank transfers) so that payment policies are clear.
+- As a Sales Manager, I want to ensure discounts are applied in the correct sequence so that customers receive the appropriate discounts.
+- As a Sales Manager, I want to modify flight prices over time based on external factors (e.g., fuel costs, demand fluctuations) so that pricing remains competitive.
 
 ---
 
-## **Sales Manager User Stories**
-- As a **Sales Manager**, I want to **create static discounts (e.g., seasonal promotions)** so that **customers can benefit from pre-set price reductions**.
-- As a **Sales Manager**, I want to **create dynamic discounts (e.g., early bird, last-minute)** so that **prices can adjust based on time and demand**.
-- As a **Sales Manager**, I want to **apply multiple discounts in sequence** so that **the correct final price is calculated**.
-- As a **Sales Manager**, I want to **set up API-based discounts, such as sun-hour-based pricing** so that **pricing can dynamically adjust based on real-world data**.
-- As a **Sales Manager**, I want to **manage available flights** so that **accurate information is provided to sales employees**.
+### Account Manager
 
----
-
-## **Account Manager User Stories**
-- As an **Account Manager**, I want to **view total revenue for each flight** so that **I can analyze sales performance**.
-- As an **Account Manager**, I want to **see a dashboard with flight statistics** (number of tickets sold, class distribution, total revenue, and most popular routes) so that **I can track company performance**.
-- As an **Account Manager**, I want to **analyze the number of customers and returning customers** so that **I can track customer retention**.
-- As an **Account Manager**, I want to **view earnings over custom periods** so that **I can compare performance across different time frames**.
-- As an **Account Manager**, I want to **see total miles traveled by passengers** so that **I can report on travel volume**.
-- As an **Account Manager**, I want to **monitor how discounts impact sales** so that **I can adjust future discount strategies**.
+- As an Account Manager, I want to create employee accounts and assign roles so that user management is organized.
+- As an Account Manager, I want to monitor and update employee access permissions so that access control is maintained.
+- As an Account Manager, I want to generate reports on revenue, most booked destinations, and total kilometers traveled so that business performance is tracked.
+- As an Account Manager, I want to view individual sales employee performance so that I can assess and improve sales strategies.
+- As an Account Manager, I want to track total bookings and identify popular travel routes so that I can optimize flight offerings.
+- As an Account Manager, I want to ensure customer contact details are deleted after a set period so that GDPR compliance is maintained.
+- As an Account Manager, I want to maintain records of changes made to bookings and pricing for accountability so that there is a clear audit trail.
