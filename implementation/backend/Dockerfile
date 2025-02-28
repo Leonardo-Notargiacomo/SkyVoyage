@@ -1,6 +1,4 @@
-# syntax=docker/dockerfile:1
-
-# Stage for resolving and downloading dependencies
+# backend/Dockerfile
 FROM eclipse-temurin:21-jdk-jammy AS deps
 
 WORKDIR /build
@@ -12,14 +10,14 @@ RUN apt-get update && apt-get install -y maven
 RUN mvn -N io.takari:maven:wrapper
 
 # Copy the parent pom.xml and all module directories
-COPY backend/pom.xml pom.xml
-COPY backend/datarecords ./datarecords
-COPY backend/persistence ./persistence
-COPY backend/persistence-api ./persistence-api
-COPY backend/businesslogic ./businesslogic
-COPY backend/businesslogic-api ./businesslogic-api
-COPY backend/restapi ./restapi
-COPY backend/assembler ./assembler
+COPY pom.xml .
+COPY datarecords/ ./datarecords
+COPY persistence/ ./persistence
+COPY persistence-api/ ./persistence-api
+COPY businesslogic/ ./businesslogic
+COPY businesslogic-api/ ./businesslogic-api
+COPY restapi/ ./restapi
+COPY assembler/ ./assembler
 
 # Install all modules and dependencies
 RUN --mount=type=cache,target=/root/.m2 \
@@ -29,9 +27,6 @@ RUN --mount=type=cache,target=/root/.m2 \
 FROM deps AS package
 
 WORKDIR /build
-
-# Copy the rest of the backend source code (if any additional files are needed)
-COPY backend/ .
 
 # Build the project using the generated mvnw
 RUN --mount=type=cache,target=/root/.m2 \

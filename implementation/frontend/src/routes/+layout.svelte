@@ -33,8 +33,8 @@
                     <span class="font-medium text-gray-600 dark:text-gray-300">JD</span>
                 </div>
                 <div class="font-medium dark:text-white">
-                    <div>John Doe</div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400">Administrator</div>
+                    <div>Furkan Öztürk</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Software Developer</div>
                 </div>
             </div>
         </div>
