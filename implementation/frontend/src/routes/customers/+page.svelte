@@ -67,6 +67,7 @@
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
                 </svg>
                 <a href="/customers" class="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2">Customers</a>
+                <a href="/create employee" class="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2">Create employee</a>
             </div>
         </li>
     </ol>
