@@ -17,7 +17,9 @@ public interface Persistence {
     default CustomerRepository getCustomerRepository() {
         return null;
     }
-
+    default EmployeeRepository getEmployeeRepository() {
+        return null;
+    }
     // This interface can be extended with other repositories that need to be made
     // available to the business logic, e.g. to manage flights:
     //

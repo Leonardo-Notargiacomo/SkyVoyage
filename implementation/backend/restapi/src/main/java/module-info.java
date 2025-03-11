@@ -11,6 +11,7 @@ module restapi_module {
         
     requires io.javalin;
     requires com.fasterxml.jackson.databind;
-    
+    requires annotations;
+
     exports io.github.fontysvenlo.ais.restapi;
 }
