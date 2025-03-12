@@ -3,7 +3,7 @@
 
   let name = '';
   let email = '';
-  let selected = "Sales employee";
+  let role = "Sales employee";
   let options = [
     "Sales employee",
     "Sales manager",
@@ -23,7 +23,7 @@
         <input type="email" placeholder="Email" bind:value={email} required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200" />
       </div>
 
-      <select bind:value ={selected}>
+      <select bind:value ={role} placeholder="Role" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200">
         {#each options as value}
           <option {value}>
             {value}
