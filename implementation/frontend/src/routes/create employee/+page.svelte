@@ -3,8 +3,12 @@
 
   let name = '';
   let email = '';
-  let role = '';
-
+  let selected = "Sales employee";
+  let options = [
+    "Sales employee",
+    "Sales manager",
+    "Account manager"
+  ]
 </script>
 
 <main class="flex items-center justify-center min-h-screen bg-gray-100">
@@ -14,14 +18,21 @@
       <div>
         <input type="name" placeholder="Name" bind:value={name} required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200" />
       </div>
+
       <div>
         <input type="email" placeholder="Email" bind:value={email} required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200" />
       </div>
+
+      <select bind:value ={selected}>
+        {#each options as value}
+          <option {value}>
+            {value}
+          </option>
+        {/each}
+      </select>
+
       <div>
-        <input type="role" placeholder="Role" bind:value={role} required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200" />
-      </div>
-      <div>
-        <button type="role" class="w-full px-4 py-2 font-bold text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-200">Confirm</button>
+        <button type="confirm" class="w-full px-4 py-2 font-bold text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-200">Confirm</button>
       </div>
     </form>
   </div>
