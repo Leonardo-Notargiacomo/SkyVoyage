@@ -1,17 +1,16 @@
 package io.github.fontysvenlo.ais.restapi;
 
 import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
-import io.github.fontysvenlo.ais.businesslogic.api.CustomerManager;
 import io.github.fontysvenlo.ais.businesslogic.api.EmployeeManager;
-import io.github.fontysvenlo.ais.datarecords.CustomerData;
 import io.github.fontysvenlo.ais.datarecords.EmployeeData;
 import io.javalin.http.Context;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 public class EmployeeResourceTest {
@@ -34,7 +33,7 @@ public class EmployeeResourceTest {
         // Given we have a list with employees
         when(employeeManager.list()).thenReturn(new ArrayList<>());
 
-        // When we call the get all function to retreive the employees
+        // When we call the get all function to retrieve the employees
         employeeResource.getAll(context);
 
         // Then we should get the context with a status 200
@@ -42,9 +41,9 @@ public class EmployeeResourceTest {
     }
 
     @Test
-    public void testPostEmployees201() {
+    public void testCreateEmployee() {
         // Given we have an employee
-        EmployeeData employeeData = new EmployeeData(0, "John", "Doe", "johndoe@company.com", "johndoe1230", "SalesManager");
+        EmployeeData employeeData = new EmployeeData(0, "John", "Smith", "john.smith@company.com", "johndoe1230", "SalesManager");
         when(employeeManager.add(employeeData)).thenReturn(employeeData);
         when(context.bodyAsClass(EmployeeData.class)).thenReturn(employeeData);
 
@@ -57,7 +56,7 @@ public class EmployeeResourceTest {
     }
 
     @Test
-    public void testPostEmployeesNull400() {
+    public void testCreateEmployeeNull() {
         // Given we have a null employee
         when(context.body()).thenReturn(null);
 
@@ -69,56 +68,46 @@ public class EmployeeResourceTest {
     }
 
     @Test
-    public void testDeleteEmployees() {
-        // Given we have an employee
-        EmployeeData employeeData = new EmployeeData(12, "John", "Doe", "johndoe@company.com", "johndoe1230", "SalesManager");
-        when(employeeManager.add(employeeData)).thenReturn(employeeData);
-        when(context.bodyAsClass(EmployeeData.class)).thenReturn(employeeData);
+    public void testDeleteEmployee() {
+        // Given we have a test employee in our system
         String employeeId = "1";
+        EmployeeData testEmployee = new EmployeeData(1, "John", "Smith", "john.smith@company.com", "johndoe1230", "SalesManager");
+        ArrayList<EmployeeData> employees = new ArrayList<>();
+        employees.add(testEmployee);
+
+        // Set up mock to simulate actual deletion by removing from list
+        doAnswer(invocation -> {
+            String id = invocation.getArgument(0);
+            employees.removeIf(emp -> String.valueOf(emp.id()).equals(id));
+            return null;
+        }).when(employeeManager).delete(employeeId);
+
+        // When we call the delete function
+        employeeResource.delete(context, employeeId);
+
+        // Then we should verify deletion was attempted with correct ID
+        verify(employeeManager).delete(employeeId);
+        // And the employee should be removed from our collection
+        assertTrue(employees.isEmpty(), "Employee should be deleted from collection");
+        // And we should get the context with a status 204
+        verify(context).status(204);
+    }
+
+    @Test
+    public void testDeleteEmployeesNotFound() {
+        // Given we have an employee ID that doesn't exist
+        String employeeId = "999";
+        // And deletion will throw an exception
+        doThrow(new RuntimeException("Employee not found")).when(employeeManager).delete(employeeId);
 
         // When we call the delete function to delete the employee
         employeeResource.delete(context, employeeId);
 
-        // Then we should get the context with a status 405
-        verify(context).status(204);
+        // Then we should get the context with a status 404
+        verify(context).status(404);
+        // And we should get an error message
+        verify(context).json(argThat(arg ->
+                arg instanceof Map && ((Map<?,?>)arg).containsKey("error")
+        ));
     }
-
-//    @Test
-//    public void testGetAllCustomers200() {
-//        // Arrange
-//        when(customerManager.list()).thenReturn(new ArrayList<>());
-//
-//        // Act
-//        customerResource.getAll(context);
-//
-//        // Assert
-//        verify(context).status(200);
-//    }
-//
-//    @Test
-//    public void testPostCustomers201() {
-//        // Arrange
-//        CustomerData customerData = new CustomerData(0, "John", "Doe", LocalDate.of(2025, 1, 1));
-//        when(customerManager.add(customerData)).thenReturn(customerData);
-//        when(context.bodyAsClass(CustomerData.class)).thenReturn(customerData);
-//
-//        // Act
-//        customerResource.create(context);
-//
-//        // Assert
-//        verify(context).status(201);
-//        verify(context).json(customerData);
-//    }
-//
-//    @Test
-//    public void testPostCustomersNull400() {
-//        // Arrange
-//        when(context.body()).thenReturn(null);
-//
-//        // Act
-//        customerResource.create(context);
-//
-//        // Assert
-//        verify(context).status(400);
-//    }
 }
