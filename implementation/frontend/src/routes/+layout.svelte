@@ -1,4 +1,5 @@
 <script>
+    import { page } from '$app/stores';
 	import '../app.css';
 	let { children } = $props();
 </script>
@@ -11,6 +12,7 @@
     </svg>
 </button>
 
+{#if $page.url.pathname !== '/login'}
 <aside id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
     <div class="flex flex-col h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
         <ul class="space-y-2 font-medium">
@@ -40,7 +42,8 @@
         </div>
     </div>
 </aside>
+{/if}
 
-<div class="p-4 sm:ml-64">
+<div class="p-4 {($page.url.pathname !== '/login') ? 'sm:ml-64' : ''}">
     {@render children()}
 </div>
