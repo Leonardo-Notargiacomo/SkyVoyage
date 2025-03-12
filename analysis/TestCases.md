@@ -4,9 +4,9 @@ This document outlines the test cases for the project. Each test case describes 
 
 ---
 
-# Test Case: Create Account
+# Test Case: Create Employee
 
-**Name**: testCreateAccount
+**Name**: testCreateEmployee
 
 **Precondition**: Actor is logged into the system and is on the employee management interface.
 
@@ -36,7 +36,7 @@ This document outlines the test cases for the project. Each test case describes 
 
 **Extension**: N/A
 
-**Name**: testCreateAccountInvalidEmail
+**Name**: testCreateEmployeeInvalidEmail
 
 **Precondition**: Actor is logged into the system and is on the employee management interface.
 
@@ -60,7 +60,7 @@ This document outlines the test cases for the project. Each test case describes 
 
 ---
 
-**Name**: testCreateAccountInvalidInformation
+**Name**: testCreateEmployeeInvalidInformation
 
 **Precondition**: Actor is logged into the system and is on the employee management interface.
 
@@ -87,7 +87,7 @@ This document outlines the test cases for the project. Each test case describes 
 
 ---
 
-**Name**: testCreateAccountSystemError
+**Name**: testCreateEmployeeSystemError
 
 **Precondition**: Actor is logged into the system and is on the employee management interface. The database connection is configured to fail during account creation.
 
