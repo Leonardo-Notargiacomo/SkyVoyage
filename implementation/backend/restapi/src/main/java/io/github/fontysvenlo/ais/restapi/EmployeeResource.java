@@ -1,6 +1,7 @@
 package io.github.fontysvenlo.ais.restapi;
 
 import io.github.fontysvenlo.ais.businesslogic.api.EmployeeManager;
+import io.github.fontysvenlo.ais.businesslogic.api.ValidatorInterface;
 import io.github.fontysvenlo.ais.datarecords.EmployeeData;
 import io.javalin.apibuilder.CrudHandler;
 import io.javalin.http.Context;
@@ -12,12 +13,13 @@ import java.util.Map;
  */
 class EmployeeResource implements CrudHandler {
     final private EmployeeManager employeeManager;
-
+    ValidatorInterface validator;
     /**
      * Initializes the controller with the business logic.
      */
-    EmployeeResource(EmployeeManager employeeManager) {
+    EmployeeResource(EmployeeManager employeeManager, ValidatorInterface validator) {
         this.employeeManager = employeeManager;
+        this.validator = validator;
     }
 
     /**
@@ -32,10 +34,17 @@ class EmployeeResource implements CrudHandler {
             context.status(400);
             return;
         }
+
+        // Validate email format
+        String email = employeeData.email();
+        if (!validator.isValidEmail(email)) {
+            context.status(400);
+            return;
+        }
+
         context.status(201);
         context.json(employeeManager.add(employeeData));
     }
-
     /**
      * Retrieves all customers from the storage.
      * - The status is set to 200 (OK) and the list of customers is returned as JSON.

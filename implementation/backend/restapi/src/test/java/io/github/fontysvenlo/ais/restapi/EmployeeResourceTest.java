@@ -2,6 +2,7 @@ package io.github.fontysvenlo.ais.restapi;
 
 import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
 import io.github.fontysvenlo.ais.businesslogic.api.EmployeeManager;
+import io.github.fontysvenlo.ais.businesslogic.api.ValidatorInterface;
 import io.github.fontysvenlo.ais.datarecords.EmployeeData;
 import io.javalin.http.Context;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,17 +20,19 @@ public class EmployeeResourceTest {
     private BusinessLogic businessLogic;
     private EmployeeManager employeeManager;
     private EmployeeResource employeeResource;
+    private ValidatorInterface validator;
 
     @BeforeEach
     public void setup() {
         businessLogic = mock(BusinessLogic.class);
         employeeManager = mock(EmployeeManager.class);
+        validator = mock(ValidatorInterface.class);
         when(businessLogic.getEmployeeManager()).thenReturn(employeeManager);
-        employeeResource = new EmployeeResource(employeeManager);
+        employeeResource = new EmployeeResource(employeeManager, validator);
     }
 
     @Test
-    public void testGetAllEmployees200() {
+    public void testGetAllEmployees() {
         // Given we have a list with employees
         when(employeeManager.list()).thenReturn(new ArrayList<>());
 
@@ -59,6 +62,19 @@ public class EmployeeResourceTest {
     public void testCreateEmployeeNull() {
         // Given we have a null employee
         when(context.body()).thenReturn(null);
+
+        // When we call the create function to add the employee
+        employeeResource.create(context);
+
+        // Then we should get the context with a status 400
+        verify(context).status(400);
+    }
+
+    @Test
+    public void testCreateEmployeeInvalidInformation() {
+        // Given we have an employee with an invalid email
+        EmployeeData employeeData = new EmployeeData(0, "John", "Smith", "john.smith", "johndoe1230", "SalesManager");
+        when(context.bodyAsClass(EmployeeData.class)).thenReturn(employeeData);
 
         // When we call the create function to add the employee
         employeeResource.create(context);
