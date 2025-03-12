@@ -11,4 +11,10 @@ public interface BusinessLogic {
      */
     CustomerManager getCustomerManager();
 
+    /**
+     * Get the EmployeeManager.
+     * @return the EmployeeManager
+     */
+    EmployeeManager getEmployeeManager();
+
 }
