@@ -17,7 +17,7 @@ This document outlines the test cases for the project. Each test case describes 
 3. Actor enters the required information:
    - Name: "John Smith"
    - Email: "john.smith@company.com"
-   - Role: "Software Developer"
+   - Role: "Sales employee"
 4. System validates the information:
    - Checks if email format is valid
    - Verifies email is not already in use
@@ -47,7 +47,7 @@ This document outlines the test cases for the project. Each test case describes 
 3. Actor enters the following information:
    - Name: "Jane Doe"
    - Email: "john.smith@company.com" (already in use)
-   - Role: "Project Manager"
+   - Role: "Sales employee"
 4. Test checks if the system displays the error message: "Email address is already associated with an existing account. Please use a different email address."
 
 **Result**:
@@ -71,7 +71,7 @@ This document outlines the test cases for the project. Each test case describes 
 3. Actor enters the following information:
    - Name: "" (empty)
    - Email: "invalid-email"
-   - Role: "Software Developer"
+   - Role: "Sales manager"
 4. Actor submits the form.
 5. Test checks if the system displays appropriate error messages for invalid fields.
 
@@ -98,7 +98,7 @@ This document outlines the test cases for the project. Each test case describes 
 3. Actor enters valid information:
    - Name: "Alex Johnson"
    - Email: "alex.johnson@company.com"
-   - Role: "QA Engineer"
+   - Role: "Account manager"
 4. Actor submits the form.
 5. System attempts to create the account but encounters a database connection error.
 6. Test checks if the system displays an appropriate error message.
