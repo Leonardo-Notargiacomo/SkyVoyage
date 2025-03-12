@@ -5,6 +5,8 @@ import io.github.fontysvenlo.ais.datarecords.EmployeeData;
 import io.javalin.apibuilder.CrudHandler;
 import io.javalin.http.Context;
 
+import java.util.Map;
+
 /**
  * This class is responsible for handling the requests for the customer resource.
  */
@@ -32,7 +34,6 @@ class EmployeeResource implements CrudHandler {
         }
         context.status(201);
         context.json(employeeManager.add(employeeData));
-//        throw new UnsupportedOperationException("Not implemented yet");
     }
 
     /**
@@ -45,10 +46,16 @@ class EmployeeResource implements CrudHandler {
         context.json(employeeManager.list());
     }
 
-    @Override
-    public void delete(Context context, String customerId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+@Override
+public void delete(Context context, String employeeId) {
+    try {
+        employeeManager.delete(employeeId);
+        context.status(204); // No Content - successful deletion
+    } catch (Exception e) {
+        context.status(404); // Not Found
+        context.json(Map.of("error", "Employee not found"));
     }
+}
 
     @Override
     public void getOne(Context context, String customerId) {

@@ -31,29 +31,56 @@ public class EmployeeResourceTest {
 
     @Test
     public void testGetAllEmployees200() {
-        // Arrange
+        // Given we have a list with employees
         when(employeeManager.list()).thenReturn(new ArrayList<>());
 
-        // Act
+        // When we call the get all function to retreive the employees
         employeeResource.getAll(context);
 
-        // Assert
+        // Then we should get the context with a status 200
         verify(context).status(200);
     }
 
     @Test
     public void testPostEmployees201() {
-        // Arrange
+        // Given we have an employee
         EmployeeData employeeData = new EmployeeData(0, "John", "Doe", "johndoe@company.com", "johndoe1230", "SalesManager");
         when(employeeManager.add(employeeData)).thenReturn(employeeData);
         when(context.bodyAsClass(EmployeeData.class)).thenReturn(employeeData);
 
-        // Act
+        // When we call the create function to add the employee
         employeeResource.create(context);
 
-        // Assert
+        // Then we should get the context with a status 201 and the employee data
         verify(context).status(201);
         verify(context).json(employeeData);
+    }
+
+    @Test
+    public void testPostEmployeesNull400() {
+        // Given we have a null employee
+        when(context.body()).thenReturn(null);
+
+        // When we call the create function to add the employee
+        employeeResource.create(context);
+
+        // Then we should get the context with a status 400
+        verify(context).status(400);
+    }
+
+    @Test
+    public void testDeleteEmployees() {
+        // Given we have an employee
+        EmployeeData employeeData = new EmployeeData(12, "John", "Doe", "johndoe@company.com", "johndoe1230", "SalesManager");
+        when(employeeManager.add(employeeData)).thenReturn(employeeData);
+        when(context.bodyAsClass(EmployeeData.class)).thenReturn(employeeData);
+        String employeeId = "1";
+
+        // When we call the delete function to delete the employee
+        employeeResource.delete(context, employeeId);
+
+        // Then we should get the context with a status 405
+        verify(context).status(204);
     }
 
 //    @Test
