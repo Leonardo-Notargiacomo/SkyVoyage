@@ -16,7 +16,7 @@
         });
 
         if (response.ok) {
-            goto('/');
+            goto('/dashboard');
         } else {
             console.error('Login failed');
         }

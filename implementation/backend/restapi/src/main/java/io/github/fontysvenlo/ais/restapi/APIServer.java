@@ -4,30 +4,18 @@ import static io.javalin.apibuilder.ApiBuilder.crud;
 
 import io.javalin.Javalin;
 import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
+import io.javalin.http.Context;
+
 import java.util.Map;
 
-/**
- * This class is responsible for starting the REST server and defining the
- * routes.
- */
 public class APIServer {
 
     private final BusinessLogic businessLogic;
 
-    /**
-     * Initializes the REST API server
-     *
-     * @param businessLogic the business logic implementation to communicate
-     * with
-     */
     public APIServer(BusinessLogic businessLogic) {
         this.businessLogic = businessLogic;
     }
 
-    /**
-     * Starts the REST API server
-     * @param configuration the configuration of the server
-     */
     public void start(ServerConfig configuration) {
         var app = Javalin.create(config -> {
             config.router.contextPath = "/api/v1";
@@ -38,14 +26,30 @@ public class APIServer {
             });
             config.router.apiBuilder(() -> {
                 crud("customers/{customer-id}", new CustomerResource(businessLogic.getCustomerManager()));
-                crud("employees/{employee-id}", new EmployeeResource(businessLogic.getEmployeeManager()));
             });
         });
 
+        app.post("/login", this::handleLogin);
         app.exception(IllegalArgumentException.class, (e, ctx) -> {
             ctx.status(422).json(Map.of("error", e.getMessage()));
         });
 
         app.start(configuration.port());
+    }
+
+    private void handleLogin(Context ctx) {
+        try {
+            var loginRequest = ctx.bodyAsClass(LoginRequest.class);
+            var email = loginRequest.getEmail();
+            var password = loginRequest.getPassword();
+
+            if ("user@example.com".equals(email) && "password".equals(password)) {
+                ctx.status(200).json(Map.of("message", "Login successful"));
+            } else {
+                ctx.status(401).json(Map.of("error", "Invalid email or password"));
+            }
+        } catch (Exception e) {
+            ctx.status(400).json(Map.of("error", "Invalid request format"));
+        }
     }
 }
