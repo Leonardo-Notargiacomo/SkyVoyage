@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
 
   let name = '';
-  let email = '';
+  let password = '';
   let role = "Sales employee";
   let options = [
     "Sales employee",
@@ -20,7 +20,7 @@
       </div>
 
       <div>
-        <input type="email" placeholder="Email" bind:value={email} required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200" />
+        <input type="password" placeholder="Password" bind:value={password} required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200" />
       </div>
 
       <select bind:value ={role} placeholder="Role" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200">
