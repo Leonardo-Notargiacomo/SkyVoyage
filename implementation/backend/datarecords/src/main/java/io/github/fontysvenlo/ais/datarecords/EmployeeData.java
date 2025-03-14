@@ -7,9 +7,9 @@ package io.github.fontysvenlo.ais.datarecords;
  * @param id the unique identifier of the employee
  * @param Firstname the first name of the employee
  * @param Lastname the last name of the employee
- * @param email the email of the employee
+ * @param Email the email of the employee
  * @param Password the password of the employee
- * @param type the type of the employee
+ * @param Type the type of the employee
  */
 
-public record EmployeeData (Integer id, String Firstname, String Lastname, String email, String Password, String type) { }
+public record EmployeeData(Integer id, String Firstname, String Lastname, String Email, String Password, String Type) { }

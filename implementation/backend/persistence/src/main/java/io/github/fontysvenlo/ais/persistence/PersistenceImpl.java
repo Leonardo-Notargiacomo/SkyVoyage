@@ -1,6 +1,7 @@
 package io.github.fontysvenlo.ais.persistence;
 
 import io.github.fontysvenlo.ais.persistence.api.CustomerRepository;
+import io.github.fontysvenlo.ais.persistence.api.EmployeeRepository;
 import io.github.fontysvenlo.ais.persistence.api.Persistence;
 
 /**
@@ -20,5 +21,10 @@ class PersistenceImpl implements Persistence{
     @Override
     public CustomerRepository getCustomerRepository() {
         return new CustomerRepositoryImpl(config);
+    }
+
+    @Override
+    public EmployeeRepository getEmployeeRepository() {
+        return new EmployeeRepositoryImpl(config);
     }
 }

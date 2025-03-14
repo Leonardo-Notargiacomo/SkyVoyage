@@ -10,10 +10,10 @@ public interface EmployeeManager {
 
     public List<EmployeeData> list();
 
-    public EmployeeData get(String id);
+    public EmployeeData getOne(String id);
 
     public EmployeeData update(EmployeeData employeeData);
 
-    public void delete(String id);
+    public EmployeeData delete(String id);
 
 }

@@ -13,13 +13,11 @@ import java.util.Map;
  */
 class EmployeeResource implements CrudHandler {
     final private EmployeeManager employeeManager;
-    ValidatorInterface validator;
     /**
      * Initializes the controller with the business logic.
      */
-    EmployeeResource(EmployeeManager employeeManager, ValidatorInterface validator) {
+    EmployeeResource(EmployeeManager employeeManager) {
         this.employeeManager = employeeManager;
-        this.validator = validator;
     }
 
     /**
@@ -29,21 +27,18 @@ class EmployeeResource implements CrudHandler {
      */
     @Override
     public void create(Context context) {
-        EmployeeData employeeData = context.bodyAsClass(EmployeeData.class);
-        if (employeeData == null) {
+        try {
+            EmployeeData employeeData = context.bodyAsClass(EmployeeData.class);
+            if (employeeData == null) {
+                context.status(400);
+                return;
+            }
+            context.status(201);
+            context.json(employeeManager.add(employeeData));
+        } catch (IllegalArgumentException e) {
             context.status(400);
-            return;
+            context.json(Map.of("error", e.getMessage()));
         }
-
-        // Validate email format
-        String email = employeeData.email();
-        if (!validator.isValidEmail(email)) {
-            context.status(400);
-            return;
-        }
-
-        context.status(201);
-        context.json(employeeManager.add(employeeData));
     }
     /**
      * Retrieves all customers from the storage.
@@ -67,8 +62,15 @@ public void delete(Context context, String employeeId) {
 }
 
     @Override
-    public void getOne(Context context, String customerId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+    public void getOne(Context context, String employeeId) {
+        EmployeeData employeeData = employeeManager.getOne(employeeId);
+        if (employeeData != null) {
+            context.status(200);
+            context.json(employeeData);
+        } else {
+            context.status(404);
+            context.json(Map.of("error", "Employee not found"));
+        }
     }
 
     @Override
