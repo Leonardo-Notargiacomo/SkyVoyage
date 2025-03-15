@@ -6,12 +6,12 @@ module restapi_module {
     requires businesslogic_api_module;
     requires datarecords_module;
 
-    requires java.logging;
-    requires java.base;
-        
     requires io.javalin;
     requires com.fasterxml.jackson.databind;
     requires annotations;
+    requires spring.web;
+    requires spring.webmvc;
+    requires spring.context;
 
     exports io.github.fontysvenlo.ais.restapi;
 }

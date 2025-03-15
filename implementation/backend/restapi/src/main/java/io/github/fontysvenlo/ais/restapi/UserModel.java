@@ -1,14 +1,10 @@
 package io.github.fontysvenlo.ais.restapi;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-public class LoginRequest {
-    @JsonProperty("email")
+public class UserModel {
     private String email;
-
-    @JsonProperty("password")
     private String password;
 
+    // Getters and setters
     public String getEmail() {
         return email;
     }

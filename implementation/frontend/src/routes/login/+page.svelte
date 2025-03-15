@@ -3,22 +3,43 @@
 
     let email = '';
     let password = '';
+    let message = '';
 
     async function handleLogin(event) {
         event.preventDefault();
 
-        const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({email, password})
-        });
+        try {
+            const response = await fetch('http://localhost:8080/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({email, password})
+            });
 
-        if (response.ok) {
-            goto('/dashboard');
-        } else {
-            console.error('Login failed');
+            const text = await response.text(); // Read the response as text
+            console.log('Response:', text); // Log the response
+
+            if (text) {
+                try {
+                    const data = JSON.parse(text); // Attempt to parse the response as JSON
+                    message = data.message || data.error;
+                } catch (error) {
+                    console.error('Error parsing JSON:', error);
+                    message = 'Error parsing server response';
+                }
+            } else {
+                message = 'Empty response from server';
+            }
+
+            if (response.ok) {
+                goto('/dashboard');
+            } else {
+                console.error('Login failed');
+            }
+        } catch (error) {
+            console.error('Fetch error:', error);
+            message = 'Network error';
         }
     }
 </script>
