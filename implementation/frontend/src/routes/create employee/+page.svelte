@@ -1,9 +1,11 @@
 <script>
   import { goto } from '$app/navigation';
 
-  let name = '';
+  let firstName = '';
+  let lastName = '';
+  let email = '';
   let password = '';
-  let role = "Sales employee";
+  let type = "Sales employee";
   let options = [
     "Sales employee",
     "Sales manager",
@@ -16,14 +18,22 @@
     <h2 class="text-2xl font-bold text-center text-gray-900">Create an employee account</h2>
     <form class="space-y-4">
       <div>
-        <input type="name" placeholder="Name" bind:value={name} required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200" />
+        <input type="firstName" placeholder="FirstName" bind:value={firstName} required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200" />
+      </div>
+      
+      <div>
+        <input type="lastName" placeholder="LastName" bind:value={lastName} required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200" />
+      </div>
+
+      <div>
+        <input type="email" placeholder="Email" bind:value={email} required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200" />
       </div>
 
       <div>
         <input type="password" placeholder="Password" bind:value={password} required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200" />
       </div>
 
-      <select bind:value ={role} placeholder="Role" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200">
+      <select bind:value ={type} placeholder="Type" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200">
         {#each options as value}
           <option {value}>
             {value}
