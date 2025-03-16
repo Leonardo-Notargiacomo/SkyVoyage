@@ -11,7 +11,7 @@
 
     const load = async () => {
         try{
-            employee = await api.one("create employee", page.params.slug);
+            employee = await api.one("employees", page.params.slug);
         }catch (e) {
             // Handle the error
             console.log(e);
