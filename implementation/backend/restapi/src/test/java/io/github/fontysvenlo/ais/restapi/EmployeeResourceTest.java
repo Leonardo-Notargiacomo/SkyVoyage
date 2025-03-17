@@ -14,9 +14,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 public class EmployeeResourceTest {
+
     private final Context context = mock(Context.class);
 
     private BusinessLogic businessLogic;
@@ -71,7 +73,7 @@ public class EmployeeResourceTest {
 
     @Test
     public void testCreateEmployeeInvalidInformation() {
-        // Given we have an employee with an invalid email
+        // Given we have an employee with invalid data
         EmployeeData employeeData = new EmployeeData(0, "John", "Smith", "john.smith", "john12345", "SalesManager");
         when(context.bodyAsClass(EmployeeData.class)).thenReturn(employeeData);
 
@@ -80,14 +82,45 @@ public class EmployeeResourceTest {
 
         // Then we should get the context with a status 400
         verify(context).status(400);
-        // And we should get an error message
-        verify(context).json(argThat(arg ->
-                arg instanceof Map && ((Map<?,?>)arg).containsKey("error")
-        ));
 
-        ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
-        verify(context).json(captor.capture());
-        System.out.println(captor.getValue().get("error"));
+        // Capture the JSON response
+        ArgumentCaptor<Map<String, Object>> jsonCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(context).json(jsonCaptor.capture());
+
+        // Verify the error response structure
+        Map<String, Object> response = jsonCaptor.getValue();
+        assertThat(response).containsKey("error");
+        assertThat(response).containsKey("validationErrors");
+
+        // Verify specific validation errors
+        @SuppressWarnings("unchecked")
+        Map<String, String> validationErrors = (Map<String, String>) response.get("validationErrors");
+        assertThat(validationErrors).containsKey("email");
+        assertThat(validationErrors).containsKey("password");
+    }
+
+    @Test
+    public void testCreateEmployeeMultipleValidationErrors() {
+        // Given we have an employee with multiple invalid fields
+        EmployeeData employeeData = new EmployeeData(0, "J", "", "invalid-email", "weak", "");
+        when(context.bodyAsClass(EmployeeData.class)).thenReturn(employeeData);
+
+        // When we call the create function
+        employeeResource.create(context);
+
+        // Then we should get status 400 with multiple validation errors
+        verify(context).status(400);
+
+        ArgumentCaptor<Map<String, Object>> jsonCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(context).json(jsonCaptor.capture());
+
+        Map<String, Object> response = jsonCaptor.getValue();
+        @SuppressWarnings("unchecked")
+        Map<String, String> validationErrors = (Map<String, String>) response.get("validationErrors");
+
+        // Should have multiple validation errors
+        assertThat(validationErrors.size()).isGreaterThanOrEqualTo(4);
+        assertThat(validationErrors).containsKeys("firstname", "lastname", "email", "password", "type");
     }
 
     @Test

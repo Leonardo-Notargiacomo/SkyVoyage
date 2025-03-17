@@ -1,12 +1,12 @@
 package io.github.fontysvenlo.ais.businesslogic;
 
+import java.util.List;
+import java.util.logging.Logger;
+
 import io.github.fontysvenlo.ais.businesslogic.api.EmployeeManager;
 import io.github.fontysvenlo.ais.businesslogic.api.ValidatorInterface;
 import io.github.fontysvenlo.ais.datarecords.EmployeeData;
 import io.github.fontysvenlo.ais.persistence.api.EmployeeRepository;
-
-import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Manages customers in the business logic. Linking pin between GUI and
@@ -62,10 +62,7 @@ public class EmployeeManagerImpl implements EmployeeManager {
         if (employeeData.Type().isEmpty()
                 || (!employeeData.Type().equals("SalesManager")
                 && !employeeData.Type().equals("SalesEmployee")
-                && !employeeData.Type().equals("AccountManager")
-                && !employeeData.Type().equals("Sales manager")
-                && !employeeData.Type().equals("Sales employee")
-                && !employeeData.Type().equals("Account manager"))) {
+                && !employeeData.Type().equals("AccountManager"))) {
             logger.warning("Invalid employee type: " + employeeData.Type());
             throw new IllegalArgumentException("Invalid employee Type: " + employeeData.Type());
         }

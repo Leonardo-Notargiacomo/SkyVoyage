@@ -15,6 +15,15 @@
   let options = ["SalesEmployee", "SalesManager", "AccountManager"];
   let errorMessage = $state("");
 
+  // Add field-specific validation errors
+  let validationErrors = $state({
+    firstname: "",
+    lastname: "",
+    email: "",
+    password: "",
+    type: "",
+  });
+
   onMount(() => {
     if (typeof window !== "undefined") {
       window.addEventListener("keydown", handleKeyEvent);
@@ -41,27 +50,15 @@
   const createEmployee = async (e) => {
     e.preventDefault();
     errorMessage = ""; // Clear previous errors
+
+    // Clear all previous validation errors
+    Object.keys(validationErrors).forEach((key) => {
+      validationErrors[key] = "";
+    });
+
     console.log("Creating employee:", $state.snapshot(newEmployee));
 
     try {
-      // Client-side validation
-      if (newEmployee.Firstname.length < 2) {
-        errorMessage = "First name must be at least 2 characters long";
-        return;
-      } else if (newEmployee.Lastname.length < 2) {
-        errorMessage = "Last name must be at least 2 characters long";
-        return;
-      } else if (
-        !newEmployee.Email.includes("@") ||
-        !newEmployee.Email.includes(".")
-      ) {
-        errorMessage = "Please enter a valid email address";
-        return;
-      } else if (newEmployee.Password.length < 8) {
-        errorMessage = "Password must be at least 8 characters long";
-        return;
-      }
-
       // Make the API call
       const response = await api.create(
         "/employees",
@@ -83,17 +80,24 @@
     } catch (error) {
       console.error("Error creating employee:", error);
 
-      // Try to extract error message from response
-      try {
-        const errorResponse = await error.response?.json();
-        if (errorResponse && errorResponse.error) {
-          errorMessage = `Error: ${errorResponse.error}`;
-        } else {
-          errorMessage =
-            "Failed to create employee. Please check your inputs and try again.";
-        }
-      } catch (parseError) {
-        errorMessage = `Failed to create employee: ${error.message || "Unknown error"}`;
+      // Check if we have validation errors in the response
+      if (error.errorData && error.errorData.validationErrors) {
+        const errors = error.errorData.validationErrors;
+
+        // Set each field error
+        if (errors.firstname) validationErrors.firstname = errors.firstname;
+        if (errors.lastname) validationErrors.lastname = errors.lastname;
+        if (errors.email) validationErrors.email = errors.email;
+        if (errors.password) validationErrors.password = errors.password;
+        if (errors.type) validationErrors.type = errors.type;
+
+        errorMessage = "Please correct the errors below.";
+      } else if (error.errorData && error.errorData.error) {
+        // Set general error message
+        errorMessage = error.errorData.error;
+      } else {
+        // Fallback error message
+        errorMessage = "Failed to create employee. Please try again.";
       }
     }
   };
@@ -252,8 +256,15 @@
               placeholder="First name"
               required=""
               bind:value={newEmployee.Firstname}
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+              class="bg-gray-50 border {validationErrors.firstname
+                ? 'border-red-500'
+                : 'border-gray-300'} text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
             />
+            {#if validationErrors.firstname}
+              <p class="mt-1 text-sm text-red-600">
+                {validationErrors.firstname}
+              </p>
+            {/if}
           </div>
           <div class="col-span-2">
             <label
@@ -268,8 +279,15 @@
               placeholder="Last name"
               required=""
               bind:value={newEmployee.Lastname}
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+              class="bg-gray-50 border {validationErrors.lastname
+                ? 'border-red-500'
+                : 'border-gray-300'} text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
             />
+            {#if validationErrors.lastname}
+              <p class="mt-1 text-sm text-red-600">
+                {validationErrors.lastname}
+              </p>
+            {/if}
           </div>
           <div class="col-span-2">
             <label
@@ -284,8 +302,13 @@
               placeholder="name@company.com"
               required=""
               bind:value={newEmployee.Email}
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+              class="bg-gray-50 border {validationErrors.email
+                ? 'border-red-500'
+                : 'border-gray-300'} text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
             />
+            {#if validationErrors.email}
+              <p class="mt-1 text-sm text-red-600">{validationErrors.email}</p>
+            {/if}
           </div>
           <div class="col-span-2">
             <label
@@ -300,8 +323,15 @@
               placeholder="••••••••"
               required=""
               bind:value={newEmployee.Password}
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+              class="bg-gray-50 border {validationErrors.password
+                ? 'border-red-500'
+                : 'border-gray-300'} text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
             />
+            {#if validationErrors.password}
+              <p class="mt-1 text-sm text-red-600">
+                {validationErrors.password}
+              </p>
+            {/if}
           </div>
           <div class="col-span-2">
             <label
@@ -313,17 +343,22 @@
               id="Type"
               name="Type"
               bind:value={newEmployee.Type}
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+              class="bg-gray-50 border {validationErrors.type
+                ? 'border-red-500'
+                : 'border-gray-300'} text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
             >
               {#each options as option}
                 <option value={option}>{option}</option>
               {/each}
             </select>
+            {#if validationErrors.type}
+              <p class="mt-1 text-sm text-red-600">{validationErrors.type}</p>
+            {/if}
           </div>
         </div>
         {#if errorMessage}
           <div
-            class="col-span-2 p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50"
+            class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50"
             role="alert"
           >
             {errorMessage}
