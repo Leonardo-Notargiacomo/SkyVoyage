@@ -1,13 +1,10 @@
 package io.github.fontysvenlo.ais.restapi;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.github.fontysvenlo.ais.businesslogic.Validator;
 import io.github.fontysvenlo.ais.businesslogic.api.EmployeeManager;
-import io.github.fontysvenlo.ais.businesslogic.api.ValidatorInterface;
 import io.github.fontysvenlo.ais.datarecords.EmployeeData;
 import io.javalin.apibuilder.CrudHandler;
 import io.javalin.http.Context;
@@ -20,52 +17,12 @@ class EmployeeResource implements CrudHandler {
 
     private static final Logger logger = Logger.getLogger(EmployeeResource.class.getName());
     final private EmployeeManager employeeManager;
-    final private ValidatorInterface validator;
 
     /**
      * Initializes the controller with the business logic.
      */
     EmployeeResource(EmployeeManager employeeManager) {
         this.employeeManager = employeeManager;
-        this.validator = new Validator();
-    }
-
-    /**
-     * Validates all employee fields and returns a map of validation errors.
-     *
-     * @param employee The employee data to validate
-     * @return A map of field names to error messages, empty if validation
-     * passes
-     */
-    private Map<String, String> validateEmployee(EmployeeData employee) {
-        Map<String, String> errors = new HashMap<>();
-
-        // Validate first name
-        if (employee.Firstname() == null || !validator.isValidName(employee.Firstname())) {
-            errors.put("firstname", "First name must be at least 2 characters and contain only letters");
-        }
-
-        // Validate last name
-        if (employee.Lastname() == null || !validator.isValidName(employee.Lastname())) {
-            errors.put("lastname", "Last name must be at least 2 characters and contain only letters");
-        }
-
-        // Validate email
-        if (employee.Email() == null || !validator.isValidEmail(employee.Email())) {
-            errors.put("email", "Please enter a valid email address");
-        }
-
-        // Validate password
-        if (employee.Password() == null || !validator.isValidPassword(employee.Password())) {
-            errors.put("password", "Password must be at least 8 characters and include uppercase, lowercase, digit, and special character");
-        }
-
-        // Validate employee type
-        if (employee.Type() == null || employee.Type().trim().isEmpty()) {
-            errors.put("type", "Employee type is required");
-        }
-
-        return errors;
     }
 
     /**
@@ -95,27 +52,13 @@ class EmployeeResource implements CrudHandler {
                 return;
             }
 
-            // Validate all employee fields
-            Map<String, String> validationErrors = validateEmployee(employeeData);
-
-            // If there are validation errors, return them with 400 status
-            if (!validationErrors.isEmpty()) {
-                logger.warning("Validation errors: " + validationErrors);
-                context.status(400);
-                context.json(Map.of(
-                        "error", "Validation failed",
-                        "validationErrors", validationErrors
-                ));
-                return;
-            }
-
             // Log individual fields for debugging
             logger.info(String.format(
-                    "Employee fields - Firstname: %s, Lastname: %s, Email: %s, Password: [REDACTED], Type: %s",
-                    employeeData.Firstname(),
-                    employeeData.Lastname(),
-                    employeeData.Email(),
-                    employeeData.Type()
+                "Employee fields - Firstname: %s, Lastname: %s, Email: %s, Password: [REDACTED], Type: '%s'",
+                employeeData.Firstname(),
+                employeeData.Lastname(),
+                employeeData.Email(),
+                employeeData.Type()
             ));
 
             EmployeeData addedEmployee = employeeManager.add(employeeData);

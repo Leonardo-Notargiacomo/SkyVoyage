@@ -58,14 +58,21 @@ public class EmployeeManagerImpl implements EmployeeManager {
             throw new IllegalArgumentException("Invalid employee password: " + employeeData.Password());
         }
 
-        // Accept both formats with space and without space
-        if (employeeData.Type().isEmpty()
+        // Log the exact type being validated
+        logger.info("About to validate employee type: '" + employeeData.Type() + "'");
+        
+        // Updated employee type validation to include "Admin"
+        if (employeeData.Type() == null || employeeData.Type().trim().isEmpty()
                 || (!employeeData.Type().equals("SalesManager")
                 && !employeeData.Type().equals("SalesEmployee")
-                && !employeeData.Type().equals("AccountManager"))) {
-            logger.warning("Invalid employee type: " + employeeData.Type());
-            throw new IllegalArgumentException("Invalid employee Type: " + employeeData.Type());
+                && !employeeData.Type().equals("AccountManager")
+                && !employeeData.Type().equals("Admin"))) {  // Added Admin validation here
+            logger.warning("Invalid employee type: '" + employeeData.Type() + "'");
+            throw new IllegalArgumentException("Invalid employee Type: " + employeeData.Type()
+                    + ". Must be SalesManager, SalesEmployee, AccountManager, or Admin");
         }
+        
+        logger.info("Employee type validation passed for: '" + employeeData.Type() + "'");
 
         Employee employee = new Employee(employeeData);
         return employeeRepository.add(employeeData);

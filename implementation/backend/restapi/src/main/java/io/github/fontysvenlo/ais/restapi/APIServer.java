@@ -42,8 +42,11 @@ public class APIServer {
             });
         });
 
+        // Update this to properly handle validation errors with better debugging
         app.exception(IllegalArgumentException.class, (e, ctx) -> {
-            ctx.status(422).json(Map.of("error", e.getMessage()));
+            System.out.println("ERROR CAUGHT IN API SERVER: " + e.getMessage());
+            e.printStackTrace(); // Print stack trace for debugging
+            ctx.status(400).json(Map.of("error", e.getMessage()));
         });
 
         app.start(configuration.port());

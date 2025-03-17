@@ -12,7 +12,7 @@
     Type: "SalesEmployee",
   });
   let employees = $state([]);
-  let options = ["SalesEmployee", "SalesManager", "AccountManager"];
+  let options = ["SalesEmployee", "SalesManager", "AccountManager", "Admin"];
   let errorMessage = $state("");
 
   // Add field-specific validation errors
@@ -50,22 +50,18 @@
   const createEmployee = async (e) => {
     e.preventDefault();
     errorMessage = ""; // Clear previous errors
-
-    // Clear all previous validation errors
+    
+    // Clear all validation errors
     Object.keys(validationErrors).forEach((key) => {
       validationErrors[key] = "";
     });
-
-    console.log("Creating employee:", $state.snapshot(newEmployee));
-
+    
     try {
       // Make the API call
       const response = await api.create(
         "/employees",
         JSON.stringify($state.snapshot(newEmployee))
       );
-
-      console.log("API response:", response);
 
       // Reset the form
       newEmployee.Firstname = "";
@@ -78,9 +74,8 @@
       await load();
       isOpen = false;
     } catch (error) {
-      console.error("Error creating employee:", error);
 
-      // Check if we have validation errors in the response
+      // Check if we have validation errors
       if (error.errorData && error.errorData.validationErrors) {
         const errors = error.errorData.validationErrors;
 
@@ -93,8 +88,8 @@
 
         errorMessage = "Please correct the errors below.";
       } else if (error.errorData && error.errorData.error) {
-        // Set general error message
-        errorMessage = error.errorData.error;
+        // Show general error message with details for debugging
+        errorMessage = `Error: ${error.errorData.error}`;
       } else {
         // Fallback error message
         errorMessage = "Failed to create employee. Please try again.";
@@ -347,9 +342,11 @@
                 ? 'border-red-500'
                 : 'border-gray-300'} text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
             >
-              {#each options as option}
-                <option value={option}>{option}</option>
-              {/each}
+              <!-- Hard-code the values to ensure exact format -->
+              <option value="SalesEmployee">Sales Employee</option>
+              <option value="SalesManager">Sales Manager</option>
+              <option value="AccountManager">Account Manager</option>
+              <option value="Admin">Admin</option>
             </select>
             {#if validationErrors.type}
               <p class="mt-1 text-sm text-red-600">{validationErrors.type}</p>
