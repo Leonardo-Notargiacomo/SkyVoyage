@@ -1,8 +1,9 @@
 package io.github.fontysvenlo.ais.restapi;
 
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.github.fontysvenlo.ais.businesslogic.api.EmployeeManager;
 import io.github.fontysvenlo.ais.datarecords.EmployeeData;
@@ -10,12 +11,11 @@ import io.javalin.apibuilder.CrudHandler;
 import io.javalin.http.Context;
 
 /**
- * This class is responsible for handling the requests for the customer
- * resource.
+ * This class is responsible for handling the requests for the employee resource.
  */
 class EmployeeResource implements CrudHandler {
 
-    private static final Logger logger = Logger.getLogger(EmployeeResource.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(EmployeeResource.class);
     final private EmployeeManager employeeManager;
 
     /**
@@ -26,60 +26,36 @@ class EmployeeResource implements CrudHandler {
     }
 
     /**
-     * Adds a customer to the storage.
+     * Adds an employee to the storage.
+     * - If the employee data is null, the status is set to 400 (Bad Request).
+     * - Otherwise, the status is set to 201 (Created) and the added employee is returned as JSON.
      */
     @Override
     public void create(Context context) {
         try {
-            logger.info("Received create employee request");
-            String body = context.body();
-            logger.info("Request body: " + body);
-
-            if (body == null || body.isEmpty()) {
-                logger.warning("Request body is null or empty");
-                context.status(400);
-                context.json(Map.of("error", "Request body cannot be empty"));
-                return;
-            }
-
             EmployeeData employeeData = context.bodyAsClass(EmployeeData.class);
-            logger.info("Parsed employee data: " + employeeData);
-
             if (employeeData == null) {
-                logger.warning("Failed to parse employee data from request");
                 context.status(400);
-                context.json(Map.of("error", "Invalid employee data format"));
+                logger.error("Received null employee data");
                 return;
             }
-
-            // Log individual fields for debugging
-            logger.info(String.format(
-                "Employee fields - Firstname: %s, Lastname: %s, Email: %s, Password: [REDACTED], Type: '%s'",
-                employeeData.Firstname(),
-                employeeData.Lastname(),
-                employeeData.Email(),
-                employeeData.Type()
-            ));
-
-            EmployeeData addedEmployee = employeeManager.add(employeeData);
+            logger.info("Received employee data: {}", employeeData);
             context.status(201);
-            context.json(addedEmployee);
-            logger.info("Employee created successfully with ID: " + addedEmployee.id());
-
+            context.json(employeeManager.add(employeeData));
         } catch (IllegalArgumentException e) {
-            logger.log(Level.WARNING, "Invalid employee data", e);
             context.status(400);
+            logger.error("Error adding employee: {}", e.getMessage());
             context.json(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Unexpected error creating employee", e);
             context.status(500);
-            context.json(Map.of("error", "Server error: " + e.getMessage()));
+            logger.error("Unexpected error: {}", e.getMessage());
+            context.json(Map.of("error", "Unexpected error occurred"));
         }
     }
 
     /**
-     * Retrieves all customers from the storage. - The status is set to 200 (OK)
-     * and the list of customers is returned as JSON.
+     * Retrieves all employees from the storage.
+     * - The status is set to 200 (OK) and the list of employees is returned as JSON.
      */
     @Override
     public void getAll(Context context) {
@@ -111,7 +87,7 @@ class EmployeeResource implements CrudHandler {
     }
 
     @Override
-    public void update(Context context, String customerId) {
+    public void update(Context context, String employeeId) {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 }

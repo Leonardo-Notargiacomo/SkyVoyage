@@ -12,7 +12,7 @@
     Type: "SalesEmployee",
   });
   let employees = $state([]);
-  let options = ["SalesEmployee", "SalesManager", "AccountManager", "Admin"];
+  let options = ["SalesEmployee", "SalesManager", "AccountManager"];
   let errorMessage = $state("");
 
   // Add field-specific validation errors
@@ -50,12 +50,12 @@
   const createEmployee = async (e) => {
     e.preventDefault();
     errorMessage = ""; // Clear previous errors
-    
+
     // Clear all validation errors
     Object.keys(validationErrors).forEach((key) => {
       validationErrors[key] = "";
     });
-    
+
     try {
       // Make the API call
       const response = await api.create(
@@ -74,22 +74,52 @@
       await load();
       isOpen = false;
     } catch (error) {
-
       // Check if we have validation errors
       if (error.errorData && error.errorData.validationErrors) {
         const errors = error.errorData.validationErrors;
 
-        // Set each field error
-        if (errors.firstname) validationErrors.firstname = errors.firstname;
-        if (errors.lastname) validationErrors.lastname = errors.lastname;
-        if (errors.email) validationErrors.email = errors.email;
-        if (errors.password) validationErrors.password = errors.password;
-        if (errors.type) validationErrors.type = errors.type;
+        // Map API errors to form fields, handling different case formats
+        Object.keys(errors).forEach((key) => {
+          // Convert API field names to lowercase for matching
+          const lowerKey = key.toLowerCase();
+          if (lowerKey === "firstname" || lowerKey === "first_name")
+            validationErrors.firstname = errors[key];
+          if (lowerKey === "lastname" || lowerKey === "last_name")
+            validationErrors.lastname = errors[key];
+          if (lowerKey === "email") validationErrors.email = errors[key];
+          if (lowerKey === "password") validationErrors.password = errors[key];
+          if (lowerKey === "type") validationErrors.type = errors[key];
+        });
 
         errorMessage = "Please correct the errors below.";
       } else if (error.errorData && error.errorData.error) {
-        // Show general error message with details for debugging
-        errorMessage = `Error: ${error.errorData.error}`;
+        // Try to extract field-specific errors from the general error message
+        const errorMsg = error.errorData.error;
+
+        // Handle specific error messages based on content
+        if (errorMsg.includes("name")) {
+          if (errorMsg.toLowerCase().includes("first")) {
+            validationErrors.firstname = errorMsg;
+          } else if (errorMsg.toLowerCase().includes("last")) {
+            validationErrors.lastname = errorMsg;
+          } else {
+            // General name error
+            validationErrors.firstname = errorMsg;
+            validationErrors.lastname = errorMsg;
+          }
+        } else if (errorMsg.includes("email")) {
+          validationErrors.email = errorMsg;
+        } else if (errorMsg.includes("password")) {
+          validationErrors.password = errorMsg;
+        } else if (
+          errorMsg.includes("type") ||
+          errorMsg.includes("employee type")
+        ) {
+          validationErrors.type = errorMsg;
+        } else {
+          // Fallback to general error message
+          errorMessage = `Error: ${errorMsg}`;
+        }
       } else {
         // Fallback error message
         errorMessage = "Failed to create employee. Please try again.";
@@ -172,9 +202,11 @@
     <tbody>
       {#each employees as employee}
         <tr class="odd:bg-white even:bg-gray-50 border-gray-200 font-medium">
-          <th class="px-6 py-4">{employee.Lastname}, {employee.Firstname}</th>
+          <th class="px-6 py-4">{employee.Firstname} {employee.Lastname}</th>
           <td class="px-6 py-4">{employee.Email}</td>
-          <td class="px-6 py-4">{employee.Type}</td>
+          <td class="px-6 py-4"
+            >{employee.Type.replace(/([A-Z])/g, " $1").trim()}</td
+          >
           <td class="px-6 py-4">
             <a
               href="/employees/{employee.id}"
@@ -342,11 +374,11 @@
                 ? 'border-red-500'
                 : 'border-gray-300'} text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
             >
-              <!-- Hard-code the values to ensure exact format -->
-              <option value="SalesEmployee">Sales Employee</option>
-              <option value="SalesManager">Sales Manager</option>
-              <option value="AccountManager">Account Manager</option>
-              <option value="Admin">Admin</option>
+              {#each options as option}
+                <option value={option}
+                  >{option.replace(/([A-Z])/g, " $1").trim()}</option
+                >
+              {/each}
             </select>
             {#if validationErrors.type}
               <p class="mt-1 text-sm text-red-600">{validationErrors.type}</p>

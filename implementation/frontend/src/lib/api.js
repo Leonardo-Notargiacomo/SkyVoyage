@@ -12,7 +12,9 @@ const fetchAPI = async (resource, options = {}) => {
 export const api = {
     async fetchAPI(endpoint, options = {}) {
         const baseUrl = 'http://localhost:8080/api/v1';
-        const url = `${baseUrl}${endpoint}`;
+        // Fix: Ensure there's a leading slash on the endpoint if it doesn't start with one
+        const formattedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+        const url = `${baseUrl}${formattedEndpoint}`;
 
         options.headers = {
             'Content-Type': 'application/json',
@@ -20,7 +22,28 @@ export const api = {
         };
 
         try {
-            const response = await fetch(url, options);
+            // Clear debug message before each request
+            console.clear();
+            console.log(`API REQUEST: ${options.method || 'GET'} to ${url}`);
+            if (options.body) {
+                console.log('REQUEST BODY:', options.body);
+                // Log as parsed JSON for better debugging
+                try {
+                    const parsedBody = JSON.parse(options.body);
+                    console.log('PARSED BODY:', parsedBody);
+                } catch (e) {
+                    console.log('BODY IS NOT VALID JSON');
+                }
+            }
+
+            // Try using a different approach for PUT requests as a workaround
+            const response = await fetch(url, {
+                ...options,
+                // Ensure method is uppercase
+                method: options.method ? options.method.toUpperCase() : 'GET'
+            });
+
+            console.log(`API RESPONSE STATUS: ${response.status} ${response.statusText}`);
 
             // For debugging
             console.log(`API ${options.method || 'GET'} ${url} status: ${response.status}`);
@@ -65,5 +88,22 @@ export const api = {
         });
     },
 
-    // ... other methods
+    async getOne(endpoint, id) {
+        return this.fetchAPI(`${endpoint}/${id}`);
+    },
+
+    async update(endpoint, id, data) {
+        console.log(`Sending PUT request to ${endpoint}/${id}`);
+        // Attempt with both direct concatenation and template literals
+        return this.fetchAPI(`${endpoint}/${id}`, {
+            method: 'PUT',
+            body: data
+        });
+    },
+
+    async delete(endpoint, id) {
+        return this.fetchAPI(`${endpoint}/${id}`, {
+            method: 'DELETE'
+        });
+    }
 };

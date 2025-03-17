@@ -1,10 +1,10 @@
 package io.github.fontysvenlo.ais.restapi;
 
-import java.util.Map;
-
-import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
-import io.javalin.Javalin;
 import static io.javalin.apibuilder.ApiBuilder.crud;
+
+import io.javalin.Javalin;
+import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
+import java.util.Map;
 
 /**
  * This class is responsible for starting the REST server and defining the
@@ -42,11 +42,8 @@ public class APIServer {
             });
         });
 
-        // Update this to properly handle validation errors with better debugging
         app.exception(IllegalArgumentException.class, (e, ctx) -> {
-            System.out.println("ERROR CAUGHT IN API SERVER: " + e.getMessage());
-            e.printStackTrace(); // Print stack trace for debugging
-            ctx.status(400).json(Map.of("error", e.getMessage()));
+            ctx.status(422).json(Map.of("error", e.getMessage()));
         });
 
         app.start(configuration.port());

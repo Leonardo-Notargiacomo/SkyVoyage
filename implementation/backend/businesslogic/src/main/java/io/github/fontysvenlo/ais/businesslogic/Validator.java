@@ -10,7 +10,7 @@ public class Validator implements ValidatorInterface {
     private static final Logger logger = Logger.getLogger(Validator.class.getName());
 
     private static final Pattern EMAIL_PATTERN
-            = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
+            = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+\\..+)$");
 
     private static final Pattern PASSWORD_PATTERN
             = Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$");
@@ -59,21 +59,5 @@ public class Validator implements ValidatorInterface {
                 + ", hasSpecial: " + hasSpecial);
 
         return hasDigit && hasLower && hasUpper && hasSpecial;
-    }
-
-    /**
-     * If this method exists, it might be validating employee types separately
-     * and not include "Admin" as a valid type
-     */
-    public boolean isValidEmployeeType(String type) {
-        if (type == null || type.trim().isEmpty()) {
-            return false;
-        }
-
-        // Update to include "Admin" as valid type
-        return type.equals("SalesManager") || 
-               type.equals("SalesEmployee") || 
-               type.equals("AccountManager") ||
-               type.equals("Admin");
     }
 }
