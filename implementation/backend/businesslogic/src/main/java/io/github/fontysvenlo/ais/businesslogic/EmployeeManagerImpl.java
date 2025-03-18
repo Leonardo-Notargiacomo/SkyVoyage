@@ -1,18 +1,21 @@
 package io.github.fontysvenlo.ais.businesslogic;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import io.github.fontysvenlo.ais.businesslogic.api.EmployeeManager;
+import io.github.fontysvenlo.ais.businesslogic.api.ValidatorInterface;
 import io.github.fontysvenlo.ais.datarecords.EmployeeData;
 import io.github.fontysvenlo.ais.persistence.api.EmployeeRepository;
 
 /**
- * Manages employees in the business logic.
- * Linking pin between GUI and persistence. Connected to EmployeeRepository
- * in order to retrieve employees and to persist changes.
+ * Manages employees in the business logic. Linking pin between GUI and
+ * persistence. Connected to EmployeeRepository in order to retrieve employees
+ * and to persist changes.
  */
 public class EmployeeManagerImpl implements EmployeeManager {
 
+    private static final Logger logger = Logger.getLogger(EmployeeManagerImpl.class.getName());
     private final EmployeeRepository employeeRepository;
 
     /**
@@ -32,7 +35,33 @@ public class EmployeeManagerImpl implements EmployeeManager {
      */
     @Override
     public EmployeeData add(EmployeeData employeeData) {
-        // Validate
+        ValidatorInterface validator = new Validator();
+
+        if (!validator.isValidName(employeeData.Firstname())) {
+            throw new IllegalArgumentException("Invalid employee name: " + employeeData.Firstname());
+        }
+
+        if (!validator.isValidName(employeeData.Lastname())) {
+            throw new IllegalArgumentException("Invalid employee name: " + employeeData.Lastname());
+        }
+
+        if (!validator.isValidEmail(employeeData.Email())) {
+            throw new IllegalArgumentException("Invalid employee email: " + employeeData.Email());
+        }
+
+        if (!validator.isValidPassword(employeeData.Password())) {
+            throw new IllegalArgumentException("Invalid employee password: " + employeeData.Password());
+        }
+
+        // Updated employee type validation to include "Admin"
+        if (employeeData.Type() == null || employeeData.Type().trim().isEmpty()
+                || (!employeeData.Type().equals("SalesManager")
+                && !employeeData.Type().equals("SalesEmployee")
+                && !employeeData.Type().equals("AccountManager")
+                && !employeeData.Type().equals("Admin"))) {
+            throw new IllegalArgumentException("Invalid employee type: " + employeeData.Type());
+        }
+
         Employee employee = new Employee(employeeData);
         return employeeRepository.add(employeeData);
     }
@@ -54,7 +83,7 @@ public class EmployeeManagerImpl implements EmployeeManager {
 
     @Override
     public EmployeeData update(EmployeeData employeeData) {
-        return null;
+        return employeeRepository.update(employeeData);
     }
 
     @Override

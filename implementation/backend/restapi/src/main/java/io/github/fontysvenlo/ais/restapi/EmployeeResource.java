@@ -11,7 +11,8 @@ import io.javalin.apibuilder.CrudHandler;
 import io.javalin.http.Context;
 
 /**
- * This class is responsible for handling the requests for the employee resource.
+ * This class is responsible for handling the requests for the employee
+ * resource.
  */
 class EmployeeResource implements CrudHandler {
 
@@ -26,9 +27,9 @@ class EmployeeResource implements CrudHandler {
     }
 
     /**
-     * Adds an employee to the storage.
-     * - If the employee data is null, the status is set to 400 (Bad Request).
-     * - Otherwise, the status is set to 201 (Created) and the added employee is returned as JSON.
+     * Adds an employee to the storage. - If the employee data is null, the
+     * status is set to 400 (Bad Request). - Otherwise, the status is set to 201
+     * (Created) and the added employee is returned as JSON.
      */
     @Override
     public void create(Context context) {
@@ -37,11 +38,13 @@ class EmployeeResource implements CrudHandler {
             if (employeeData == null) {
                 context.status(400);
                 logger.error("Received null employee data");
+                context.json(Map.of("error", "Invalid employee data format"));
                 return;
             }
             logger.info("Received employee data: {}", employeeData);
+            EmployeeData addedEmployee = employeeManager.add(employeeData);
             context.status(201);
-            context.json(employeeManager.add(employeeData));
+            context.json(addedEmployee);
         } catch (IllegalArgumentException e) {
             context.status(400);
             logger.error("Error adding employee: {}", e.getMessage());
@@ -54,8 +57,8 @@ class EmployeeResource implements CrudHandler {
     }
 
     /**
-     * Retrieves all employees from the storage.
-     * - The status is set to 200 (OK) and the list of employees is returned as JSON.
+     * Retrieves all employees from the storage. - The status is set to 200 (OK)
+     * and the list of employees is returned as JSON.
      */
     @Override
     public void getAll(Context context) {

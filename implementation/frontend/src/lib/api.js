@@ -96,7 +96,7 @@ export const api = {
         console.log(`Sending PUT request to ${endpoint}/${id}`);
         // Attempt with both direct concatenation and template literals
         return this.fetchAPI(`${endpoint}/${id}`, {
-            method: 'PUT',
+            method: 'PATCH',
             body: data
         });
     },
