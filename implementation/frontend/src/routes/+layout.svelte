@@ -35,7 +35,7 @@
                     <span class="font-medium text-gray-600 dark:text-gray-300">LN</span>
                 </div>
                 <div class="font-medium dark:text-white">
-                    <div>Leonardo Notargiacomo</div>
+                    <div>Soheil Abdali</div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">Software Developer</div>
                 </div>
             </div>
