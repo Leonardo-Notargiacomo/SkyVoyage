@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import io.github.fontysvenlo.ais.businesslogic.api.EmployeeManager;
 import io.github.fontysvenlo.ais.businesslogic.api.ValidatorInterface;
+import io.github.fontysvenlo.ais.businesslogic.resources.ErrorMessages;
 import io.github.fontysvenlo.ais.datarecords.EmployeeData;
 import io.github.fontysvenlo.ais.persistence.api.EmployeeRepository;
 
@@ -38,19 +39,19 @@ public class EmployeeManagerImpl implements EmployeeManager {
         ValidatorInterface validator = new Validator();
 
         if (!validator.isValidName(employeeData.Firstname())) {
-            throw new IllegalArgumentException("Invalid employee name: " + employeeData.Firstname());
+            throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_name"));
         }
 
         if (!validator.isValidName(employeeData.Lastname())) {
-            throw new IllegalArgumentException("Invalid employee name: " + employeeData.Lastname());
+            throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_name"));
         }
 
         if (!validator.isValidEmail(employeeData.Email())) {
-            throw new IllegalArgumentException("Invalid employee email: " + employeeData.Email());
+            throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_email"));
         }
 
         if (!validator.isValidPassword(employeeData.Password())) {
-            throw new IllegalArgumentException("Invalid employee password: " + employeeData.Password());
+            throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_password"));
         }
 
         // Updated employee type validation to include "Admin"
@@ -59,7 +60,7 @@ public class EmployeeManagerImpl implements EmployeeManager {
                 && !employeeData.Type().equals("SalesEmployee")
                 && !employeeData.Type().equals("AccountManager")
                 && !employeeData.Type().equals("Admin"))) {
-            throw new IllegalArgumentException("Invalid employee type: " + employeeData.Type());
+            throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_type"));
         }
 
         Employee employee = new Employee(employeeData);

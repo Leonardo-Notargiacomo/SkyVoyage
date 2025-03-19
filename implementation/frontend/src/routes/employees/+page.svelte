@@ -109,7 +109,7 @@
           }
         } else if (errorMsg.includes("email")) {
           validationErrors.email = errorMsg;
-        } else if (errorMsg.includes("password")) {
+        } else if (errorMsg.includes("Password")) {
           validationErrors.password = errorMsg;
         } else if (
           errorMsg.includes("type") ||
