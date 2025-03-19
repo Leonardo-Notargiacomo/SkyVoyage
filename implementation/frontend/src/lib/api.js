@@ -93,7 +93,7 @@ export const api = {
     },
 
     async update(endpoint, id, data) {
-        console.log(`Sending PUT request to ${endpoint}/${id}`);
+        console.log(`Sending PATCH request to ${endpoint}/${id}`);
         // Attempt with both direct concatenation and template literals
         return this.fetchAPI(`${endpoint}/${id}`, {
             method: 'PATCH',
