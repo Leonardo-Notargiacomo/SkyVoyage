@@ -43,13 +43,14 @@
 
       console.log("Sending update for employee:", employeeToUpdate);
 
-      // Try a different approach to call the API
       const slug = $page.params.slug;
       console.log(`Calling API update for employees/${slug}`);
 
       // Use update method with proper data formatting
-      await api.update("employees", slug, JSON.stringify(employeeToUpdate));
-
+      const updatedEmployee = await api.update("employees", slug, JSON.stringify(employeeToUpdate));
+      
+      // Refresh the employee data with the response
+      employee = updatedEmployee;
       message = "Employee updated successfully!";
       error = "";
       isEditing = false;

@@ -91,6 +91,47 @@ class EmployeeResource implements CrudHandler {
 
     @Override
     public void update(Context context, String employeeId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        try {
+            EmployeeData employeeData = context.bodyAsClass(EmployeeData.class);
+            if (employeeData == null) {
+                context.status(400);
+                logger.error("Received null employee data");
+                context.json(Map.of("error", "Invalid employee data format"));
+                return;
+            }
+            
+            // Ensure the ID in the path matches the ID in the body
+            try {
+                int id = Integer.parseInt(employeeId);
+                if (employeeData.id() != id) {
+                    context.status(400);
+                    context.json(Map.of("error", "Employee ID mismatch"));
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                context.status(400);
+                context.json(Map.of("error", "Invalid employee ID format"));
+                return;
+            }
+            
+            logger.info("Updating employee data: {}", employeeData);
+            EmployeeData updatedEmployee = employeeManager.update(employeeData);
+            
+            if (updatedEmployee != null) {
+                context.status(200);
+                context.json(updatedEmployee);
+            } else {
+                context.status(404);
+                context.json(Map.of("error", "Employee not found"));
+            }
+        } catch (IllegalArgumentException e) {
+            context.status(400);
+            logger.error("Error updating employee: {}", e.getMessage());
+            context.json(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            context.status(500);
+            logger.error("Unexpected error during update: {}", e.getMessage(), e);
+            context.json(Map.of("error", "Unexpected error occurred"));
+        }
     }
 }

@@ -94,9 +94,8 @@ export const api = {
 
     async update(endpoint, id, data) {
         console.log(`Sending PATCH request to ${endpoint}/${id}`);
-        // Attempt with both direct concatenation and template literals
         return this.fetchAPI(`${endpoint}/${id}`, {
-            method: 'PATCH',
+            method: 'PATCH',  // Changed back to PATCH as the server expects this
             body: data
         });
     },

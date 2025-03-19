@@ -84,6 +84,39 @@ public class EmployeeManagerImpl implements EmployeeManager {
 
     @Override
     public EmployeeData update(EmployeeData employeeData) {
+        ValidatorInterface validator = new Validator();
+
+        // Validate required fields and formats
+        if (employeeData.Firstname() == null || employeeData.Firstname().trim().isEmpty() ||
+            !validator.isValidName(employeeData.Firstname())) {
+            throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_name"));
+        }
+
+        if (employeeData.Lastname() == null || employeeData.Lastname().trim().isEmpty() ||
+            !validator.isValidName(employeeData.Lastname())) {
+            throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_name"));
+        }
+
+        if (employeeData.Email() == null || employeeData.Email().trim().isEmpty() ||
+            !validator.isValidEmail(employeeData.Email())) {
+            throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_email"));
+        }
+
+        // Password validation is only required if a new password is provided
+        if (employeeData.Password() != null && !employeeData.Password().trim().isEmpty() && 
+            !validator.isValidPassword(employeeData.Password())) {
+            throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_password"));
+        }
+
+        // Employee type validation
+        if (employeeData.Type() == null || employeeData.Type().trim().isEmpty() ||
+            (!employeeData.Type().equals("SalesManager") && 
+             !employeeData.Type().equals("SalesEmployee") && 
+             !employeeData.Type().equals("AccountManager") &&
+             !employeeData.Type().equals("Admin"))) {
+            throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_type"));
+        }
+
         return employeeRepository.update(employeeData);
     }
 

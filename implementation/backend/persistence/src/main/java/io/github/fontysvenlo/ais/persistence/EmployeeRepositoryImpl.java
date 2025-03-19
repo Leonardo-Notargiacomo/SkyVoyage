@@ -35,19 +35,13 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
 
     @Override
     public EmployeeData update(EmployeeData employeeData) {
-        // Check if employee with the given id exists
-        boolean employeeExists = employees.stream()
-                .anyMatch(employee -> employee.id() == employeeData.id());
-
-        if (employeeExists) {
-            // Remove the old employee entry
-            employees.removeIf(employee -> employee.id() == employeeData.id());
-            // Add the updated employee
-            employees.add(employeeData);
-            return employeeData;
+        for (int i = 0; i < employees.size(); i++) {
+            if (employees.get(i).id() == employeeData.id()) {
+                employees.set(i, employeeData);
+                return employeeData;
+            }
         }
-
-        return null; // Return null if employee with given id not found
+        return null;
     }
 
     @Override
