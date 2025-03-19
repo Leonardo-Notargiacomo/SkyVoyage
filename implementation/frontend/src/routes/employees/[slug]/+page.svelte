@@ -71,8 +71,8 @@
   const deleteEmployee = async () => {
     if (confirm("Are you sure you want to delete this employee?")) {
       try {
-        // Use the correct API method for deletion
-        await api.delete(`employees/${$page.params.slug}`);
+        // Fix the delete API call - use just the employee ID without additional parameters
+        await api.delete(`employees/${$page.params.slug}`, null);
         message = "Employee deleted successfully!";
         error = "";
         // Navigate back to employees list after deletion

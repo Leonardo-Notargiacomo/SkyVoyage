@@ -102,7 +102,10 @@ export const api = {
     },
 
     async delete(endpoint, id) {
-        return this.fetchAPI(`${endpoint}/${id}`, {
+        // Check if id is null/undefined or if the endpoint already includes the id
+        const url = id ? `${endpoint}/${id}` : endpoint;
+
+        return this.fetchAPI(url, {
             method: 'DELETE'
         });
     }
