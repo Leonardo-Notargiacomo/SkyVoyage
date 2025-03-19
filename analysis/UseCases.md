@@ -35,3 +35,35 @@ This document outlines the use cases for the project. Each use case describes a 
 4. Return to step 5.
 
 ---
+
+# Use Case: Search Flights 
+
+**Actor**: Sales Employee
+
+**Description**: Sales Employee search for flights for a customer.
+
+**Precondition**: Sales Employee is logged into the system.
+
+**Scenario**:
+1. Actor inputs flight details in the search section (arrival, depature, date, ...).
+2. System displays the employee all available flights.
+3. Actor selects the preferd flight to create a new booking.
+4. System prompts the actor to enter the booking details (firstname, lastname, email ).
+5. Actor enters the required information.
+6. System validates the information and create new booking.
+
+**Result**: Sales Employee successfully search for a flight and creates a new booking for the customer.
+
+**Exception**:
+- **4a.** 
+- **6a.** 
+- **6b.** 
+
+**Extensions**:
+- **5a** Account manager can assign an additional role to the employee. 
+1. 
+2. 
+3. 
+4. 
+
+---
