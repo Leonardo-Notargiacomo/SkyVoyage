@@ -47,8 +47,12 @@
       console.log(`Calling API update for employees/${slug}`);
 
       // Use update method with proper data formatting
-      const updatedEmployee = await api.update("employees", slug, JSON.stringify(employeeToUpdate));
-      
+      const updatedEmployee = await api.update(
+        "employees",
+        slug,
+        JSON.stringify(employeeToUpdate)
+      );
+
       // Refresh the employee data with the response
       employee = updatedEmployee;
       message = "Employee updated successfully!";

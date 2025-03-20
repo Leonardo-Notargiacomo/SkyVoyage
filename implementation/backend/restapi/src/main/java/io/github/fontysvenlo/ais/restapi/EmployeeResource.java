@@ -99,7 +99,7 @@ class EmployeeResource implements CrudHandler {
                 context.json(Map.of("error", "Invalid employee data format"));
                 return;
             }
-            
+
             // Ensure the ID in the path matches the ID in the body
             try {
                 int id = Integer.parseInt(employeeId);
@@ -113,10 +113,10 @@ class EmployeeResource implements CrudHandler {
                 context.json(Map.of("error", "Invalid employee ID format"));
                 return;
             }
-            
+
             logger.info("Updating employee data: {}", employeeData);
             EmployeeData updatedEmployee = employeeManager.update(employeeData);
-            
+
             if (updatedEmployee != null) {
                 context.status(200);
                 context.json(updatedEmployee);
