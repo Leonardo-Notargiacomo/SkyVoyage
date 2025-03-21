@@ -1,0 +1,23 @@
+{
+  "messages": {
+    "created": "Successfully created",
+    "updated": "Successfully updated",
+    "deleted": "Successfully deleted",
+    "error": "Unable to process the current request",
+    "unknown": "Unknown error",
+    "invalid": "Invalid input: {0}",
+    "invalid_credentials": "Invalid credentials",
+    "invalid_token": "Invalid token",
+    "invalid_email": "Invalid email address format, {0}. Make sure it has a @ and a valid domain (e.g. example@mail.com)",
+    "invalid_password": "Password must be at least 8 characters and include uppercase, lowercase, numbers and special characters",
+    "invalid_name": "Name must be at least 2 characters and contain only valid name characters",
+    "invalid_phone": "Invalid phone number format",
+    "invalid_type": "Invalid employee type - must be SalesManager, SalesEmployee or AccountManager",
+    "not_found": "Resource not found",
+    "employee_not_found": "Employee not found",
+    "customer_not_found": "Customer not found",
+    "duplicate_email": "Email address already exists",
+    "server_error": "An unexpected server error occurred",
+    "validation_error": "Please fix the validation errors and try again"
+  }
+}

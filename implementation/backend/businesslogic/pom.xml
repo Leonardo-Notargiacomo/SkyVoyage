@@ -23,5 +23,11 @@
             <artifactId>businesslogic-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- Add Jackson Databind dependency -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.16.1</version>
+        </dependency>
     </dependencies>
 </project>

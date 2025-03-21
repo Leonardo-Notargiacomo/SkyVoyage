@@ -18,6 +18,9 @@ public interface Persistence {
         return null;
     }
 
+    EmployeeRepository getEmployeeRepository();
+
+
     // This interface can be extended with other repositories that need to be made
     // available to the business logic, e.g. to manage flights:
     //
