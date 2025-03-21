@@ -80,7 +80,7 @@
       message = "Employee deleted successfully!";
       error = "";
       showDeleteModal = false; // Close the modal
-      // Clear employee data immediately 
+      // Clear employee data immediately
       employee = {};
       // Navigate back to employees list after deletion
       setTimeout(() => goto("/employees"), 1500);
@@ -432,7 +432,7 @@
           {employee.Lastname}? This action cannot be undone.
         </p>
         <div class="flex justify-end space-x-3">
-            <button
+          <button
             on:click={toggleDeleteModal}
             class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-5 rounded-lg shadow-sm transition-all duration-200 transform hover:-translate-y-0.5"
           >
