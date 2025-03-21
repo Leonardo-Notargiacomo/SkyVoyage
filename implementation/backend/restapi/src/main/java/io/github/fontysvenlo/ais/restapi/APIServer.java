@@ -1,10 +1,10 @@
 package io.github.fontysvenlo.ais.restapi;
 
-import static io.javalin.apibuilder.ApiBuilder.crud;
-
-import io.javalin.Javalin;
-import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
 import java.util.Map;
+
+import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
+import io.javalin.Javalin;
+import static io.javalin.apibuilder.ApiBuilder.crud;
 
 /**
  * This class is responsible for starting the REST server and defining the
@@ -38,6 +38,7 @@ public class APIServer {
             });
             config.router.apiBuilder(() -> {
                 crud("customers/{customer-id}", new CustomerResource(businessLogic.getCustomerManager()));
+                crud("employees/{employee-id}", new EmployeeResource(businessLogic.getEmployeeManager()));
             });
         });
 
