@@ -128,17 +128,15 @@
   };
 </script>
 
-<nav class="flex mt-2 mb-2" aria-label="Breadcrumb">
-  <ol
-    class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse"
-  >
+<nav class="flex my-4" aria-label="Breadcrumb">
+  <ol class="inline-flex items-center space-x-2">
     <li class="inline-flex items-center">
       <a
         href="/"
-        class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600"
+        class="inline-flex items-center text-sm font-medium text-gray-600 hover:text-blue-500 transition-colors"
       >
         <svg
-          class="w-3 h-3 me-2.5"
+          class="w-4 h-4 me-2"
           aria-hidden="true"
           xmlns="http://www.w3.org/2000/svg"
           fill="currentColor"
@@ -154,7 +152,7 @@
     <li>
       <div class="flex items-center">
         <svg
-          class="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1"
+          class="w-4 h-4 text-gray-400 mx-1"
           aria-hidden="true"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -168,56 +166,81 @@
             d="m1 9 4-4-4-4"
           />
         </svg>
-        <a
-          href="/employees"
-          class="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2"
-          >Employees</a
-        >
+        <span class="ms-1 text-sm font-medium text-gray-400">Employees</span>
       </div>
     </li>
   </ol>
 </nav>
 
-<!-- Modal toggle -->
-<div class="flex flex-row-reverse m-2">
-  <button
-    onclick={() => (isOpen = !isOpen)}
-    class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-    type="button"
-  >
-    Add employee
-  </button>
-</div>
+<div class="max-w-6xl mx-auto p-6">
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold text-gray-800">Employees</h1>
+    <div>
+      <button
+        onclick={() => (isOpen = !isOpen)}
+        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-5 rounded-lg shadow-sm transition-all duration-200 transform hover:-translate-y-0.5"
+        type="button"
+      >
+        Add employee
+      </button>
+    </div>
+  </div>
 
-<div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-  <table class="w-full text-sm text-left rtl:text-right text-gray-900">
-    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-      <tr>
-        <th scope="col" class="px-6 py-3">Name</th>
-        <th scope="col" class="px-6 py-3">Email</th>
-        <th scope="col" class="px-6 py-3">Type</th>
-        <th scope="col" class="px-6 py-3">Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      {#each employees as employee}
-        <tr class="odd:bg-white even:bg-gray-50 border-gray-200 font-medium">
-          <th class="px-6 py-4">{employee.Firstname} {employee.Lastname}</th>
-          <td class="px-6 py-4">{employee.Email}</td>
-          <td class="px-6 py-4"
-            >{employee.Type.replace(/([A-Z])/g, " $1").trim()}</td
-          >
-          <td class="px-6 py-4">
-            <a
-              href="/employees/{employee.id}"
-              class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
-              >Edit</a
+  {#if errorMessage}
+    <div
+      class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-6 shadow-sm"
+      role="alert"
+    >
+      {errorMessage}
+    </div>
+  {/if}
+
+  <div
+    class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
+  >
+    <div class="relative overflow-x-auto">
+      <table class="w-full text-sm text-left rtl:text-right text-gray-900">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3">Name</th>
+            <th scope="col" class="px-6 py-3">Email</th>
+            <th scope="col" class="px-6 py-3">Type</th>
+            <th scope="col" class="px-6 py-3">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+        {#if employees.length > 0}
+          {#each employees as employee}
+            <tr
+                    class="odd:bg-white even:bg-gray-50 border-b border-gray-200 hover:bg-gray-100 transition-colors"
             >
-          </td>
-        </tr>
-      {/each}
-    </tbody>
-  </table>
+              <th class="px-6 py-4 font-medium"
+              >{employee.Firstname} {employee.Lastname}</th
+              >
+              <td class="px-6 py-4">{employee.Email}</td>
+              <td class="px-6 py-4"
+              >{employee.Type.replace(/([A-Z])/g, " $1").trim()}</td
+              >
+              <td class="px-6 py-4">
+                <a
+                        href="/employees/{employee.id}"
+                        class="bg-white text-green-600 border border-green-600 hover:bg-green-600 hover:text-white font-medium py-2 px-5 rounded-lg shadow-sm transition-all duration-200 transform hover:-translate-y-0.5 inline-block"
+                >Manage</a
+                >
+              </td>
+            </tr>
+          {/each}
+        {:else}
+            <tr>
+                <td colspan="4" class="p-4 text-center text-gray-500">
+                No employees found.
+                </td>
+            </tr>
+        {/if}
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <div
@@ -227,7 +250,7 @@
   aria-hidden="true"
   class="{isOpen
     ? ''
-    : 'hidden'} backdrop-blur-xs flex overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full"
+    : 'hidden'} backdrop-blur-sm bg-gray-900/50 flex overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-screen"
 >
   <div
     role="none"
@@ -246,7 +269,7 @@
         <button
           onclick={() => (isOpen = false)}
           type="button"
-          class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+          class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center transition-all duration-200"
           data-modal-toggle="crud-modal"
         >
           <svg
@@ -395,7 +418,7 @@
         {/if}
         <button
           type="submit"
-          class="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-5 rounded-lg shadow-sm transition-all duration-200 transform hover:-translate-y-0.5 inline-flex items-center"
         >
           <svg
             class="me-1 -ms-1 w-5 h-5"

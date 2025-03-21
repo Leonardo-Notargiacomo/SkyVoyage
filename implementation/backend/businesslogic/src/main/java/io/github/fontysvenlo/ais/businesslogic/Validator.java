@@ -60,4 +60,11 @@ public class Validator implements ValidatorInterface {
 
         return hasDigit && hasLower && hasUpper && hasSpecial;
     }
+
+    public boolean isValidType(String type) {
+        return type != null && !type.trim().isEmpty()
+                && (type.equals("SalesManager")
+                || type.equals("SalesEmployee")
+                || type.equals("AccountManager"));
+    }
 }

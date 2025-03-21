@@ -38,6 +38,7 @@ public class EmployeeManagerImpl implements EmployeeManager {
     public EmployeeData add(EmployeeData employeeData) {
         ValidatorInterface validator = new Validator();
 
+        // Validate required fields and formats
         if (!validator.isValidName(employeeData.Firstname())) {
             throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_name"));
         }
@@ -47,19 +48,14 @@ public class EmployeeManagerImpl implements EmployeeManager {
         }
 
         if (!validator.isValidEmail(employeeData.Email())) {
-            throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_email"));
+            throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_email", employeeData.Email()));
         }
 
         if (!validator.isValidPassword(employeeData.Password())) {
             throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_password"));
         }
 
-        // Updated employee type validation to include "Admin"
-        if (employeeData.Type() == null || employeeData.Type().trim().isEmpty()
-                || (!employeeData.Type().equals("SalesManager")
-                && !employeeData.Type().equals("SalesEmployee")
-                && !employeeData.Type().equals("AccountManager")
-                && !employeeData.Type().equals("Admin"))) {
+        if (!validator.isValidType(employeeData.Type())) {
             throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_type"));
         }
 
@@ -77,43 +73,45 @@ public class EmployeeManagerImpl implements EmployeeManager {
         return employeeRepository.getAll();
     }
 
+    /**
+     * Retrieves a single employee from the storage.
+     *
+     * @param id the employee id
+     * @return the employee data
+     */
     @Override
     public EmployeeData getOne(String id) {
         return employeeRepository.getOne(id);
     }
 
+    /**
+     * Updates an employee in the storage.
+     *
+     * @param employeeData the employee to update
+     * @return the updated employee data
+     */
     @Override
     public EmployeeData update(EmployeeData employeeData) {
         ValidatorInterface validator = new Validator();
 
         // Validate required fields and formats
-        if (employeeData.Firstname() == null || employeeData.Firstname().trim().isEmpty()
-                || !validator.isValidName(employeeData.Firstname())) {
+        if (!validator.isValidName(employeeData.Firstname())) {
             throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_name"));
         }
 
-        if (employeeData.Lastname() == null || employeeData.Lastname().trim().isEmpty()
-                || !validator.isValidName(employeeData.Lastname())) {
+        if (!validator.isValidName(employeeData.Lastname())) {
             throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_name"));
         }
 
-        if (employeeData.Email() == null || employeeData.Email().trim().isEmpty()
-                || !validator.isValidEmail(employeeData.Email())) {
+        if (!validator.isValidEmail(employeeData.Email())) {
             throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_email"));
         }
 
-        // Password validation is only required if a new password is provided
-        if (employeeData.Password() != null && !employeeData.Password().trim().isEmpty()
-                && !validator.isValidPassword(employeeData.Password())) {
+        if (!validator.isValidPassword(employeeData.Password())) {
             throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_password"));
         }
 
-        // Employee type validation
-        if (employeeData.Type() == null || employeeData.Type().trim().isEmpty()
-                || (!employeeData.Type().equals("SalesManager")
-                && !employeeData.Type().equals("SalesEmployee")
-                && !employeeData.Type().equals("AccountManager")
-                && !employeeData.Type().equals("Admin"))) {
+        if (!validator.isValidType(employeeData.Type())) {
             throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_type"));
         }
 
