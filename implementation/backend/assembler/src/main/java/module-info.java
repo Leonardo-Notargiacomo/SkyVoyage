@@ -14,4 +14,6 @@ module assembler_module {
     requires restapi_module;
 
     requires java.logging;
+    
+    // Remove the dotenv requirement
 }

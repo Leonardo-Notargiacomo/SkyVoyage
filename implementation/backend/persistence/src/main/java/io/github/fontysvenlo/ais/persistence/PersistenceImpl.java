@@ -2,12 +2,14 @@ package io.github.fontysvenlo.ais.persistence;
 
 import io.github.fontysvenlo.ais.persistence.api.CustomerRepository;
 import io.github.fontysvenlo.ais.persistence.api.EmployeeRepository;
+import io.github.fontysvenlo.ais.persistence.api.FlightRepository;
 import io.github.fontysvenlo.ais.persistence.api.Persistence;
 
 /**
  * Actual creator of storage services.
  */
-class PersistenceImpl implements Persistence{
+class PersistenceImpl implements Persistence {
+
     private DBConfig config;
 
     PersistenceImpl(DBConfig config) {
@@ -16,6 +18,7 @@ class PersistenceImpl implements Persistence{
 
     /**
      * Get the implementation of the CustomerRepository.
+     *
      * @return the implementation of the CustomerRepository
      */
     @Override
@@ -26,5 +29,10 @@ class PersistenceImpl implements Persistence{
     @Override
     public EmployeeRepository getEmployeeRepository() {
         return new EmployeeRepositoryImpl(config);
+    }
+
+    @Override
+    public FlightRepository getFlightRepository() {
+        return new FlightRepositoryImpl(config);
     }
 }
