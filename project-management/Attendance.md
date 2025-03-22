@@ -54,11 +54,11 @@
 
 | Name     | 18-Mar | 18-Mar Remarks | 19-Mar | 19-Mar Remarks | 21-Mar | 21-Mar Remarks |
 |----------|-------|---------------|--------|----------------|--------|----------------|
-| Furkan   |   ✅   |               |   ✅     |                |        |                |
-| Leonardo |   ✅   |               |    ✅    |                |        |                |
-| Soheil   |   ✅   |               |    ✅    |                |        |                |
-| Thomas   |   ✅    |               |    ✅    |                |        |                |
-| Til      |   ✅    |               |     ✅   |                |        |                |
+| Furkan   |   ✅   |               |   ✅     |                |    ✅    |                |
+| Leonardo |   ✅   |               |    ✅    |                |    ✅    |                |
+| Soheil   |   ✅   |               |    ✅    |                |    ✅    |                |
+| Thomas   |   ✅    |               |    ✅    |               |    ✅    |                |
+| Til      |   ✅    |               |     ✅   |               |    ✅    |                |
 
 **Template:**
 
