@@ -111,3 +111,67 @@ This document outlines the test cases for the project. Each test case describes 
 **Extension**: 6b. If the system encounters an unexpected error, the system displays an error message.
 
 ---
+
+# Test Case: Search Flights
+
+**Name**: testSearchFlights
+
+**Precondition**: The sales employee is logged into the system and on the flight search interface.
+
+**Scenario**:
+
+1. Sales employee selects the flight search option.
+2. The system displays the flight search interface.
+3. Sales employee enters flight search criteria:
+   - Deaparture: "Amsterdam"
+   - Arrival: "Sint Maarten"
+   - Travel date: "24.03.2025 - "07.04.2025
+   - Number passengers: "2"
+4. Sales employee clicks the "Search" button.
+   - Checks if Deaparture & Arrival exists.
+   - Chek if Travel date is not in the past.
+   - Chek if Number passengers is a integer.
+5. The system retrieves available flights based on the provided criteria.
+6. The system displays a list of available flights, including details such as:
+   - Airline name
+   - Departure time
+   - Arrival time
+   - Duration
+   - Price
+8. Sales employee can sort or filter the results (e.g., by price, airline, duration).
+
+**Result**:
+
+- Flights matching the search criteria are displayed.
+- Sales employee can view flight details and proceed with the next steps (e.g., booking).
+
+---
+
+**Name**: testSearchFlightsInvalidInformation
+
+**Precondition**: Sales Employee is logged into the system and is on the search flights interface.
+
+**Scenario**:
+
+1. Sales Employee selects the flight search option.
+2. System displays the flight search interface.
+3. Sales Employee enters the following invalid search criteria:
+   - Departure: " " (empty)
+   - Arrival: " " (empty)
+   - Travel date: "21.03.2024" (date in the past)
+   - Number passengers: "-1" (negativ number)
+4. Sales Employee submits the search request.
+5. Test checks if the system displays appropriate error messages for invalid fields.
+
+**Result**:
+
+- System shows "Departure cannot be empty" next to the departure field.
+- System shows "Arrival cannot be empty" next to the arrival field.
+- System shows "Invalid date format" next to the date field.
+- System shows "Number of passengers must be at least 1" next to the passenger field
+- Form is not submitted, and no search results are displayed.
+- System highlights the invalid fields in red.
+
+**Extension**: 6a. If the information is invalid, the system displays an error message and prompts the Sales Employee to correct the information.
+
+---
