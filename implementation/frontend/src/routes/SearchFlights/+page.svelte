@@ -7,30 +7,23 @@
   let departureDate = "";
   let returnDate = "";
   let stops = "Any";
-  let priceRange = "Any";
-  let duration = "Any";
+  let passengers = 1;
   let flights = [];
-
-  const stopOptions = ["Any", "Direct", "One-stop", "Multi-stop"];
-  const priceOptions = ["Any", "Low to High", "High to Low"];
-  const durationOptions = ["Any", "Shortest First", "Longest First"];
 
   onMount(async () => {
     loadFlights();
   });
 
   const loadFlights = async () => {
-    // Fetch flights based on filters
     const params = new URLSearchParams({
       departure,
       arrival,
       departureDate,
       returnDate,
       stops,
-      priceRange,
-      duration,
+      passengers,
     });
-    flights = await api.all(`/flights/search?${params.toString()}`);
+    flights = (await api.all(`/flights/search?${params.toString()}`)) || [];
   };
 
   const searchFlights = async (e) => {
@@ -51,7 +44,6 @@
       >
         <svg
           class="w-3 h-3 me-2.5"
-          aria-hidden="true"
           xmlns="http://www.w3.org/2000/svg"
           fill="currentColor"
           viewBox="0 0 20 20"
@@ -67,7 +59,6 @@
       <div class="flex items-center">
         <svg
           class="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1"
-          aria-hidden="true"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 6 10"
@@ -83,33 +74,18 @@
         <a
           href="/flights/search"
           class="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2"
-          >Search Flights</a
         >
+          Search Flights
+        </a>
       </div>
     </li>
   </ol>
 </nav>
 
 <!-- Search Form -->
-<div class="bg-white p-6 shadow-md rounded-lg">
+<div class="bg-gray-50 p-6 shadow-md rounded-xl">
   <h2 class="text-xl font-semibold mb-4">Search for Flights</h2>
-  <form on:submit={searchFlights} class="space-y-4">
-    <!-- Trip Type -->
-    <div class="flex gap-4 text-sm">
-      <label class="flex items-center gap-1">
-        <input type="radio" name="tripType" checked />
-        Round Trip
-      </label>
-      <label class="flex items-center gap-1">
-        <input type="radio" name="tripType" disabled />
-        One-way
-      </label>
-      <label class="flex items-center gap-1">
-        <input type="radio" name="tripType" disabled />
-        Multi-city
-      </label>
-    </div>
-
+  <form on:submit={searchFlights} class="space-y-6">
     <!-- Departure & Arrival -->
     <div class="flex flex-col md:flex-row gap-4">
       <div class="flex-1">
@@ -121,7 +97,7 @@
           bind:value={departure}
           placeholder="e.g. FRA"
           required
-          class="w-full p-2 border border-gray-300 rounded-md"
+          class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
       <div class="flex-1">
@@ -133,12 +109,12 @@
           bind:value={arrival}
           placeholder="e.g. JFK"
           required
-          class="w-full p-2 border border-gray-300 rounded-md"
+          class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
     </div>
 
-    <!-- Departure & Return Dates + Flexible checkboxes -->
+    <!-- Dates + Flexible -->
     <div class="flex flex-col md:flex-row gap-4 items-start">
       <div class="flex-1">
         <label class="block text-sm font-medium text-gray-700 mb-1"
@@ -148,10 +124,10 @@
           type="date"
           bind:value={departureDate}
           required
-          class="w-full p-2 border border-gray-300 rounded-md"
+          class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <label class="inline-flex items-center mt-2 text-sm text-gray-600">
-          <input type="checkbox" class="mr-2" /> Flexible (+/- 2 days)
+          <input type="checkbox" class="mr-2 rounded" /> Flexible (+/- 2 days)
         </label>
       </div>
       <div class="flex-1">
@@ -161,21 +137,21 @@
         <input
           type="date"
           bind:value={returnDate}
-          class="w-full p-2 border border-gray-300 rounded-md"
+          class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <label class="inline-flex items-center mt-2 text-sm text-gray-600">
-          <input type="checkbox" class="mr-2" /> Flexible (+/- 2 days)
+          <input type="checkbox" class="mr-2 rounded" /> Flexible (+/- 2 days)
         </label>
       </div>
     </div>
 
     <!-- Stops + Passengers -->
-    <div class="flex flex-col md:flex-row gap-4 items-center">
+    <div class="flex flex-col md:flex-row gap-4 items-start">
       <div class="flex-1">
         <label class="block text-sm font-medium text-gray-700 mb-1"
           >Flight Type</label
         >
-        <div class="flex flex-col gap-1 text-sm">
+        <div class="flex flex-col gap-1 text-sm text-gray-700">
           <label class="flex items-center gap-2">
             <input
               type="radio"
@@ -183,6 +159,7 @@
               value="Any"
               bind:group={stops}
               checked
+              class="accent-blue-600"
             />
             Any number of stops
           </label>
@@ -192,6 +169,7 @@
               name="stops"
               value="Direct"
               bind:group={stops}
+              class="accent-blue-600"
             />
             Only direct flights
           </label>
@@ -201,22 +179,25 @@
               name="stops"
               value="MaxOneStop"
               bind:group={stops}
+              class="accent-blue-600"
             />
             Max. one stop
           </label>
         </div>
       </div>
+
       <div class="flex-1">
         <label class="block text-sm font-medium text-gray-700 mb-1"
           >Passengers</label
         >
-        <input
-          type="number"
-          min="1"
-          max="9"
-          value="1"
-          class="w-24 p-2 border border-gray-300 rounded-md"
-        />
+        <select
+          bind:value={passengers}
+          class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          {#each Array(9) as _, i}
+            <option value={i + 1}>{i + 1} Passenger{i > 0 ? "s" : ""}</option>
+          {/each}
+        </select>
       </div>
     </div>
 
@@ -224,7 +205,7 @@
     <div class="pt-2">
       <button
         type="submit"
-        class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
+        class="w-full bg-blue-600 text-white py-2 rounded-md font-semibold shadow-sm hover:bg-blue-700 transition duration-200"
       >
         Search Flights
       </button>
