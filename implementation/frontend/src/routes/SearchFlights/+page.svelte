@@ -94,6 +94,22 @@
 <div class="bg-white p-6 shadow-md rounded-lg">
   <h2 class="text-xl font-semibold mb-4">Search for Flights</h2>
   <form on:submit={searchFlights} class="space-y-4">
+    <!-- Trip Type -->
+    <div class="flex gap-4 text-sm">
+      <label class="flex items-center gap-1">
+        <input type="radio" name="tripType" checked />
+        Round Trip
+      </label>
+      <label class="flex items-center gap-1">
+        <input type="radio" name="tripType" disabled />
+        One-way
+      </label>
+      <label class="flex items-center gap-1">
+        <input type="radio" name="tripType" disabled />
+        Multi-city
+      </label>
+    </div>
+
     <!-- Departure & Arrival -->
     <div class="flex flex-col md:flex-row gap-4">
       <div class="flex-1">
@@ -103,7 +119,7 @@
         <input
           type="text"
           bind:value={departure}
-          placeholder="e.g. Frankfurt"
+          placeholder="e.g. FRA"
           required
           class="w-full p-2 border border-gray-300 rounded-md"
         />
@@ -115,15 +131,15 @@
         <input
           type="text"
           bind:value={arrival}
-          placeholder="e.g. New York"
+          placeholder="e.g. JFK"
           required
           class="w-full p-2 border border-gray-300 rounded-md"
         />
       </div>
     </div>
 
-    <!-- Departure & Return Date -->
-    <div class="flex flex-col md:flex-row gap-4">
+    <!-- Departure & Return Dates + Flexible checkboxes -->
+    <div class="flex flex-col md:flex-row gap-4 items-start">
       <div class="flex-1">
         <label class="block text-sm font-medium text-gray-700 mb-1"
           >Departure Date</label
@@ -134,6 +150,9 @@
           required
           class="w-full p-2 border border-gray-300 rounded-md"
         />
+        <label class="inline-flex items-center mt-2 text-sm text-gray-600">
+          <input type="checkbox" class="mr-2" /> Flexible (+/- 2 days)
+        </label>
       </div>
       <div class="flex-1">
         <label class="block text-sm font-medium text-gray-700 mb-1"
@@ -144,49 +163,60 @@
           bind:value={returnDate}
           class="w-full p-2 border border-gray-300 rounded-md"
         />
+        <label class="inline-flex items-center mt-2 text-sm text-gray-600">
+          <input type="checkbox" class="mr-2" /> Flexible (+/- 2 days)
+        </label>
       </div>
     </div>
 
-    <!-- Filters: Stops, Price Range, Duration -->
-    <div class="flex flex-col md:flex-row gap-4">
+    <!-- Stops + Passengers -->
+    <div class="flex flex-col md:flex-row gap-4 items-center">
       <div class="flex-1">
         <label class="block text-sm font-medium text-gray-700 mb-1"
-          >Number of Stops</label
+          >Flight Type</label
         >
-        <select
-          bind:value={stops}
-          class="w-full p-2 border border-gray-300 rounded-md"
-        >
-          {#each stopOptions as option}
-            <option value={option}>{option}</option>
-          {/each}
-        </select>
+        <div class="flex flex-col gap-1 text-sm">
+          <label class="flex items-center gap-2">
+            <input
+              type="radio"
+              name="stops"
+              value="Any"
+              bind:group={stops}
+              checked
+            />
+            Any number of stops
+          </label>
+          <label class="flex items-center gap-2">
+            <input
+              type="radio"
+              name="stops"
+              value="Direct"
+              bind:group={stops}
+            />
+            Only direct flights
+          </label>
+          <label class="flex items-center gap-2">
+            <input
+              type="radio"
+              name="stops"
+              value="MaxOneStop"
+              bind:group={stops}
+            />
+            Max. one stop
+          </label>
+        </div>
       </div>
       <div class="flex-1">
         <label class="block text-sm font-medium text-gray-700 mb-1"
-          >Price Range</label
+          >Passengers</label
         >
-        <select
-          bind:value={priceRange}
-          class="w-full p-2 border border-gray-300 rounded-md"
-        >
-          {#each priceOptions as option}
-            <option value={option}>{option}</option>
-          {/each}
-        </select>
-      </div>
-      <div class="flex-1">
-        <label class="block text-sm font-medium text-gray-700 mb-1"
-          >Duration</label
-        >
-        <select
-          bind:value={duration}
-          class="w-full p-2 border border-gray-300 rounded-md"
-        >
-          {#each durationOptions as option}
-            <option value={option}>{option}</option>
-          {/each}
-        </select>
+        <input
+          type="number"
+          min="1"
+          max="9"
+          value="1"
+          class="w-24 p-2 border border-gray-300 rounded-md"
+        />
       </div>
     </div>
 
