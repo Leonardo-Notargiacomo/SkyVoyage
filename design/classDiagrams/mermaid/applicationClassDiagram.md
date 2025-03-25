@@ -97,4 +97,39 @@ namespace restapi {
     }
 }
 
+%% Implementations of Interfaces
+    BusinessLogicImpl --|> BusinessLogic
+    CustomerManagerImpl --|> CustomerManager
+    EmployeeManagerImpl --|> EmployeeManager
+    Validator --|> ValidatorInterface
+    CustomerRepositoryImpl --|> CustomerRepository
+    EmployeeRepositoryImpl --|> EmployeeRepository
+    PersistenceImpl --|> Persistence
+
+%% Dependencies and Data Relationships
+    CustomerManagerImpl --> CustomerRepository
+    EmployeeManagerImpl --> EmployeeRepository
+    CustomerManagerImpl --> CustomerData
+    EmployeeManagerImpl --> EmployeeData
+    CustomerRepositoryImpl --> CustomerData
+    EmployeeRepositoryImpl --> EmployeeData
+
+%% Persistence Layer Relationships
+    PersistenceFactory --> PersistenceImpl
+    PersistenceFactory --> CustomerRepositoryImpl
+    PersistenceFactory --> EmployeeRepositoryImpl
+    DBProvider --> PersistenceImpl
+
+%% REST API Dependencies
+    APIServer --> ServerConfig
+    APIServer --> CustomerResource
+    APIServer --> EmployeeResource
+    CustomerResource --> CustomerManager
+    EmployeeResource --> EmployeeManager
+
+%% Assembler and Configuration Dependencies
+    Assembler --> BusinessLogicFactory
+    Assembler --> PersistenceFactory
+    PropertiesLoader --> DBConfig
+    PropertiesLoader --> ServerConfig
 ```
