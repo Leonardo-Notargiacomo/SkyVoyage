@@ -91,79 +91,107 @@
 </nav>
 
 <!-- Search Form -->
-<div class="bg-white p-4 shadow-md rounded-lg">
-  <h2 class="text-lg font-semibold mb-4">Search for Flights</h2>
-  <form on:submit={searchFlights} class="grid gap-4 grid-cols-2">
-    <div class="col-span-2 md:col-span-1">
-      <label class="block text-sm font-medium text-gray-700"
-        >Departure Airport</label
-      >
-      <input
-        type="text"
-        bind:value={departure}
-        placeholder="Enter departure location"
-        required
-        class="w-full p-2 border border-gray-300 rounded-md"
-      />
+<div class="bg-white p-6 shadow-md rounded-lg">
+  <h2 class="text-xl font-semibold mb-4">Search for Flights</h2>
+  <form on:submit={searchFlights} class="space-y-4">
+    <!-- Departure & Arrival -->
+    <div class="flex flex-col md:flex-row gap-4">
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 mb-1"
+          >Departure Airport</label
+        >
+        <input
+          type="text"
+          bind:value={departure}
+          placeholder="e.g. Frankfurt"
+          required
+          class="w-full p-2 border border-gray-300 rounded-md"
+        />
+      </div>
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 mb-1"
+          >Arrival Airport</label
+        >
+        <input
+          type="text"
+          bind:value={arrival}
+          placeholder="e.g. New York"
+          required
+          class="w-full p-2 border border-gray-300 rounded-md"
+        />
+      </div>
     </div>
-    <div class="col-span-2 md:col-span-1">
-      <label class="block text-sm font-medium text-gray-700"
-        >Arrival Airport</label
-      >
-      <input
-        type="text"
-        bind:value={arrival}
-        placeholder="Enter arrival location"
-        required
-        class="w-full p-2 border border-gray-300 rounded-md"
-      />
+
+    <!-- Departure & Return Date -->
+    <div class="flex flex-col md:flex-row gap-4">
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 mb-1"
+          >Departure Date</label
+        >
+        <input
+          type="date"
+          bind:value={departureDate}
+          required
+          class="w-full p-2 border border-gray-300 rounded-md"
+        />
+      </div>
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 mb-1"
+          >Return Date (optional)</label
+        >
+        <input
+          type="date"
+          bind:value={returnDate}
+          class="w-full p-2 border border-gray-300 rounded-md"
+        />
+      </div>
     </div>
-    <div class="col-span-2 md:col-span-1">
-      <label class="block text-sm font-medium text-gray-700"
-        >Departure Date</label
-      >
-      <input
-        type="date"
-        bind:value={departureDate}
-        required
-        class="w-full p-2 border border-gray-300 rounded-md"
-      />
+
+    <!-- Filters: Stops, Price Range, Duration -->
+    <div class="flex flex-col md:flex-row gap-4">
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 mb-1"
+          >Number of Stops</label
+        >
+        <select
+          bind:value={stops}
+          class="w-full p-2 border border-gray-300 rounded-md"
+        >
+          {#each stopOptions as option}
+            <option value={option}>{option}</option>
+          {/each}
+        </select>
+      </div>
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 mb-1"
+          >Price Range</label
+        >
+        <select
+          bind:value={priceRange}
+          class="w-full p-2 border border-gray-300 rounded-md"
+        >
+          {#each priceOptions as option}
+            <option value={option}>{option}</option>
+          {/each}
+        </select>
+      </div>
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 mb-1"
+          >Duration</label
+        >
+        <select
+          bind:value={duration}
+          class="w-full p-2 border border-gray-300 rounded-md"
+        >
+          {#each durationOptions as option}
+            <option value={option}>{option}</option>
+          {/each}
+        </select>
+      </div>
     </div>
-    <div class="col-span-2 md:col-span-1">
-      <label class="block text-sm font-medium text-gray-700"
-        >Return Date (Optional)</label
-      >
-      <input
-        type="date"
-        bind:value={returnDate}
-        class="w-full p-2 border border-gray-300 rounded-md"
-      />
-    </div>
-    <div class="col-span-2 md:col-span-1">
-      <label class="block text-sm font-medium text-gray-700"
-        >Number of Stops</label
-      >
-      <select
-        bind:value={stops}
-        class="w-full p-2 border border-gray-300 rounded-md"
-      >
-        {#each stopOptions as option}
-          <option value={option}>{option}</option>
-        {/each}
-      </select>
-    </div>
-    <div class="col-span-2 md:col-span-1">
-      <label class="block text-sm font-medium text-gray-700">Price Range</label>
-      <select
-        bind:value={priceRange}
-        class="w-full p-2 border border-gray-300 rounded-md"
-      >
-        {#each priceOptions as option}
-          <option value={option}>{option}</option>
-        {/each}
-      </select>
-    </div>
-    <div class="col-span-2">
+
+    <!-- Submit -->
+    <div class="pt-2">
       <button
         type="submit"
         class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
