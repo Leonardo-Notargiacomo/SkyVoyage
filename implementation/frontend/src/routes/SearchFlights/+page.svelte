@@ -1,6 +1,5 @@
 <script>
   import { onMount } from "svelte";
-  import { api } from "$lib/api";
 
   let departure = "";
   let arrival = "";
@@ -10,77 +9,158 @@
   let passengers = 1;
   let flights = [];
 
-  // Dummy data for testing
-  flights = [
+  // Dummy flights
+  const dummyFlights = [
     {
-      id: "1",
-      departureAirport: "Frankfurt International",
+      id: "F1",
       departureAirportShort: "FRA",
-      departureScheduledTime: "2025-03-29T08:45:00",
-      departureDelay: 0,
-      departureGate: "A3",
-      departureTerminal: "1",
-      arrivalAirport: "New York JFK",
       arrivalAirportShort: "JFK",
+      departureScheduledTime: "2025-03-29T08:45:00",
       arrivalScheduledTime: "2025-03-29T12:00:00",
-      arrivalDelay: 10,
-      arrivalGate: "C2",
-      arrivalTerminal: "4",
       duration: 495,
+      departureGate: "A12",
+      arrivalGate: "B5",
+      departureDelay: 10,
+      arrivalDelay: 5,
     },
     {
-      id: "2",
-      departureAirport: "Amsterdam Schiphol",
+      id: "F2",
       departureAirportShort: "AMS",
-      departureScheduledTime: "2025-03-30T11:15:00",
-      departureDelay: 15,
-      departureGate: "B4",
-      departureTerminal: "2",
-      arrivalAirport: "London Heathrow",
       arrivalAirportShort: "LHR",
+      departureScheduledTime: "2025-03-30T11:15:00",
       arrivalScheduledTime: "2025-03-30T12:10:00",
-      arrivalDelay: 0,
-      arrivalGate: "E5",
-      arrivalTerminal: "5",
       duration: 55,
+      departureGate: "B4",
+      arrivalGate: "E5",
+      departureDelay: 15,
+      arrivalDelay: 0,
+    },
+    {
+      id: "F3",
+      departureAirportShort: "CDG",
+      arrivalAirportShort: "DUB",
+      departureScheduledTime: "2025-04-01T14:30:00",
+      arrivalScheduledTime: "2025-04-01T15:50:00",
+      duration: 80,
+      departureGate: "C9",
+      arrivalGate: "A3",
+      departureDelay: 5,
+      arrivalDelay: 2,
+    },
+    {
+      id: "F4",
+      departureAirportShort: "MAD",
+      arrivalAirportShort: "BCN",
+      departureScheduledTime: "2025-04-02T09:10:00",
+      arrivalScheduledTime: "2025-04-02T10:25:00",
+      duration: 75,
+      departureGate: "D1",
+      arrivalGate: "B8",
+      departureDelay: 0,
+      arrivalDelay: 0,
+    },
+    {
+      id: "F5",
+      departureAirportShort: "LAX",
+      arrivalAirportShort: "SEA",
+      departureScheduledTime: "2025-04-03T06:00:00",
+      arrivalScheduledTime: "2025-04-03T08:25:00",
+      duration: 145,
+      departureGate: "F12",
+      arrivalGate: "D2",
+      departureDelay: 20,
+      arrivalDelay: 10,
+    },
+    {
+      id: "F6",
+      departureAirportShort: "ZRH",
+      arrivalAirportShort: "VIE",
+      departureScheduledTime: "2025-04-05T16:45:00",
+      arrivalScheduledTime: "2025-04-05T18:15:00",
+      duration: 90,
+      departureGate: "E1",
+      arrivalGate: "C4",
+      departureDelay: 0,
+      arrivalDelay: 5,
+    },
+    {
+      id: "F7",
+      departureAirportShort: "IST",
+      arrivalAirportShort: "FCO",
+      departureScheduledTime: "2025-04-06T13:00:00",
+      arrivalScheduledTime: "2025-04-06T15:45:00",
+      duration: 165,
+      departureGate: "G3",
+      arrivalGate: "B2",
+      departureDelay: 30,
+      arrivalDelay: 25,
+    },
+    {
+      id: "F8",
+      departureAirportShort: "SFO",
+      arrivalAirportShort: "ORD",
+      departureScheduledTime: "2025-04-07T18:20:00",
+      arrivalScheduledTime: "2025-04-07T23:00:00",
+      duration: 280,
+      departureGate: "C7",
+      arrivalGate: "H1",
+      departureDelay: 0,
+      arrivalDelay: 0,
+    },
+    {
+      id: "F9",
+      departureAirportShort: "HEL",
+      arrivalAirportShort: "CPH",
+      departureScheduledTime: "2025-04-08T07:10:00",
+      arrivalScheduledTime: "2025-04-08T08:35:00",
+      duration: 85,
+      departureGate: "T2",
+      arrivalGate: "E7",
+      departureDelay: 0,
+      arrivalDelay: 3,
+    },
+    {
+      id: "F10",
+      departureAirportShort: "MUC",
+      arrivalAirportShort: "ATH",
+      departureScheduledTime: "2025-04-09T12:00:00",
+      arrivalScheduledTime: "2025-04-09T15:10:00",
+      duration: 190,
+      departureGate: "B1",
+      arrivalGate: "D6",
+      departureDelay: 12,
+      arrivalDelay: 8,
     },
   ];
 
-  onMount(async () => {
-    loadFlights();
-  });
+  let selectedFlight = null;
 
-  const loadFlights = async () => {
-    const params = new URLSearchParams({
-      departure,
-      arrival,
-      departureDate,
-      returnDate,
-      stops,
-      passengers,
-    });
-    flights = (await api.all(`/flights/search?${params.toString()}`)) || [];
-  };
+  onMount(() => {
+    // Load dummy flights
+    flights = dummyFlights;
+  });
 
   const searchFlights = async (e) => {
     e.preventDefault();
-    await loadFlights();
+    // Once backend is ready, replace this with API call
+    flights = dummyFlights;
   };
 
-  function formatDateTime(dt) {
-    if (!dt) return "-";
-    const date = new Date(dt);
-    return (
-      date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) +
-      " · " +
-      date.toLocaleDateString()
-    );
+  function formatDateTime(dateString) {
+    return new Date(dateString).toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   }
 
   function formatDuration(minutes) {
+    if (minutes < 60) return `${minutes}min`;
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
-    return `${h}h ${m}m`;
+    return `${h}h ${m > 0 ? `${m}min` : ""}`;
   }
 </script>
 
@@ -126,18 +206,17 @@
         <a
           href="/flights/search"
           class="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2"
+          >Search Flights</a
         >
-          Search Flights
-        </a>
       </div>
     </li>
   </ol>
 </nav>
 
 <!-- Search Form -->
-<div class="bg-gray-50 p-6 shadow-md rounded-xl">
+<div class="bg-white p-6 shadow-md rounded-lg">
   <h2 class="text-xl font-semibold mb-4">Search for Flights</h2>
-  <form on:submit={searchFlights} class="space-y-6">
+  <form on:submit={searchFlights} class="space-y-4">
     <div class="flex flex-col md:flex-row gap-4">
       <div class="flex-1">
         <label class="block text-sm font-medium text-gray-700 mb-1"
@@ -147,8 +226,7 @@
           type="text"
           bind:value={departure}
           placeholder="e.g. FRA"
-          required
-          class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full p-2 border border-gray-300 rounded-md"
         />
       </div>
       <div class="flex-1">
@@ -159,8 +237,7 @@
           type="text"
           bind:value={arrival}
           placeholder="e.g. JFK"
-          required
-          class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full p-2 border border-gray-300 rounded-md"
         />
       </div>
     </div>
@@ -173,11 +250,10 @@
         <input
           type="date"
           bind:value={departureDate}
-          required
-          class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full p-2 border border-gray-300 rounded-md"
         />
         <label class="inline-flex items-center mt-2 text-sm text-gray-600">
-          <input type="checkbox" class="mr-2 rounded" /> Flexible (+/- 2 days)
+          <input type="checkbox" class="mr-2" /> Flexible (+/- 2 days)
         </label>
       </div>
       <div class="flex-1">
@@ -187,10 +263,10 @@
         <input
           type="date"
           bind:value={returnDate}
-          class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full p-2 border border-gray-300 rounded-md"
         />
         <label class="inline-flex items-center mt-2 text-sm text-gray-600">
-          <input type="checkbox" class="mr-2 rounded" /> Flexible (+/- 2 days)
+          <input type="checkbox" class="mr-2" /> Flexible (+/- 2 days)
         </label>
       </div>
     </div>
@@ -200,7 +276,7 @@
         <label class="block text-sm font-medium text-gray-700 mb-1"
           >Flight Type</label
         >
-        <div class="flex flex-col gap-1 text-sm text-gray-700">
+        <div class="flex flex-col gap-1 text-sm">
           <label class="flex items-center gap-2">
             <input
               type="radio"
@@ -208,8 +284,8 @@
               value="Any"
               bind:group={stops}
               checked
-              class="accent-blue-600"
-            /> Any number of stops
+            />
+            Any number of stops
           </label>
           <label class="flex items-center gap-2">
             <input
@@ -217,8 +293,8 @@
               name="stops"
               value="Direct"
               bind:group={stops}
-              class="accent-blue-600"
-            /> Only direct flights
+            />
+            Only direct flights
           </label>
           <label class="flex items-center gap-2">
             <input
@@ -226,18 +302,19 @@
               name="stops"
               value="MaxOneStop"
               bind:group={stops}
-              class="accent-blue-600"
-            /> Max. one stop
+            />
+            Max. one stop
           </label>
         </div>
       </div>
+
       <div class="flex-1">
         <label class="block text-sm font-medium text-gray-700 mb-1"
           >Passengers</label
         >
         <select
           bind:value={passengers}
-          class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full p-2 border border-gray-300 rounded-md"
         >
           {#each Array(9) as _, i}
             <option value={i + 1}>{i + 1} Passenger{i > 0 ? "s" : ""}</option>
@@ -249,7 +326,7 @@
     <div class="pt-2">
       <button
         type="submit"
-        class="w-full bg-blue-600 text-white py-2 rounded-md font-semibold shadow-sm hover:bg-blue-700 transition duration-200"
+        class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
       >
         Search Flights
       </button>
@@ -257,46 +334,66 @@
   </form>
 </div>
 
-<!-- Flight Cards Grid -->
-<div class="mt-8">
-  {#if flights.length > 0}
-    <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-      {#each flights as flight}
-        <div class="bg-white rounded-xl shadow-md p-5 border border-gray-200">
-          <div class="mb-2 text-lg font-semibold text-blue-600">
-            {flight.departureAirportShort} → {flight.arrivalAirportShort}
-          </div>
-          <div class="text-sm text-gray-700 mb-1">
-            {flight.departureAirport} → {flight.arrivalAirport}
-          </div>
-          <div class="text-sm text-gray-700">
-            Departure: <strong
-              >{formatDateTime(flight.departureScheduledTime)}</strong
-            >
-          </div>
-          <div class="text-sm text-gray-700">
-            Arrival: <strong
-              >{formatDateTime(flight.arrivalScheduledTime)}</strong
-            >
-          </div>
-          <div class="text-sm text-gray-700 mt-1">
-            Duration: <strong>{formatDuration(flight.duration)}</strong>
-          </div>
-          {#if flight.departureDelay || flight.arrivalDelay}
-            <div class="text-sm text-red-500 mt-1">
-              Delay: {flight.departureDelay || 0} min dep / {flight.arrivalDelay ||
-                0} min arr
-            </div>
-          {/if}
-          <button
-            class="mt-4 w-full py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm"
-          >
-            Select
-          </button>
-        </div>
-      {/each}
+<!-- Flight Cards -->
+<div class="mt-6 flex flex-wrap gap-4">
+  {#each flights as flight}
+    <div
+      class="bg-white border border-blue-100 shadow-md rounded-md p-4 cursor-pointer hover:shadow-lg transition duration-300 w-full md:w-[48%]"
+      on:click={() => (selectedFlight = flight)}
+    >
+      <h3 class="text-blue-600 text-sm font-semibold">
+        {flight.departureAirportShort} → {flight.arrivalAirportShort}
+      </h3>
+      <p class="text-gray-800 text-sm">
+        {formatDateTime(flight.departureScheduledTime)} – {formatDateTime(
+          flight.arrivalScheduledTime
+        )}
+      </p>
+      <p class="text-gray-600 text-sm">
+        Duration: {formatDuration(flight.duration)}
+      </p>
     </div>
-  {:else}
-    <p class="text-gray-500 text-center mt-4">No flights found.</p>
-  {/if}
+  {/each}
 </div>
+
+<!-- Modal -->
+{#if selectedFlight}
+  <div class="fixed inset-0 flex items-center justify-center z-50">
+    <div
+      class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+      on:click={() => (selectedFlight = null)}
+    ></div>
+    <div class="bg-white p-6 rounded-lg z-50 shadow-xl max-w-md w-full">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="text-blue-600 font-bold text-lg">
+          {selectedFlight.departureAirportShort} → {selectedFlight.arrivalAirportShort}
+        </h3>
+        <button
+          on:click={() => (selectedFlight = null)}
+          class="text-gray-500 hover:text-black">&times;</button
+        >
+      </div>
+      <p>
+        <strong>Departure:</strong>
+        {formatDateTime(selectedFlight.departureScheduledTime)}
+      </p>
+      <p>
+        <strong>Arrival:</strong>
+        {formatDateTime(selectedFlight.arrivalScheduledTime)}
+      </p>
+      <p>
+        <strong>Duration:</strong>
+        {formatDuration(selectedFlight.duration)}
+      </p>
+      <p>
+        <strong>Gate:</strong>
+        {selectedFlight.departureGate} → {selectedFlight.arrivalGate}
+      </p>
+      <p>
+        <strong>Delays:</strong>
+        {selectedFlight.departureDelay} min dep. / {selectedFlight.arrivalDelay}
+        min arr.
+      </p>
+    </div>
+  </div>
+{/if}
