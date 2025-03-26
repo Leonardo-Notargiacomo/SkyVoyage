@@ -60,8 +60,7 @@ This document outlines the use cases for the project. Each use case describes a 
 - **5a.** If the system encounters an error retrieving flight data, it displays an error message: "An error occurred while retrieving flights. Please try again later."
 
 **Extensions**:
-- **6a** The sales employee can compare multiple flights before selecting one.
-- **6b** The sales employee can save a flight for later or share details with a customer.
+- **6a** The sales employee can save a flight for later or share details with a customer.
 
 ---
 
