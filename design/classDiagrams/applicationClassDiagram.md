@@ -113,6 +113,8 @@ namespace restapi {
     EmployeeManagerImpl --> EmployeeData
     CustomerRepositoryImpl --> CustomerData
     EmployeeRepositoryImpl --> EmployeeData
+    CustomerData -- Customer
+    EmployeeData -- Employee
 
 %% Persistence Layer Relationships
     PersistenceFactory --> PersistenceImpl
