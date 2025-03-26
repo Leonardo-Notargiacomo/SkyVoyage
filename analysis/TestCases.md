@@ -230,3 +230,71 @@ This document outlines the test cases for the project. Each test case describes 
 **Extension**: 5a. If the system encounters an unexpected error, the system displays an error message and logs the issue for further investigation.
 
 ---
+
+# Test Case: Display Flights
+
+**Name**: testDisplayFlightsSuccessful
+
+**Precondition**: The sales employee is logged into the system and made a flight search.
+
+**Scenario**:
+
+1. Sales Employee submits a flight search request with valid criteria.
+2. The system retrieves flight data from the external API.
+3. The system displays a list of available flights, including details such as:
+   - Deaparture: "Amsterdam"
+   - Arrival: "Sint Maarten"
+   - Duration: "15 hours"
+   - Airline: "Lufthansa"
+   - Price: "1,500€"
+4. Sales Employee can sort the flights (e.g., by price, duration, airline).
+5. Sales Employee selects a flight to view more details.
+6. System navigates to the flight details page.
+
+**Result**:
+
+- System successfully displays a list of flights matching the search criteria.
+- Sales Employee can proceed to the next step (e.g., booking).
+  
+---
+
+**Name**: testDisplayFlightsNoResult
+
+**Precondition**: Sales Employee is logged into the system and made a flight search with criteria that may not return results.
+
+**Scenario**:
+
+1. Sales Employee submits a flight search request with criteria that have no available flights.
+2. The system processes the request.
+3. No flights match the criteria.
+4. The system displays a message: "No flights found. Try modifying your search criteria."
+5. The system suggests alternative search options (e.g., nearby airports, different dates).
+
+**Result**:
+
+- Sales Employee is informed that no flights are available.
+- Sales Employee can modify the search criteria and try again.
+
+
+**Extension**: N/A
+
+---
+
+**Name**: testDisplayFlightsSystemError
+
+**Precondition**:  The sales employee is logged into the system and made a flight search.
+
+1. Sales Employee submits a flight search request.
+2. The system attempts to retrieve flight data but encounters an unexpected error (e.g., API failure, database connection issue).
+3. The system displays an error message: "An error occurred while retrieving flights. Please try again later."
+4. The system logs the error for debugging.
+
+**Result**:
+
+- Sales Employee is informed of the issue and cannot view flight results until it is resolved.
+- The system logs the error for further investigation.
+
+
+**Extension**: N/A
+
+---
