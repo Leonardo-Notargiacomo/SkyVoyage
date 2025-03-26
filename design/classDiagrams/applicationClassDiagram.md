@@ -98,13 +98,13 @@ namespace restapi {
 }
 
 %% Implementations of Interfaces
-    BusinessLogicImpl --|> BusinessLogic
-    CustomerManagerImpl --|> CustomerManager
-    EmployeeManagerImpl --|> EmployeeManager
-    Validator --|> ValidatorInterface
-    CustomerRepositoryImpl --|> CustomerRepository
-    EmployeeRepositoryImpl --|> EmployeeRepository
-    PersistenceImpl --|> Persistence
+    BusinessLogic <|.. BusinessLogicImpl
+    CustomerManager <|.. CustomerManagerImpl
+    EmployeeManager <|.. EmployeeManagerImpl
+    ValidatorInterface <|.. Validator
+    CustomerRepository <|.. CustomerRepositoryImpl
+    EmployeeRepository <|.. EmployeeRepositoryImpl
+    Persistence <|.. PersistenceImpl
 
 %% Dependencies and Data Relationships
     CustomerManagerImpl --> CustomerRepository

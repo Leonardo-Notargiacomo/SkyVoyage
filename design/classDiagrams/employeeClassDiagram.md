@@ -58,6 +58,7 @@ classDiagram
 
     EmployeeManagerImpl --> EmployeeRepository
     EmployeeRepositoryImpl ..|> EmployeeRepository
+    EmployeeRepositoryImpl ..|> EmployeeData
     Employee --> EmployeeData
 
 ```
