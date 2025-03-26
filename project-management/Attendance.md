@@ -62,12 +62,12 @@
 
 **Template:**
 
-| Name     | xx-mon | xx-mon Remarks | xx-mon | xx-mon Remarks | xx-mon | xx-mon Remarks |
+| Name     | 25-Mar | 25-Mar Remarks | 26-Mar | 26-Mar Remarks | 28-Mar | 28-Mar Remarks |
 |----------|--------|---------------|--------|---------------|--------|---------------|
-| Furkan   |     |               |        |               |        |               |
-| Leonardo |     |               |        |               |        |               |
-| Soheil   |     |               |        |               |        |               |
-| Thomas   |     |               |        |               |        |               |
-| Til      |     |               |        |               |        |               |
+| Furkan   |   ✅   |               |    ✅    |               |        |               |
+| Leonardo |   ✅   |               |    ✅    |               |        |               |
+| Soheil   |   ✅   |               |    ✅    |               |        |               |
+| Thomas   |   ✅   |               |    ✅    |               |        |               |
+| Til      |   ✅   |               |    ✅    |               |        |               |
 
 > ✅ - Present | ❌ - Absent
