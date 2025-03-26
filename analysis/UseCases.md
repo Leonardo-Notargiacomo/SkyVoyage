@@ -36,6 +36,34 @@ This document outlines the use cases for the project. Each use case describes a 
 
 ---
 
+# Use Case: Display Flights 
+
+**Actor**: Sales Employee
+
+**Description**: The sales employee views the list of available flights after entering a search.
+
+**Precondition**: - The sales employee is logged into the system.
+                  - The sales employee has made a flight search with valid criteria.
+
+**Scenario**:
+1. The system processes the search request and retrieves available flights.
+2. The system displays a list of flights that match the search criteria.
+3. Each flight result includes details(airline, departure, arrival, duration, price...)
+4. The sales employee can sort the flight results (e.g., by price, duration, airline).
+5. The sales employee selects a flight to view more details.
+6. The system displays the flight details page with additional information.
+
+**Result**: The sales employee successfully views the available flights and can proceed with booking or other actions.
+
+**Exception**:
+- **2a.** If no flights match the search criteria, the system displays a message: "No flights found. Try modifying your search criteria."
+- **5a.** If the system encounters an error retrieving flight data, it displays an error message: "An error occurred while retrieving flights. Please try again later."
+
+**Extensions**:
+- **6a** The sales employee can save a flight for later or share details with a customer.
+
+---
+
 # Use Case: Search Flights 
 
 **Actor**: Sales Employee
