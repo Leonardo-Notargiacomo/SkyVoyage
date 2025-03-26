@@ -60,7 +60,7 @@
 | Thomas   |   ✅    |               |    ✅    |               |    ✅    |                |
 | Til      |   ✅    |               |     ✅   |               |    ✅    |                |
 
-**Template:**
+**Week 7 (25th-28d March):**
 
 | Name     | 25-Mar | 25-Mar Remarks | 26-Mar | 26-Mar Remarks | 28-Mar | 28-Mar Remarks |
 |----------|--------|---------------|--------|---------------|--------|---------------|
@@ -69,5 +69,15 @@
 | Soheil   |   ✅   |               |    ✅    |               |        |               |
 | Thomas   |   ✅   |               |    ✅    |               |        |               |
 | Til      |   ✅   |               |    ✅    |               |        |               |
+
+**Template:**
+
+| Name     | xx-Mar | xx-Mar Remarks | xx-Mar | xx-Mar Remarks | xx-Mar | xx-Mar Remarks |
+|----------|--------|---------------|--------|---------------|--------|---------------|
+| Furkan   |      |               |        |               |        |               |
+| Leonardo |      |               |        |               |        |               |
+| Soheil   |      |               |        |               |        |               |
+| Thomas   |      |               |        |               |        |               |
+| Til      |      |               |        |               |        |               |
 
 > ✅ - Present | ❌ - Absent
