@@ -17,7 +17,7 @@ class CustomerRepositoryImpl implements CustomerRepository {
     
     private final DataSource db;
     //private final List<CustomerData> customers = new ArrayList<>(Arrays.asList(new CustomerData(1, "John", "Doe", LocalDate.of(2025, 1, 1)))); 
-    private final List<CustomerData> customers = new ArrayList<>(); 
+    private final List<CustomerData> customers = new ArrayList<>();
     
     public CustomerRepositoryImpl(DBConfig config) {
         this.db = DBProvider.getDataSource(config);
