@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"m":"businesslogic_api_module","l":"io.github.fontysvenlo.ais.businesslogic.api"}];updateSearchResults();

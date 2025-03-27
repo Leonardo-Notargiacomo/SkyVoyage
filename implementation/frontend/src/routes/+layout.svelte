@@ -1,4 +1,5 @@
 <script>
+    import { page } from '$app/stores';
 	import '../app.css';
 	let { children } = $props();
 </script>
@@ -11,6 +12,7 @@
     </svg>
 </button>
 
+{#if $page.url.pathname !== '/login'}
 <aside id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
     <div class="flex flex-col h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
         <ul class="space-y-2 font-medium">
@@ -36,17 +38,18 @@
         <div class="mt-auto pt-4 space-y-2 font-medium border-t border-gray-200 dark:border-gray-700">
             <div class="flex gap-4">
                 <div class="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
-                    <span class="font-medium text-gray-600 dark:text-gray-300">JD</span>
+                    <span class="font-medium text-gray-600 dark:text-gray-300">LN</span>
                 </div>
                 <div class="font-medium dark:text-white">
-                    <div>Furkan Öztürk</div>
+                    <div>Soheil Abdali</div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">Software Developer</div>
                 </div>
             </div>
         </div>
     </div>
 </aside>
+{/if}
 
-<div class="p-4 sm:ml-64">
+<div class="p-4 {($page.url.pathname !== '/login') ? 'sm:ml-64' : ''}">
     {@render children()}
 </div>

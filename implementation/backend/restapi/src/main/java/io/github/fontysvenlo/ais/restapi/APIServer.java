@@ -43,6 +43,7 @@ public class APIServer {
             config.bundledPlugins.enableCors(cors -> {
                 cors.addRule(it -> {
                     it.allowHost("http://localhost:" + configuration.cors(), "127.0.0.1:" + configuration.cors());
+
                 });
             });
             config.router.apiBuilder(() -> {
@@ -63,7 +64,6 @@ public class APIServer {
                 });
             });
         });
-
         app.exception(IllegalArgumentException.class, (e, ctx) -> {
             ctx.status(422).json(Map.of("error", e.getMessage()));
         });
