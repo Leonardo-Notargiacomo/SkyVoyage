@@ -5,6 +5,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -72,14 +74,14 @@ public class AviationStackClient {
     }
 
     /**
-     * Gets flights from Amsterdam to unique destinations (only one flight per destination)
-     * to display on the home screen.
+     * Gets flights from Amsterdam to unique destinations (only one flight per
+     * destination) to display on the home screen.
      *
      * @return A JsonNode containing flight data with unique destinations
      */
     public JsonNode getAllFlightsHome() {
         try {
-            String url = API_BASE_URL + "/flights?access_key=" + apiKey + "&dep_iata=AMS&limit=30";
+            String url = API_BASE_URL + "/flights?access_key=" + apiKey + "&dep_iata=AMS";
             logger.info("Fetching flights from URL: {}", url);
 
             HttpRequest request = HttpRequest.newBuilder()
@@ -96,30 +98,30 @@ public class AviationStackClient {
             }
 
             JsonNode allFlights = parseFlightResponse(response.body());
-            
+
             // Filter to keep only one flight per destination
             ArrayNode uniqueDestinationFlights = objectMapper.createArrayNode();
-            
+
             // Track destinations we've already included
             java.util.Set<String> includedDestinations = new java.util.HashSet<>();
             int count = 0;
-            
+
             // Add one flight per unique destination, up to 10 flights
             for (JsonNode flight : allFlights) {
                 String destination = flight.path("arrival").path("iata").asText();
-                
+
                 if (!includedDestinations.contains(destination) && !destination.isEmpty()) {
                     uniqueDestinationFlights.add(flight);
                     includedDestinations.add(destination);
                     count++;
-                    
+
                     // Stop after adding 10 unique destination flights
                     if (count >= 10) {
                         break;
                     }
                 }
             }
-            
+
             return uniqueDestinationFlights;
         } catch (IOException | InterruptedException e) {
             logger.error("Error while fetching flights", e);
@@ -229,8 +231,16 @@ public class AviationStackClient {
             //add duration of flight according to the scheduled time
             String scheduledDeparture = departureNode.path("scheduled").asText();
             String scheduledArrival = arrivalNode.path("scheduled").asText();
-            String Duration = String.valueOf(calculateDuration(scheduledDeparture, scheduledArrival));
+            int calculatedDuration = calculateDuration(scheduledDeparture, scheduledArrival);
 
+            // Skip flights with zero duration
+            if (calculatedDuration <= 0) {
+//                logger.warn("Skipping flight {} with invalid duration: {}",
+//                        flightNode.path("flight").path("iata").asText(), calculatedDuration);
+                continue;
+            }
+
+            String Duration = String.valueOf(calculatedDuration);
             formattedFlight.put("duration", Duration);
 
             //add price of flight according to the duration
@@ -250,11 +260,27 @@ public class AviationStackClient {
     }
 
     private int calculateDuration(String scheduledDeparture, String scheduledArrival) {
-        int departureHour = Integer.parseInt(scheduledDeparture.substring(11, 13));
-        int departureMinute = Integer.parseInt(scheduledDeparture.substring(14, 16));
-        int arrivalHour = Integer.parseInt(scheduledArrival.substring(11, 13));
-        int arrivalMinute = Integer.parseInt(scheduledArrival.substring(14, 16));
+        try {
+            // Parse the ISO-8601 formatted timestamps into OffsetDateTime objects
+            OffsetDateTime departureTime = OffsetDateTime.parse(scheduledDeparture);
+            OffsetDateTime arrivalTime = OffsetDateTime.parse(scheduledArrival);
 
-        return (arrivalHour - departureHour) * 60 + (arrivalMinute - departureMinute);
+            // Calculate duration in minutes between the two times
+            long durationMinutes = ChronoUnit.MINUTES.between(departureTime, arrivalTime);
+
+            // Ensure the duration is positive
+            if (durationMinutes < 0) {
+                logger.warn("Calculated negative duration between {} and {}, possible data error",
+                        scheduledDeparture, scheduledArrival);
+                // Fallback: use absolute value as a safety measure
+                durationMinutes = Math.abs(durationMinutes);
+            }
+
+            return (int) durationMinutes;
+        } catch (Exception e) {
+            logger.error("Error calculating flight duration: ", e);
+            // Fallback to a reasonable duration if parsing fails (5 hours)
+            return 300;
+        }
     }
 }

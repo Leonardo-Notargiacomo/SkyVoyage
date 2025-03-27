@@ -178,14 +178,14 @@
       <div class="flex space-x-3">
         {#if !isEditing && !isLoading}
           <button
-            on:click={toggleEdit}
+            onclick={toggleEdit}
             class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-5 rounded-lg shadow-sm transition-all duration-200 transform hover:-translate-y-0.5"
           >
             Edit
           </button>
         {:else if isEditing}
           <button
-            on:click={toggleEdit}
+            onclick={toggleEdit}
             class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-5 rounded-lg shadow-sm transition-all duration-200 transform hover:-translate-y-0.5"
           >
             Cancel
@@ -193,7 +193,7 @@
         {/if}
         {#if !isLoading}
           <button
-            on:click={toggleDeleteModal}
+            onclick={toggleDeleteModal}
             class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-5 rounded-lg shadow-sm transition-all duration-200 transform hover:-translate-y-0.5"
           >
             Delete
@@ -256,7 +256,7 @@
             <h2 class="text-2xl font-semibold text-gray-800 mb-6">
               Edit Employee
             </h2>
-            <form on:submit|preventDefault={updateEmployee} class="space-y-6">
+            <form onsubmit={(e) => { e.preventDefault(); updateEmployee(); }} class="space-y-6">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label
@@ -392,8 +392,26 @@
       <div
         class="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-6 rounded-md mb-6 shadow-sm"
       >
-        <p class="font-bold text-lg mb-2">No employee found</p>
-        <p>This employee may have been deleted or doesn't exist.</p>
+        <div class="flex items-center">
+          <svg
+            class="h-6 w-6 text-yellow-500 mr-3"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <div>
+            <p class="font-bold text-lg mb-2">No employee found</p>
+            <p>This employee may have been deleted or doesn't exist.</p>
+          </div>
+        </div>
       </div>
       <div class="mt-6">
         <a
@@ -433,13 +451,13 @@
         </p>
         <div class="flex justify-end space-x-3">
           <button
-            on:click={toggleDeleteModal}
+            onclick={toggleDeleteModal}
             class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-5 rounded-lg shadow-sm transition-all duration-200 transform hover:-translate-y-0.5"
           >
             Cancel
           </button>
           <button
-            on:click={deleteEmployee}
+            onclick={deleteEmployee}
             class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-5 rounded-lg shadow-sm transition-all duration-200 transform hover:-translate-y-0.5"
           >
             Delete
