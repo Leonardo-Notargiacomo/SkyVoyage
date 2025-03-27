@@ -111,3 +111,190 @@ This document outlines the test cases for the project. Each test case describes 
 **Extension**: 6b. If the system encounters an unexpected error, the system displays an error message.
 
 ---
+
+# Test Case: Search Flights
+
+**Name**: testSearchFlights
+
+**Precondition**: The sales employee is logged into the system and on the flight search interface.
+
+**Scenario**:
+
+1. Sales employee selects the flight search option.
+2. The system displays the flight search interface.
+3. Sales employee enters flight search criteria:
+   - Deaparture: "Amsterdam"
+   - Arrival: "Sint Maarten"
+   - Travel date: "24.03.2025 - "07.04.2025
+   - Number passengers: "2"
+4. Sales employee clicks the "Search" button.
+   - Checks if Deaparture & Arrival exists.
+   - Checks if Travel date is not in the past.
+   - Checks if Number passengers is not an negative number.
+5. The system retrieves available flights based on the provided criteria.
+6. The system displays a list of available flights, including details such as:
+   - Airline name
+   - Departure time
+   - Arrival time
+   - Duration
+   - Price
+8. Sales employee can sort or filter the results (e.g., by price, airline, duration).
+
+**Result**:
+
+- Flights matching the search criteria are displayed.
+- Sales employee can view flight details and proceed with the next steps (e.g., booking).
+
+---
+
+**Name**: testSearchFlightsInvalidInformation
+
+**Precondition**: Sales Employee is logged into the system and is on the search flights interface.
+
+**Scenario**:
+
+1. Sales Employee selects the flight search option.
+2. System displays the flight search interface.
+3. Sales Employee enters the following invalid search criteria:
+   - Departure: " " (empty)
+   - Arrival: " " (empty)
+   - Travel date: "21.03.2024" (date in the past)
+   - Number passengers: "-1" (negativ number)
+4. Sales Employee submits the search request.
+5. Test checks if the system displays appropriate error messages for invalid fields.
+
+**Result**:
+
+- System shows "Departure cannot be empty" next to the departure field.
+- System shows "Arrival cannot be empty" next to the arrival field.
+- System shows "Invalid date format" next to the date field.
+- System shows "Number of passengers must be at least 1" next to the passenger field
+- Form is not submitted, and no search results are displayed.
+- System highlights the invalid fields in red.
+
+**Extension**: 6a. If the information is invalid, the system displays an error message and prompts the Sales Employee to correct the information.
+
+---
+
+**Name**: testSearchFlightsNoResult
+
+**Precondition**: Sales Employee is logged into the system and is on the flight search interface.
+
+**Scenario**:
+
+1. Sales Employee selects the flight search option.
+2. System displays the flight search interface.
+3. Sales Employee enters the following search criteria:
+   - Departure: "Amsterdam"
+   - Arrival: "Sint Maarten" 
+   - Travel date: "26.03.2025" - "06.04.2025" 
+   - Number passengers: "1"
+4. Sales Employee submits the search request.
+5. System processes the request and checks for available flights.
+6. No flights are found for the given criteria.
+
+**Result**:
+
+- System displays the message: "No flights found for the selected criteria. Please try different dates or departure."
+- System suggests nearby airports or alternative travel dates (if available).
+- Sales Employee can modify the search criteria and try again.
+
+
+**Extension**: 6a. If no flights are found, the system provides alternative suggestions or prompts the user to refine their search.
+
+---
+
+**Name**: testSearchFlightsSystemError
+
+**Precondition**: Sales Employee is logged into the system and is on the flight search interface.
+
+**Scenario**:
+
+1. Sales Employee selects the flight search option.
+2. System displays the flight search interface.
+3. Sales Employee enters the following search criteria:
+   - Departure: "Amsterdam"
+   - Arrival: "Sint Maarten" 
+   - Travel date: "26.03.2025" - "06.04.2025" 
+   - Number passengers: "1"
+4. Sales Employee submits the search request.
+5. System encounters an unexpected error (e.g., database connection issue or API failure).
+
+**Result**:
+
+- System displays an error message: "An error occurred while retrieving flights. Please try again later."
+- System logs the error for debugging.
+- Sales Employee cannot view flight results until the issue is resolved.
+
+
+**Extension**: 5a. If the system encounters an unexpected error, the system displays an error message and logs the issue for further investigation.
+
+---
+
+# Test Case: Display Flights
+
+**Name**: testDisplayFlightsSuccessful
+
+**Precondition**: The sales employee is logged into the system and made a flight search.
+
+**Scenario**:
+
+1. Sales Employee submits a flight search request with valid criteria.
+2. The system retrieves flight data from the external API.
+3. The system displays a list of available flights, including details such as:
+   - Deaparture: "Amsterdam"
+   - Arrival: "Sint Maarten"
+   - Duration: "15 hours"
+   - Airline: "Lufthansa"
+   - Price: "1,500€"
+4. Sales Employee can sort the flights (e.g., by price, duration, airline).
+5. Sales Employee selects a flight to view more details.
+6. System navigates to the flight details page.
+
+**Result**:
+
+- System successfully displays a list of flights matching the search criteria.
+- Sales Employee can proceed to the next step (e.g., booking).
+  
+---
+
+**Name**: testDisplayFlightsNoResult
+
+**Precondition**: Sales Employee is logged into the system and made a flight search with criteria that may not return results.
+
+**Scenario**:
+
+1. Sales Employee submits a flight search request with criteria that have no available flights.
+2. The system processes the request.
+3. No flights match the criteria.
+4. The system displays a message: "No flights found. Try modifying your search criteria."
+5. The system suggests alternative search options (e.g., nearby airports, different dates).
+
+**Result**:
+
+- Sales Employee is informed that no flights are available.
+- Sales Employee can modify the search criteria and try again.
+
+
+**Extension**: N/A
+
+---
+
+**Name**: testDisplayFlightsSystemError
+
+**Precondition**:  The sales employee is logged into the system and made a flight search.
+
+1. Sales Employee submits a flight search request.
+2. The system attempts to retrieve flight data but encounters an unexpected error (e.g., API failure, database connection issue).
+3. The system displays an error message: "An error occurred while retrieving flights. Please try again later."
+4. The system logs the error for debugging.
+
+**Result**:
+
+- Sales Employee is informed of the issue and cannot view flight results until it is resolved.
+- The system logs the error for further investigation.
+
+
+**Extension**: N/A
+
+---

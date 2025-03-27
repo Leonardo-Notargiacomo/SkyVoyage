@@ -54,20 +54,30 @@
 
 | Name     | 18-Mar | 18-Mar Remarks | 19-Mar | 19-Mar Remarks | 21-Mar | 21-Mar Remarks |
 |----------|-------|---------------|--------|----------------|--------|----------------|
-| Furkan   |   ✅   |               |   ✅     |                |        |                |
-| Leonardo |   ✅   |               |    ✅    |                |        |                |
-| Soheil   |   ✅   |               |    ✅    |                |        |                |
-| Thomas   |   ✅    |               |    ✅    |                |        |                |
-| Til      |   ✅    |               |     ✅   |                |        |                |
+| Furkan   |   ✅   |               |   ✅     |                |    ✅    |                |
+| Leonardo |   ✅   |               |    ✅    |                |    ✅    |                |
+| Soheil   |   ✅   |               |    ✅    |                |    ✅    |                |
+| Thomas   |   ✅    |               |    ✅    |               |    ✅    |                |
+| Til      |   ✅    |               |     ✅   |               |    ✅    |                |
+
+**Week 7 (25th-28d March):**
+
+| Name     | 25-Mar | 25-Mar Remarks | 26-Mar | 26-Mar Remarks | 28-Mar | 28-Mar Remarks |
+|----------|--------|---------------|--------|---------------|--------|---------------|
+| Furkan   |   ✅   |               |    ✅    |               |        |               |
+| Leonardo |   ✅   |               |    ✅    |               |        |               |
+| Soheil   |   ✅   |               |    ✅    |               |        |               |
+| Thomas   |   ✅   |               |    ✅    |               |        |               |
+| Til      |   ✅   |               |    ✅    |               |        |               |
 
 **Template:**
 
-| Name     | xx-mon | xx-mon Remarks | xx-mon | xx-mon Remarks | xx-mon | xx-mon Remarks |
+| Name     | xx-Mar | xx-Mar Remarks | xx-Mar | xx-Mar Remarks | xx-Mar | xx-Mar Remarks |
 |----------|--------|---------------|--------|---------------|--------|---------------|
-| Furkan   |     |               |        |               |        |               |
-| Leonardo |     |               |        |               |        |               |
-| Soheil   |     |               |        |               |        |               |
-| Thomas   |     |               |        |               |        |               |
-| Til      |     |               |        |               |        |               |
+| Furkan   |      |               |        |               |        |               |
+| Leonardo |      |               |        |               |        |               |
+| Soheil   |      |               |        |               |        |               |
+| Thomas   |      |               |        |               |        |               |
+| Til      |      |               |        |               |        |               |
 
 > ✅ - Present | ❌ - Absent

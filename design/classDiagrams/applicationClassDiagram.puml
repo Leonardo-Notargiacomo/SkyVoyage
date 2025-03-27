@@ -1,0 +1,161 @@
+@startuml
+!theme blueprint
+
+skinparam linetype ortho
+left to right direction
+
+skinparam shadowing false
+skinparam packageStyle rectangle
+
+' Increase spacing around packages
+skinparam nodesep 50
+skinparam ranksep 120
+skinparam packageMargin 20
+
+title Class Diagram for the Application
+
+' -------------------------------
+' Package: persistence_api
+' -------------------------------
+package "persistence_api" as persistence_api {
+    interface CustomerRepository {
+    }
+    interface EmployeeRepository {
+    }
+    interface Persistence {
+    }
+}
+' -------------------------------
+' Package: persistence
+' -------------------------------
+package "persistence" as persistence {
+    class CustomerRepositoryImpl {
+    }
+    class DBConfig {
+    }
+    class DBProvider {
+    }
+    class EmployeeRepositoryImpl {
+    }
+    class PersistenceFactory {
+    }
+    class PersistenceImpl {
+    }
+}
+
+' -------------------------------
+' Package: businesslogic_api
+' -------------------------------
+
+package "businesslogic_api" as businesslogic_api {
+    interface BusinessLogic {
+    }
+    interface CustomerManager {
+    }
+    interface EmployeeManager {
+    }
+    interface ValidatorInterface {
+    }
+}
+
+' -------------------------------
+' Package: businesslogic
+' -------------------------------
+package "businesslogic" as businesslogic {
+    class BusinessLogicFactory {
+    }
+    class BusinessLogicImpl {
+    }
+    class Customer {
+    }
+    class CustomerManagerImpl {
+    }
+    class Employee {
+    }
+    class EmployeeManagerImpl {
+    }
+    class Validator {
+    }
+}
+
+' -------------------------------
+' Package: datarecords
+' -------------------------------
+package "datarecords" as datarecords {
+    class CustomerData {
+    }
+    class EmployeeData {
+    }
+}
+' -------------------------------
+' Package: assembler
+' -------------------------------
+package "assembler" as assembler {
+    class Assembler {
+    }
+    class PropertiesLoader {
+    }
+}
+' -------------------------------
+' Package: restapi
+' -------------------------------
+package "restapi" as restapi {
+    class APIServer {
+    }
+    class CustomerResource {
+    }
+    class EmployeeResource {
+    }
+    class ServerConfig {
+    }
+}
+
+' -------------------------------------------------
+' Implementations of Interfaces
+' -------------------------------------------------
+BusinessLogic <|.. BusinessLogicImpl
+CustomerManager <|.. CustomerManagerImpl
+EmployeeManager <|.. EmployeeManagerImpl
+ValidatorInterface <|.. Validator
+CustomerRepository <|.. CustomerRepositoryImpl
+EmployeeRepository <|.. EmployeeRepositoryImpl
+Persistence <|.. PersistenceImpl
+
+' -------------------------------------------------
+' Dependencies and Data Relationships
+' -------------------------------------------------
+CustomerManagerImpl --> CustomerRepository
+EmployeeManagerImpl --> EmployeeRepository
+CustomerManagerImpl --> CustomerData
+EmployeeManagerImpl --> EmployeeData
+CustomerRepositoryImpl --> CustomerData
+EmployeeRepositoryImpl --> EmployeeData
+CustomerData -- Customer
+EmployeeData -- Employee
+
+' -------------------------------------------------
+' Persistence Layer Relationships
+' -------------------------------------------------
+PersistenceFactory --> PersistenceImpl
+PersistenceFactory --> CustomerRepositoryImpl
+PersistenceFactory --> EmployeeRepositoryImpl
+DBProvider --> PersistenceImpl
+
+' -------------------------------------------------
+' REST API Dependencies
+' -------------------------------------------------
+APIServer --> CustomerResource
+APIServer --> ServerConfig
+APIServer --> EmployeeResource
+CustomerResource --> CustomerManager
+EmployeeResource --> EmployeeManager
+
+' -------------------------------------------------
+' Assembler and Configuration Dependencies
+' -------------------------------------------------
+Assembler --> BusinessLogicFactory
+Assembler --> PersistenceFactory
+PropertiesLoader --> DBConfig
+PropertiesLoader --> ServerConfig
+
+@enduml
