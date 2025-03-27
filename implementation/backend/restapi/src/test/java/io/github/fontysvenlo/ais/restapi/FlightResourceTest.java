@@ -4,9 +4,15 @@ import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
 import io.github.fontysvenlo.ais.businesslogic.api.FlightManager;
 import io.github.fontysvenlo.ais.datarecords.FlightData;
 import io.javalin.http.Context;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,6 +26,7 @@ import static org.mockito.Mockito.*;
 public class FlightResourceTest {
 
     private final Context context = mock(Context.class);
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private BusinessLogic businessLogic;
     private FlightManager flightManager;
@@ -69,22 +76,18 @@ public class FlightResourceTest {
         // Given we have no flights in the database but API has flights
         when(flightManager.list()).thenReturn(new ArrayList<>());
 
-        LocalDateTime departureTime = LocalDateTime.now();
-        LocalDateTime arrivalTime = departureTime.plusHours(2);
+        // Create mock JSON response from API
+        ArrayNode apiFlights = objectMapper.createArrayNode();
+        apiFlights.add(createMockFlightJson("AB123", "Berlin Airport", "London Heathrow"));
 
-        FlightData apiFlight = new FlightData("AB123", "Berlin Airport", "BER", "1", "A1",
-                departureTime, 0, "London Heathrow", "LHR", "2", "B2",
-                arrivalTime, 0, 120);
-
-        List<FlightData> apiFlights = List.of(apiFlight);
         when(aviationStackClient.getAllFlights()).thenReturn(apiFlights);
 
         // When we call getAll
         flightResource.getAll(context);
 
-        // Then we should fetch from API and save to database
+        // Then we should fetch from API but NOT save to database
         verify(aviationStackClient).getAllFlights();
-        verify(flightManager).add(apiFlight);
+        verify(flightManager, never()).add(any(FlightData.class)); // Verify flight is not saved
         verify(context).status(200);
         verify(context).json(apiFlights);
     }
@@ -202,61 +205,35 @@ public class FlightResourceTest {
         assertThat(response.get("error")).isEqualTo("Invalid flight data format");
     }
 
-    @Test
-    public void testRefreshFlights() {
-        // Given the API returns flights
-        LocalDateTime departureTime = LocalDateTime.now();
-        LocalDateTime arrivalTime = departureTime.plusHours(2);
+    // Helper method to create mock flight JSON
+    private JsonNode createMockFlightJson(String id, String departureAirport, String arrivalAirport) {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode flightNode = mapper.createObjectNode();
 
-        FlightData flight1 = new FlightData("AB123", "Berlin Airport", "BER", "1", "A1",
-                departureTime, 0, "London Heathrow", "LHR", "2", "B2",
-                arrivalTime, 0, 120);
-        FlightData flight2 = new FlightData("CD456", "Paris Charles de Gaulle", "CDG", "3", "C3",
-                departureTime, 10, "Amsterdam Schiphol", "AMS", "4", "D4",
-                arrivalTime, 5, 90);
+        flightNode.put("id", id);
 
-        List<FlightData> apiFlights = Arrays.asList(flight1, flight2);
-        when(aviationStackClient.getAllFlights()).thenReturn(apiFlights);
+        ObjectNode departure = mapper.createObjectNode();
+        departure.put("airport", departureAirport);
+        departure.put("iata", departureAirport.substring(0, 3).toUpperCase());
+        departure.put("terminal", "1");
+        departure.put("gate", "A1");
+        departure.put("scheduled", "2023-06-01T10:00:00");
+        departure.put("delay", 0);
+        flightNode.set("departure", departure);
 
-        // When we call refreshFlights
-        flightResource.refreshFlights(context);
+        ObjectNode arrival = mapper.createObjectNode();
+        arrival.put("airport", arrivalAirport);
+        arrival.put("iata", arrivalAirport.substring(0, 3).toUpperCase());
+        arrival.put("terminal", "2");
+        arrival.put("gate", "B2");
+        arrival.put("scheduled", "2023-06-01T12:00:00");
+        arrival.put("delay", 0);
+        flightNode.set("arrival", arrival);
 
-        // Then flights should be fetched from API and saved
-        verify(aviationStackClient).getAllFlights();
-        verify(flightManager).add(flight1);
-        verify(flightManager).add(flight2);
-        verify(context).status(200);
+        flightNode.put("airline", "Test Airline");
+        flightNode.put("status", "scheduled");
 
-        // Capture the response
-        ArgumentCaptor<Map<String, Object>> jsonCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(context).json(jsonCaptor.capture());
-
-        // Verify the response
-        Map<String, Object> response = jsonCaptor.getValue();
-        assertThat(response).containsKey("message");
-        assertThat(response).containsKey("count");
-        assertThat(response.get("count")).isEqualTo(2);
-    }
-
-    @Test
-    public void testRefreshFlightsNoFlightsFound() {
-        // Given the API returns no flights
-        when(aviationStackClient.getAllFlights()).thenReturn(new ArrayList<>());
-
-        // When we call refreshFlights
-        flightResource.refreshFlights(context);
-
-        // Then we should get a 404
-        verify(context).status(404);
-
-        // Capture the response
-        ArgumentCaptor<Map<String, String>> jsonCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(context).json(jsonCaptor.capture());
-
-        // Verify the response
-        Map<String, String> response = jsonCaptor.getValue();
-        assertThat(response).containsKey("message");
-        assertThat(response.get("message")).isEqualTo("No flights found from API");
+        return flightNode;
     }
 
     @Test

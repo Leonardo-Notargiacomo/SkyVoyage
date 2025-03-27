@@ -5,19 +5,15 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import io.github.fontysvenlo.ais.datarecords.FlightData;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Client for interacting with the AviationStack API.
@@ -26,11 +22,11 @@ public class AviationStackClient {
 
     private static final Logger logger = LoggerFactory.getLogger(AviationStackClient.class);
     private static final String API_BASE_URL = "http://api.aviationstack.com/v1";
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
 
     private final String apiKey;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
+    private final int pricePerKm = 11;
 
     /**
      * Creates a new AviationStackClient.
@@ -48,9 +44,9 @@ public class AviationStackClient {
     /**
      * Gets all flights currently available from the API.
      *
-     * @return A list of flight data
+     * @return A JsonNode containing flight data
      */
-    public List<FlightData> getAllFlights() {
+    public JsonNode getAllFlights() {
         try {
             String url = API_BASE_URL + "/flights?access_key=" + apiKey;
             logger.info("Fetching flights from URL: {}", url);
@@ -61,17 +57,73 @@ public class AviationStackClient {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            logger.info("API response status: {}", response.statusCode());
+            logger.info("API response status: {}", Optional.of(response.statusCode()));
 
             if (response.statusCode() != 200) {
                 logger.error("Failed to get flights from API: {}", response.body());
-                return Collections.emptyList();
+                return objectMapper.createArrayNode();
             }
 
             return parseFlightResponse(response.body());
         } catch (IOException | InterruptedException e) {
             logger.error("Error while fetching flights", e);
-            return Collections.emptyList();
+            return objectMapper.createArrayNode();
+        }
+    }
+
+    /**
+     * Gets flights from Amsterdam to unique destinations (only one flight per destination)
+     * to display on the home screen.
+     *
+     * @return A JsonNode containing flight data with unique destinations
+     */
+    public JsonNode getAllFlightsHome() {
+        try {
+            String url = API_BASE_URL + "/flights?access_key=" + apiKey + "&dep_iata=AMS&limit=30";
+            logger.info("Fetching flights from URL: {}", url);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            logger.info("API response status: {}", Optional.of(response.statusCode()));
+
+            if (response.statusCode() != 200) {
+                logger.error("Failed to get flights from API: {}", response.body());
+                return objectMapper.createArrayNode();
+            }
+
+            JsonNode allFlights = parseFlightResponse(response.body());
+            
+            // Filter to keep only one flight per destination
+            ArrayNode uniqueDestinationFlights = objectMapper.createArrayNode();
+            
+            // Track destinations we've already included
+            java.util.Set<String> includedDestinations = new java.util.HashSet<>();
+            int count = 0;
+            
+            // Add one flight per unique destination, up to 10 flights
+            for (JsonNode flight : allFlights) {
+                String destination = flight.path("arrival").path("iata").asText();
+                
+                if (!includedDestinations.contains(destination) && !destination.isEmpty()) {
+                    uniqueDestinationFlights.add(flight);
+                    includedDestinations.add(destination);
+                    count++;
+                    
+                    // Stop after adding 10 unique destination flights
+                    if (count >= 10) {
+                        break;
+                    }
+                }
+            }
+            
+            return uniqueDestinationFlights;
+        } catch (IOException | InterruptedException e) {
+            logger.error("Error while fetching flights", e);
+            return objectMapper.createArrayNode();
         }
     }
 
@@ -82,9 +134,9 @@ public class AviationStackClient {
      * @param flightNumber Flight number
      * @param departureIata IATA code of departure airport
      * @param arrivalIata IATA code of arrival airport
-     * @return A list of flight data matching the criteria
+     * @return A JsonNode containing flight data matching the criteria
      */
-    public List<FlightData> searchFlights(String airline, String flightNumber, String departureIata, String arrivalIata) {
+    public JsonNode searchFlights(String airline, String flightNumber, String departureIata, String arrivalIata) {
         StringBuilder queryBuilder = new StringBuilder(API_BASE_URL + "/flights?access_key=" + apiKey);
 
         if (airline != null && !airline.isEmpty()) {
@@ -112,113 +164,97 @@ public class AviationStackClient {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 logger.error("Failed to search flights from API: {}", response.body());
-                return Collections.emptyList();
+                return objectMapper.createArrayNode();
             }
 
             return parseFlightResponse(response.body());
         } catch (IOException | InterruptedException e) {
             logger.error("Error while searching flights", e);
-            return Collections.emptyList();
+            return objectMapper.createArrayNode();
         }
     }
 
     /**
-     * Parses the JSON response from the AviationStack API into FlightData
-     * objects.
+     * Parses the JSON response from the AviationStack API into a formatted
+     * JsonNode. This method cleans up the API response and returns a properly
+     * formatted JSON.
      *
      * @param responseBody The JSON response body
-     * @return A list of flight data
+     * @return A JsonNode containing the formatted flight data
      * @throws IOException If there is an error parsing the JSON
      */
-    private List<FlightData> parseFlightResponse(String responseBody) throws IOException {
+    private JsonNode parseFlightResponse(String responseBody) throws IOException {
         JsonNode rootNode = objectMapper.readTree(responseBody);
         JsonNode dataNode = rootNode.get("data");
 
         if (dataNode == null || !dataNode.isArray()) {
             logger.error("Invalid response format from API");
-            return Collections.emptyList();
+            return objectMapper.createArrayNode();
         }
 
-        List<FlightData> flights = new ArrayList<>();
+        ArrayNode formattedFlights = objectMapper.createArrayNode();
 
         for (JsonNode flightNode : dataNode) {
-            String flightIata = flightNode.path("flight").path("iata").asText();
+            ObjectNode formattedFlight = objectMapper.createObjectNode();
 
+            // Extract and add basic flight information
+            formattedFlight.put("id", flightNode.path("flight").path("iata").asText());
+
+            // Add departure information
+            ObjectNode departure = objectMapper.createObjectNode();
             JsonNode departureNode = flightNode.path("departure");
-            String departureAirport = departureNode.path("airport").asText();
-            String departureAirportShort = departureNode.path("iata").asText();
-            String departureTerminal = departureNode.path("terminal").asText();
-            String departureGate = departureNode.path("gate").asText();
-            LocalDateTime departureScheduledTime = parseDateTime(departureNode.path("scheduled").asText());
-            Integer departureDelay = departureNode.path("delay").isNull() ? null : departureNode.path("delay").asInt();
+            departure.put("airport", departureNode.path("airport").asText());
+            departure.put("iata", departureNode.path("iata").asText());
+            departure.put("terminal", departureNode.path("terminal").asText());
+            departure.put("gate", departureNode.path("gate").asText());
+            departure.put("scheduled", departureNode.path("scheduled").asText());
+            departure.put("delay", departureNode.path("delay").isNull() ? 0 : departureNode.path("delay").asInt());
+            formattedFlight.set("departure", departure);
 
+            // Add arrival information
+            ObjectNode arrival = objectMapper.createObjectNode();
             JsonNode arrivalNode = flightNode.path("arrival");
-            String arrivalAirport = arrivalNode.path("airport").asText();
-            String arrivalAirportShort = arrivalNode.path("iata").asText();
-            String arrivalTerminal = arrivalNode.path("terminal").asText();
-            String arrivalGate = arrivalNode.path("gate").asText();
-            LocalDateTime arrivalScheduledTime = parseDateTime(arrivalNode.path("scheduled").asText());
-            Integer arrivalDelay = arrivalNode.path("delay").isNull() ? null : arrivalNode.path("delay").asInt();
+            arrival.put("airport", arrivalNode.path("airport").asText());
+            arrival.put("iata", arrivalNode.path("iata").asText());
+            arrival.put("terminal", arrivalNode.path("terminal").asText());
+            arrival.put("gate", arrivalNode.path("gate").asText());
+            arrival.put("scheduled", arrivalNode.path("scheduled").asText());
+            arrival.put("delay", arrivalNode.path("delay").isNull() ? 0 : arrivalNode.path("delay").asInt());
+            formattedFlight.set("arrival", arrival);
 
-            // Flight duration might need calculation if not directly provided
-            Integer duration = calculateDuration(departureScheduledTime, arrivalScheduledTime);
+            // Add additional flight information
+            formattedFlight.put("airline", flightNode.path("airline").path("name").asText());
+            formattedFlight.put("status", flightNode.path("flight_status").asText());
 
-            FlightData flightData = new FlightData(
-                    flightIata,
-                    departureAirport,
-                    departureAirportShort,
-                    departureTerminal,
-                    departureGate,
-                    departureScheduledTime,
-                    departureDelay,
-                    arrivalAirport,
-                    arrivalAirportShort,
-                    arrivalTerminal,
-                    arrivalGate,
-                    arrivalScheduledTime,
-                    arrivalDelay,
-                    duration
-            );
+            //add duration of flight according to the scheduled time
+            String scheduledDeparture = departureNode.path("scheduled").asText();
+            String scheduledArrival = arrivalNode.path("scheduled").asText();
+            String Duration = String.valueOf(calculateDuration(scheduledDeparture, scheduledArrival));
 
-            flights.add(flightData);
+            formattedFlight.put("duration", Duration);
+
+            //add price of flight according to the duration
+            int price = flightPrice(Integer.parseInt(Duration)) / 100;
+            formattedFlight.put("price", price);
+
+            formattedFlights.add(formattedFlight);
         }
 
-        return flights;
+        return formattedFlights;
     }
 
-    /**
-     * Parses a date-time string into a LocalDateTime object.
-     *
-     * @param dateTimeStr The date-time string
-     * @return The parsed LocalDateTime, or null if the string is empty or
-     * invalid
-     */
-    private LocalDateTime parseDateTime(String dateTimeStr) {
-        if (dateTimeStr == null || dateTimeStr.isEmpty()) {
-            return null;
-        }
-
-        try {
-            return LocalDateTime.parse(dateTimeStr, DATE_TIME_FORMATTER);
-        } catch (Exception e) {
-            logger.warn("Failed to parse date-time: {}", dateTimeStr);
-            return null;
-        }
+    //calculate km using duration * 15 is the km per minute
+    //price per km is 11 dummy value for now.
+    private int flightPrice(int duration) {
+        return (duration * 15) * pricePerKm;
     }
 
-    /**
-     * Calculates the duration between departure and arrival in minutes.
-     *
-     * @param departure The departure time
-     * @param arrival The arrival time
-     * @return The duration in minutes, or null if either time is null
-     */
-    private Integer calculateDuration(LocalDateTime departure, LocalDateTime arrival) {
-        if (departure == null || arrival == null) {
-            return null;
-        }
+    private int calculateDuration(String scheduledDeparture, String scheduledArrival) {
+        int departureHour = Integer.parseInt(scheduledDeparture.substring(11, 13));
+        int departureMinute = Integer.parseInt(scheduledDeparture.substring(14, 16));
+        int arrivalHour = Integer.parseInt(scheduledArrival.substring(11, 13));
+        int arrivalMinute = Integer.parseInt(scheduledArrival.substring(14, 16));
 
-        // Calculate the duration in minutes
-        return (int) java.time.Duration.between(departure, arrival).toMinutes();
+        return (arrivalHour - departureHour) * 60 + (arrivalMinute - departureMinute);
     }
 }

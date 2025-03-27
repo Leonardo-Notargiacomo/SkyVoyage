@@ -60,19 +60,6 @@ public class APIServer {
                 path("flights", () -> {
                     // GET operations
                     get("/", flightResource::getAll);
-                    get("/{flight-id}", ctx -> flightResource.getOne(ctx, ctx.pathParam("flight-id")));
-
-                    // POST operation
-                    post("/", flightResource::create);
-
-                    // PUT operation
-                    put("/{flight-id}", ctx -> flightResource.update(ctx, ctx.pathParam("flight-id")));
-
-                    // DELETE operation
-                    delete("/{flight-id}", ctx -> flightResource.delete(ctx, ctx.pathParam("flight-id")));
-
-                    // Custom refresh endpoint
-                    get("/refresh", flightResource::refreshFlights);
                 });
             });
         });
