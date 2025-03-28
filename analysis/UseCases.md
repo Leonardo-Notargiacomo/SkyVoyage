@@ -40,27 +40,22 @@ This document outlines the use cases for the project. Each use case describes a 
 
 **Actor**: Sales Employee
 
-**Description**: The sales employee views the list of available flights after entering a search.
+**Description**: Actor views the list of available flights.
 
-**Precondition**: - The sales employee is logged into the system.
-                  - The sales employee has made a flight search with valid criteria.
+**Precondition**: Actor is logged into the system.
+            
 
 **Scenario**:
-1. The system processes the search request and retrieves available flights.
-2. The system displays a list of flights that match the search criteria.
-3. Each flight result includes details(airline, departure, arrival, duration, price...)
-4. The sales employee can sort the flight results (e.g., by price, duration, airline).
-5. The sales employee selects a flight to view more details.
-6. The system displays the flight details page with additional information.
+1. Actor goes to flight page.
+2. System shows flight page & a couple availabe flights.
 
-**Result**: The sales employee successfully views the available flights and can proceed with booking or other actions.
+**Result**: Actor successfully views the available flights and can proceed with booking or other actions.
 
 **Exception**:
-- **2a.** If no flights match the search criteria, the system displays a message: "No flights found. Try modifying your search criteria."
-- **5a.** If the system encounters an error retrieving flight data, it displays an error message: "An error occurred while retrieving flights. Please try again later."
+- **2a.** If no flights are found, the system displays a message: "No flights found."
 
 **Extensions**:
-- **6a** The sales employee can save a flight for later or share details with a customer.
+- n/a
 
 ---
 
@@ -68,27 +63,28 @@ This document outlines the use cases for the project. Each use case describes a 
 
 **Actor**: Sales Employee
 
-**Description**: A sales employee searches for available flights based on specified criteria.
+**Description**: Actor searches for available flights based on specified criteria.
 
-**Precondition**:  The sales employee is logged into the system.
+**Precondition**: Actor is logged into the system. 
+                  Actor is on the search flight page
 
 **Scenario**:
-1. The sales employee selects the flight search section.
-2. The system displays the flight search interface.
-3. The sales employee enters search criteria (e.g., departure city, date, number of passengers...).
-4. The sales employee submits the search request.
-5. The system processes the request and retrieves available flights.
-6. The system displays a list of available flights matching the search criteria.
+1. Actor enters the flight search section.
+2. System displays the flight search interface.
+3. Actor enters search criteria (e.g., departure city, date, number of passengers...).
+4. Actor submits the search request.
+5. System processes the request and retrieves available flights.
+6. System displays a list of available flights matching the search criteria.
 
-**Result**: The sales employee successfully views a list of available flights.
+**Result**: Actor successfully views a list of available flights.
 
 **Exception**:
-- **4a.** If no flights match the criteria, the system displays a message no results found and suggests alternative options.
+- **4a.** If no flights match the criteria, the system displays a message no results found.
 - **5a.** If the system encounters an error retrieving flights, an error message is displayed.
 
 **Extensions**:
-- **5b** The sales employee can apply additional filters (e.g., price, airline, layovers).
-1. The sales employee selects filter options.
-2. The system updates the flight list based on the selected filters.
+- **5b** Actor can apply additional filters (e.g., price, airline..).
+1. Actor selects filter options.
+2. System updates the flight list based on the selected filters.
 
 ---
