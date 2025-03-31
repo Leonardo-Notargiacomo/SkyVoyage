@@ -16,6 +16,7 @@ As a [role], I want to [action] so that [goal].
 
 - As a Sales Employee, I want to log in to the system so that I can access the application.
 - As a Sales Employee, I want to search for available flights based on customer preferences (destination, price, duration, stops) so that I can provide the best options to customers.
+- As a Sales Employee, I want to view available flights so that I can offer customers suitable options.
 - As a Sales Employee, I want to view available seats in real-time so that I can inform customers accordingly.
 - As a Sales Employee, I want to reserve seats while awaiting payment confirmation so that the seats are held for the customer.
 - As a Sales Employee, I want to enter customer details (name, passport number) accurately so that the booking is correct.
