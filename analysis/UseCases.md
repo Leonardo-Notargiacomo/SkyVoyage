@@ -47,7 +47,7 @@ This document outlines the use cases for the project. Each use case describes a 
 
 **Scenario**:
 1. Actor goes to flight page.
-2. System shows flight page & a couple availabe flights.
+2. System shows flight page with all availabe flights.
 
 **Result**: Actor successfully views the available flights and can proceed with booking or other actions.
 
