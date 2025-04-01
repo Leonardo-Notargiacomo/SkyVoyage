@@ -282,7 +282,7 @@
   <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
     {#each flights as flight}
       <button
-        class="bg-white border border-blue-100 shadow-sm rounded-lg p-4 cursor-pointer w-full text-left transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg"
+        class="bg-white border border-blue-100 shadow-sm rounded-lg p-4 cursor-pointer w-full text-left transition-all duration-200 transform hover:border-blue-500 hover:-translate-y-0.5 hover:shadow-lg"
         on:click={() => (selectedFlight = flight)}
         on:keydown={(e) => e.key === "Enter" && (selectedFlight = flight)}
         aria-label={`Select flight from ${flight.departure.iata} to ${flight.arrival.iata}`}
