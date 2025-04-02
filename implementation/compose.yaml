@@ -18,22 +18,13 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/PRJ2-Database-09
+      - SPRING_DATASOURCE_USERNAME=PRJ2-User-09
+      - SPRING_DATASOURCE_PASSWORD=PRJ2-Password-09
     env_file:
       - ./backend/.env
-#    depends_on:
-#      - db
-
-#  db:
-#    image: postgres:13
-#    container_name: prj2-09-db
-#    environment:
-#      POSTGRES_DB: aisdb
-#      POSTGRES_USER: aisdemouser
-#      POSTGRES_PASSWORD: ais
-#    ports:
-#      - "5432:5432"
-#    volumes:
-#      - db_data:/var/lib/postgresql/data
+    depends_on:
+      - postgres
 
   frontend:
     container_name: prj2-09-frontend
@@ -51,5 +42,24 @@ services:
       - backend
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
 
+  postgres:
+    image: postgres:13
+    container_name: prj2-09-postgres-database
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=PRJ2-Database-09
+      - POSTGRES_USER=PRJ2-User-09
+      - POSTGRES_PASSWORD=PRJ2-Password-09
+      # Add an environment variable to help with database cleanup scripts
+      - POSTGRES_CLEAN_ON_START=${CLEAN_DB:-false}
+    volumes:
+      - ${FRESH_DB:-db_data}:/var/lib/postgresql/data
+      - ./database:/docker-entrypoint-initdb.d
+
 volumes:
   db_data:
+  # This temporary volume will be created and destroyed automatically
+  fresh_db:
+    driver: local
