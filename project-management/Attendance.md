@@ -64,11 +64,22 @@
 
 | Name     | 25-Mar | 25-Mar Remarks | 26-Mar | 26-Mar Remarks | 28-Mar | 28-Mar Remarks |
 |----------|--------|---------------|--------|---------------|--------|---------------|
-| Furkan   |   ✅   |               |    ✅    |               |        |               |
-| Leonardo |   ✅   |               |    ✅    |               |        |               |
-| Soheil   |   ✅   |               |    ✅    |               |        |               |
-| Thomas   |   ✅   |               |    ✅    |               |        |               |
-| Til      |   ✅   |               |    ✅    |               |        |               |
+| Furkan   |   ✅   |               |    ✅    |               |   ✅    |               |
+| Leonardo |   ✅   |               |    ✅    |               |   ✅    |               |
+| Soheil   |   ✅   |               |    ✅    |               |   ✅    |               |
+| Thomas   |   ✅   |               |    ✅    |               |   ✅    |               |
+| Til      |   ✅   |               |    ✅    |               |   ✅    |               |
+
+
+**Week 8 (31th- 07 April):**
+
+| Name     | 01-Apr | 01-Apr Remarks | 02-Apr | 02-Apr Remarks | 04-Apr | 04-Apr Remarks |
+|----------|--------|---------------|--------|---------------|--------|---------------|
+| Furkan   |   ✅   |               |    ✅    |               |       |               |
+| Leonardo |   ✅   |               |    ✅    |               |       |               |
+| Soheil   |   ✅   |               |    ✅    |               |       |               |
+| Thomas   |   ✅   |               |    ✅    |               |       |               |
+| Til      |   ✅   |               |    ✅    |               |       |               |
 
 **Template:**
 
