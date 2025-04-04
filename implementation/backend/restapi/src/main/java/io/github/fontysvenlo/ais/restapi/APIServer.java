@@ -5,11 +5,9 @@ import java.util.Map;
 import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
 import io.javalin.Javalin;
 import static io.javalin.apibuilder.ApiBuilder.crud;
+import static io.javalin.apibuilder.ApiBuilder.delete;
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
-import static io.javalin.apibuilder.ApiBuilder.delete;
-import static io.javalin.apibuilder.ApiBuilder.post;
-import static io.javalin.apibuilder.ApiBuilder.put;
 
 /**
  * This class is responsible for starting the REST server and defining the
@@ -38,12 +36,13 @@ public class APIServer {
      * @param configuration the configuration of the server
      */
     public void start(ServerConfig configuration) {
+        // No need for preloading - flights will be fetched and stored on first request
+
         var app = Javalin.create(config -> {
             config.router.contextPath = "/api/v1";
             config.bundledPlugins.enableCors(cors -> {
                 cors.addRule(it -> {
                     it.allowHost("http://localhost:" + configuration.cors(), "127.0.0.1:" + configuration.cors());
-
                 });
             });
             config.router.apiBuilder(() -> {
@@ -61,6 +60,8 @@ public class APIServer {
                 path("flights", () -> {
                     // GET operations
                     get("/", flightResource::getAll);
+                    // Add a new endpoint to clear the flight data
+                    delete("/cache", flightResource::clearCache);
                 });
             });
         });
