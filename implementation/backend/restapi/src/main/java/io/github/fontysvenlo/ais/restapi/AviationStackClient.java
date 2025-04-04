@@ -5,9 +5,14 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +34,14 @@ public class AviationStackClient {
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final int pricePerKm = 11;
+    
+    // Cache for storing flight data
+    private Map<String, CachedData> flightCache = new ConcurrentHashMap<>();
+    // Default cache duration (24 hours in milliseconds)
+    private static final long CACHE_DURATION_MS = 24 * 60 * 60 * 1000;
+    
+    // Locks to prevent multiple simultaneous requests for the same data
+    private final Map<String, ReentrantLock> cacheLocks = new ConcurrentHashMap<>();
 
     /**
      * Creates a new AviationStackClient.
@@ -37,10 +50,34 @@ public class AviationStackClient {
      */
     public AviationStackClient(String apiKey) {
         this.apiKey = apiKey;
-        this.httpClient = HttpClient.newHttpClient();
+        this.httpClient = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_2)
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
         this.objectMapper = new ObjectMapper();
 
         logger.info("AviationStackClient initialized with API key: {}", apiKey);
+        
+        // Asynchronously preload the cache when the client is created
+        preloadCache();
+    }
+    
+    /**
+     * Preloads the cache asynchronously to improve first request performance
+     */
+    public void preloadCache() {
+        logger.info("Starting cache preload...");
+        CompletableFuture.runAsync(() -> {
+            try {
+                logger.info("Preloading home flights cache...");
+                getAllFlightsHome(); // This will populate the cache
+                
+                logger.info("Preloading all flights cache...");
+                getAllFlights(); // This will populate the cache
+            } catch (Exception e) {
+                logger.error("Error during cache preloading", e);
+            }
+        });
     }
 
     /**
@@ -49,27 +86,81 @@ public class AviationStackClient {
      * @return A JsonNode containing flight data
      */
     public JsonNode getAllFlights() {
-        try {
-            String url = API_BASE_URL + "/flights?access_key=" + apiKey;
-            logger.info("Fetching flights from URL: {}", url);
+        String cacheKey = "all_flights";
+        
+        // Check if we have valid cached data
+        if (hasCachedData(cacheKey)) {
+            logger.info("Returning cached flight data");
+            return getCachedData(cacheKey);
+        }
+        
+        // If not in cache, get or create a lock for this cache key
+        ReentrantLock lock = cacheLocks.computeIfAbsent(cacheKey, k -> new ReentrantLock());
+        
+        // If the lock is already held by another thread, it means the data is being fetched
+        // Wait for it to finish and then check the cache again
+        if (lock.isLocked() && !lock.isHeldByCurrentThread()) {
+            logger.info("Another thread is fetching flight data, waiting...");
+            // Wait a bit for the other thread to finish
+            try {
+                Thread.sleep(100);
+                // Then recursively call this method to try again
+                return getAllFlights();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                logger.error("Thread interrupted while waiting for flight data", e);
+            }
+        }
+        
+        // Try to acquire the lock (non-blocking)
+        if (lock.tryLock()) {
+            try {
+                // Check cache again in case another thread populated it while we were waiting
+                if (hasCachedData(cacheKey)) {
+                    return getCachedData(cacheKey);
+                }
+                
+                // If still not in cache, fetch the data
+                String url = API_BASE_URL + "/flights?access_key=" + apiKey;
+                logger.info("Fetching flights from URL: {}", url);
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .GET()
-                    .build();
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .GET()
+                        .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            logger.info("API response status: {}", Optional.of(response.statusCode()));
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                logger.info("API response status: {}", Optional.of(response.statusCode()));
 
-            if (response.statusCode() != 200) {
-                logger.error("Failed to get flights from API: {}", response.body());
+                if (response.statusCode() != 200) {
+                    logger.error("Failed to get flights from API: {}", response.body());
+                    return objectMapper.createArrayNode();
+                }
+
+                JsonNode responseData = parseFlightResponse(response.body());
+                // Cache the response
+                cacheData(cacheKey, responseData);
+                
+                return responseData;
+            } catch (IOException | InterruptedException e) {
+                logger.error("Error while fetching flights", e);
+                return objectMapper.createArrayNode();
+            } finally {
+                lock.unlock();
+                // Clean up the lock if needed
+                cacheLocks.remove(cacheKey);
+            }
+        } else {
+            // If we couldn't get the lock, another thread is already fetching
+            // Wait a bit and try again
+            try {
+                Thread.sleep(100);
+                return getAllFlights();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                logger.error("Thread interrupted while waiting for flight data", e);
                 return objectMapper.createArrayNode();
             }
-
-            return parseFlightResponse(response.body());
-        } catch (IOException | InterruptedException e) {
-            logger.error("Error while fetching flights", e);
-            return objectMapper.createArrayNode();
         }
     }
 
@@ -80,52 +171,105 @@ public class AviationStackClient {
      * @return A JsonNode containing flight data with unique destinations
      */
     public JsonNode getAllFlightsHome() {
-        try {
-            String url = API_BASE_URL + "/flights?access_key=" + apiKey + "&dep_iata=AMS";
-            logger.info("Fetching flights from URL: {}", url);
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .GET()
-                    .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            logger.info("API response status: {}", Optional.of(response.statusCode()));
-
-            if (response.statusCode() != 200) {
-                logger.error("Failed to get flights from API: {}", response.body());
-                return objectMapper.createArrayNode();
+        String cacheKey = "home_flights";
+        
+        // Check if we have valid cached data
+        if (hasCachedData(cacheKey)) {
+            logger.info("Returning cached home flight data");
+            return getCachedData(cacheKey);
+        }
+        
+        // If not in cache, get or create a lock for this cache key
+        ReentrantLock lock = cacheLocks.computeIfAbsent(cacheKey, k -> new ReentrantLock());
+        
+        // If the lock is already held by another thread, it means the data is being fetched
+        // Wait for it to finish and then check the cache again
+        if (lock.isLocked() && !lock.isHeldByCurrentThread()) {
+            logger.info("Another thread is fetching home flight data, waiting...");
+            // Wait a bit for the other thread to finish
+            try {
+                Thread.sleep(100);
+                // Then recursively call this method to try again
+                return getAllFlightsHome();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                logger.error("Thread interrupted while waiting for home flight data", e);
             }
+        }
+        
+        // Try to acquire the lock (non-blocking)
+        if (lock.tryLock()) {
+            try {
+                // Check cache again in case another thread populated it while we were waiting
+                if (hasCachedData(cacheKey)) {
+                    return getCachedData(cacheKey);
+                }
+                
+                // If still not in cache, fetch the data
+                String url = API_BASE_URL + "/flights?access_key=" + apiKey + "&dep_iata=AMS";
+                logger.info("Fetching flights from URL: {}", url);
 
-            JsonNode allFlights = parseFlightResponse(response.body());
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .GET()
+                        .build();
 
-            // Filter to keep only one flight per destination
-            ArrayNode uniqueDestinationFlights = objectMapper.createArrayNode();
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                logger.info("API response status: {}", Optional.of(response.statusCode()));
 
-            // Track destinations we've already included
-            java.util.Set<String> includedDestinations = new java.util.HashSet<>();
-            int count = 0;
+                if (response.statusCode() != 200) {
+                    logger.error("Failed to get flights from API: {}", response.body());
+                    return objectMapper.createArrayNode();
+                }
 
-            // Add one flight per unique destination, up to 10 flights
-            for (JsonNode flight : allFlights) {
-                String destination = flight.path("arrival").path("iata").asText();
+                JsonNode allFlights = parseFlightResponse(response.body());
 
-                if (!includedDestinations.contains(destination) && !destination.isEmpty()) {
-                    uniqueDestinationFlights.add(flight);
-                    includedDestinations.add(destination);
-                    count++;
+                // Filter to keep only one flight per destination
+                ArrayNode uniqueDestinationFlights = objectMapper.createArrayNode();
 
-                    // Stop after adding 10 unique destination flights
-                    if (count >= 10) {
-                        break;
+                // Track destinations we've already included
+                java.util.Set<String> includedDestinations = new java.util.HashSet<>();
+                int count = 0;
+
+                // Add one flight per unique destination, up to 10 flights
+                for (JsonNode flight : allFlights) {
+                    String destination = flight.path("arrival").path("iata").asText();
+
+                    if (!includedDestinations.contains(destination) && !destination.isEmpty()) {
+                        uniqueDestinationFlights.add(flight);
+                        includedDestinations.add(destination);
+                        count++;
+
+                        // Stop after adding 10 unique destination flights
+                        if (count >= 10) {
+                            break;
+                        }
                     }
                 }
-            }
+                
+                // Cache the filtered results
+                cacheData(cacheKey, uniqueDestinationFlights);
 
-            return uniqueDestinationFlights;
-        } catch (IOException | InterruptedException e) {
-            logger.error("Error while fetching flights", e);
-            return objectMapper.createArrayNode();
+                return uniqueDestinationFlights;
+            } catch (IOException | InterruptedException e) {
+                logger.error("Error while fetching flights", e);
+                return objectMapper.createArrayNode();
+            } finally {
+                lock.unlock();
+                // Clean up the lock if needed
+                cacheLocks.remove(cacheKey);
+            }
+        } else {
+            // If we couldn't get the lock, another thread is already fetching
+            // Wait a bit and try again
+            try {
+                Thread.sleep(100);
+                return getAllFlightsHome();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                logger.error("Thread interrupted while waiting for home flight data", e);
+                return objectMapper.createArrayNode();
+            }
         }
     }
 
@@ -139,6 +283,8 @@ public class AviationStackClient {
      * @return A JsonNode containing flight data matching the criteria
      */
     public JsonNode searchFlights(String airline, String flightNumber, String departureIata, String arrivalIata) {
+        // No caching for search flights as requested
+        
         StringBuilder queryBuilder = new StringBuilder(API_BASE_URL + "/flights?access_key=" + apiKey);
 
         if (airline != null && !airline.isEmpty()) {
@@ -282,5 +428,75 @@ public class AviationStackClient {
             // Fallback to a reasonable duration if parsing fails (5 hours)
             return 300;
         }
+    }
+
+    /**
+     * Inner class to store cached data with timestamp
+     */
+    private static class CachedData {
+        private final JsonNode data;
+        private final long timestamp;
+        
+        public CachedData(JsonNode data) {
+            this.data = data;
+            this.timestamp = System.currentTimeMillis();
+        }
+        
+        public JsonNode getData() {
+            return data;
+        }
+        
+        public boolean isExpired() {
+            return System.currentTimeMillis() - timestamp > CACHE_DURATION_MS;
+        }
+    }
+    
+    /**
+     * Checks if valid cached data exists for the given key
+     * 
+     * @param key The cache key
+     * @return true if valid cache data exists, false otherwise
+     */
+    private boolean hasCachedData(String key) {
+        if (flightCache.containsKey(key)) {
+            CachedData cachedData = flightCache.get(key);
+            if (!cachedData.isExpired()) {
+                return true;
+            } else {
+                // Remove expired data
+                flightCache.remove(key);
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Gets cached data for the given key
+     * 
+     * @param key The cache key
+     * @return The cached data, or null if not found
+     */
+    private JsonNode getCachedData(String key) {
+        CachedData cachedData = flightCache.get(key);
+        return cachedData != null ? cachedData.getData() : null;
+    }
+    
+    /**
+     * Caches data with the given key
+     * 
+     * @param key The cache key
+     * @param data The data to cache
+     */
+    private void cacheData(String key, JsonNode data) {
+        flightCache.put(key, new CachedData(data));
+        logger.info("Cached flight data for key: {}", key);
+    }
+    
+    /**
+     * Clears all cached data
+     */
+    public void clearCache() {
+        flightCache.clear();
+        logger.info("Flight cache cleared");
     }
 }

@@ -81,4 +81,17 @@ class FlightResource implements CrudHandler {
         context.status(405); // Method Not Allowed
         context.json(Map.of("error", "Deleting flights is not supported"));
     }
+
+    /**
+     * Clears the flight data cache
+     */
+    public void clearCache(Context context) {
+        try {
+            aviationStackClient.clearCache();
+            context.status(200).json(Map.of("message", "Flight cache cleared successfully"));
+        } catch (Exception e) {
+            logger.error("Error clearing flight cache", e);
+            context.status(500).json(Map.of("error", "Failed to clear flight cache: " + e.getMessage()));
+        }
+    }
 }
