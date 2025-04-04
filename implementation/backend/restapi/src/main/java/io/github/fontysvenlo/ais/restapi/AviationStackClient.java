@@ -210,6 +210,7 @@ public class AviationStackClient {
             departure.put("terminal", departureNode.path("terminal").asText());
             departure.put("gate", departureNode.path("gate").asText());
             departure.put("scheduled", departureNode.path("scheduled").asText());
+            departure.put("timezone", departureNode.path("timezone").asText());
             departure.put("delay", departureNode.path("delay").isNull() ? 0 : departureNode.path("delay").asInt());
             formattedFlight.set("departure", departure);
 
@@ -221,6 +222,7 @@ public class AviationStackClient {
             arrival.put("terminal", arrivalNode.path("terminal").asText());
             arrival.put("gate", arrivalNode.path("gate").asText());
             arrival.put("scheduled", arrivalNode.path("scheduled").asText());
+            arrival.put("timezone", arrivalNode.path("timezone").asText());
             arrival.put("delay", arrivalNode.path("delay").isNull() ? 0 : arrivalNode.path("delay").asInt());
             formattedFlight.set("arrival", arrival);
 
@@ -228,15 +230,17 @@ public class AviationStackClient {
             formattedFlight.put("airline", flightNode.path("airline").path("name").asText());
             formattedFlight.put("status", flightNode.path("flight_status").asText());
 
-            //add duration of flight according to the scheduled time
+            // Add duration of flight according to the scheduled time
             String scheduledDeparture = departureNode.path("scheduled").asText();
             String scheduledArrival = arrivalNode.path("scheduled").asText();
-            int calculatedDuration = calculateDuration(scheduledDeparture, scheduledArrival);
+            String departureTimezone = departureNode.path("timezone").asText();
+            String arrivalTimezone = arrivalNode.path("timezone").asText();
+
+            int calculatedDuration = calculateDuration(scheduledDeparture, scheduledArrival,
+                    departureTimezone, arrivalTimezone);
 
             // Skip flights with zero duration
             if (calculatedDuration <= 0) {
-//                logger.warn("Skipping flight {} with invalid duration: {}",
-//                        flightNode.path("flight").path("iata").asText(), calculatedDuration);
                 continue;
             }
 
@@ -259,28 +263,65 @@ public class AviationStackClient {
         return (duration * 15) * pricePerKm;
     }
 
-    private int calculateDuration(String scheduledDeparture, String scheduledArrival) {
+    /**
+     * Calculates the duration of a flight in minutes, taking into account the
+     * actual timezone difference between departure and arrival airports.
+     *
+     * @param scheduledDeparture The scheduled departure time in UTC
+     * @param scheduledArrival The scheduled arrival time in UTC
+     * @param departureTimezone The timezone of the departure airport
+     * @param arrivalTimezone The timezone of the arrival airport
+     * @return The flight duration in minutes
+     */
+    private int calculateDuration(String scheduledDeparture, String scheduledArrival,
+            String departureTimezone, String arrivalTimezone) {
         try {
-            // Parse the ISO-8601 formatted timestamps into OffsetDateTime objects
-            OffsetDateTime departureTime = OffsetDateTime.parse(scheduledDeparture);
-            OffsetDateTime arrivalTime = OffsetDateTime.parse(scheduledArrival);
+            OffsetDateTime departureTimeUTC = OffsetDateTime.parse(scheduledDeparture);
+            OffsetDateTime arrivalTimeUTC = OffsetDateTime.parse(scheduledArrival);
 
-            // Calculate duration in minutes between the two times
-            long durationMinutes = ChronoUnit.MINUTES.between(departureTime, arrivalTime);
+            if (departureTimezone != null && !departureTimezone.isEmpty()
+                    && arrivalTimezone != null && !arrivalTimezone.isEmpty()) {
 
-            // Ensure the duration is positive
-            if (durationMinutes < 0) {
-                logger.warn("Calculated negative duration between {} and {}, possible data error",
-                        scheduledDeparture, scheduledArrival);
-                // Fallback: use absolute value as a safety measure
-                durationMinutes = Math.abs(durationMinutes);
+                try {
+                    java.time.ZoneId depZone = java.time.ZoneId.of(departureTimezone);
+                    java.time.ZoneId arrZone = java.time.ZoneId.of(arrivalTimezone);
+
+                    java.time.Instant depInstant = departureTimeUTC.toInstant();
+                    java.time.Instant arrInstant = arrivalTimeUTC.toInstant();
+
+                    java.time.ZoneOffset depOffset = depZone.getRules().getOffset(depInstant);
+                    java.time.ZoneOffset arrOffset = arrZone.getRules().getOffset(arrInstant);
+
+                    int offsetDiffMinutes = (depOffset.getTotalSeconds() - arrOffset.getTotalSeconds()) / 60;
+
+                    long durationMinutes = ChronoUnit.MINUTES.between(departureTimeUTC, arrivalTimeUTC);
+
+                    durationMinutes -= offsetDiffMinutes;
+
+                    if (durationMinutes < 30) {
+
+                        durationMinutes = Math.max(45, durationMinutes);
+
+                        if (!departureTimezone.equals(arrivalTimezone)) {
+                            durationMinutes = Math.max(60, durationMinutes);
+                        }
+                    }
+
+                    return (int) durationMinutes;
+                } catch (Exception e) {
+                    logger.error("Error calculating with timezones, falling back to direct UTC calculation", e);
+                }
+            }
+            long durationMinutes = ChronoUnit.MINUTES.between(departureTimeUTC, arrivalTimeUTC);
+
+            if (durationMinutes <= 0 || durationMinutes < 30) {
+                return 45;
             }
 
             return (int) durationMinutes;
         } catch (Exception e) {
             logger.error("Error calculating flight duration: ", e);
-            // Fallback to a reasonable duration if parsing fails (5 hours)
-            return 300;
+            return 90;
         }
     }
 }
