@@ -55,4 +55,5 @@ As a [role], I want to [action] so that [goal].
 ### System
 
 - As a System, I want to ensure discounts are applied in the correct sequence so that customers receive the appropriate discounts.
-- As a system, I want to be able to create a trip so that the user can satisfy their customer with a booking to go somewhere, even if there is no direct flight going there. 
+- As a system, I want to be able to create a trip so that the user can satisfy their customer with a booking to go somewhere, even if there is no direct flight going there.
+- As a System, I want to login users with different roles so that they can access the application & the functions that are matching their roles. 
