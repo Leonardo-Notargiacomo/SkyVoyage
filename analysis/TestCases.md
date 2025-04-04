@@ -275,3 +275,63 @@ This document outlines the test cases for the project. Each test case describes 
 **Extension**: N/A
 
 ---
+
+# Test Case: Set Price Per Kilometre
+
+**Name**: testSetPrice
+
+**Precondition**: Actor is logged into the system and is on the sales manager interface.
+
+**Scenario**:
+
+1. Actor navigates to the pricing section.
+2. System displays the current price per kilometre.
+3. Actor selects the option to set a new price per kilometre.
+4. System prompts the Actor to enter the new price per kilometre.
+5. Actor enters the new price (e.g., "0.15").
+6. System validates the entered price:
+   - Checks if the price is a valid number
+   - Confirms the price is within the acceptable range (e.g., €0.10 - €0.25)
+7. Actor submits the form.
+8. System updates the price per kilometre in the system.
+9. Test checks if the price was updated successfully by querying the system for the new price.
+10. Actor receives a confirmation message: "Price per kilometre has been updated successfully."
+
+**Result**:
+
+- Actor successfully sets a new price per kilometre.
+- The new price is saved and used for future calculations.
+
+**Exceptions**:
+
+- **6a.** If the entered price is invalid (e.g., non-numeric or out of range), the system displays an error message and prompts the actor to enter a valid price.
+- **8a.** If the system encounters an unexpected error, it displays an error message.
+
+---
+
+**Name**: testSetPriceInvalid
+
+**Precondition**: Actor is logged into the system and is on the sales manager interface.
+
+**Scenario**:
+
+1. Actor navigates to the pricing section.
+2. System displays the current price per kilometre.
+3. Actor selects the option to set a new price per kilometre.
+4. System prompts the Actor to enter the new price per kilometre.
+5. Actor enters an invalid price (e.g., "-0.15" or "abc").
+6. System validates the entered price:
+   - Checks if the price is a valid number
+   - Confirms the price is within the acceptable range (e.g., €0.10 - €0.25)
+7. System displays an error message: "Invalid price. Please enter a valid number within the range €0.10 - €0.25."
+8. Actor corrects the price and submits the form again.
+
+**Result**:
+
+- Actor successfully sets a new price per kilometre.
+- The new price is saved and used for future calculations.
+
+**Exceptions**:
+
+- **6a.** If the entered price is invalid (e.g., non-numeric or out of range), the system displays an error message and prompts the actor to enter a valid price.
+- **8a.** If the system encounters an unexpected error, it displays an error message.

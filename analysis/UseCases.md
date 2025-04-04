@@ -88,3 +88,31 @@ This document outlines the use cases for the project. Each use case describes a 
 2. System updates the flight list based on the selected filters.
 
 ---
+
+# Use Case: Set Price Per Kilometre
+
+**Actor**: Sales Manager
+
+**Description**: Sales Manager sets the price per kilometre of a flight
+
+**Precondition**: Sales Manager is logged into the system.
+
+**Scenario**:
+1. Actor navigates to the sales manager section.
+2. System displays the sales manager interface.
+3. Actor selects the option to set the price per kilometre.
+4. System prompts the actor to enter the new price per kilometre.
+5. Actor enters the desired price.
+6. System validates the entered price.
+7. System updates the price per kilometre in the system.
+
+**Result**: Sales Manager successfully sets the price Per Kilometre.
+
+**Exception**:
+- **4a.** If the entered price is invalid (e.g., negative or non-numeric), the system displays an error message and prompts the actor to enter a valid price.
+- **6a.** If the system encounters an unexpected error, it displays an error message.
+
+**Extensions**:
+- N/A
+
+---
