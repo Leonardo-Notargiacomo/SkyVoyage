@@ -3,7 +3,8 @@
   import { slide } from "svelte/transition";
   import { api } from "$lib/api";
   import { goto } from "$app/navigation";
-
+  import { bookingStore } from "$lib/stores/bookingStore";
+  import { get } from "svelte/store";
   let departure = "";
   let arrival = "";
   let departureDate = "";
@@ -33,9 +34,9 @@
   });
 
   const searchFlights = async (e) => {
-     e.preventDefault();
-     loading = true;
-     error = null;
+    e.preventDefault();
+    loading = true;
+    error = null;
 
     goto(`/SearchFlights`);
     return;
@@ -72,6 +73,18 @@
     //    loading = false;
     //  }
   };
+
+  function selectFlight(flight) {
+    // Save selected flight to store
+    bookingStore.update((store) => ({
+      ...store,
+      flight,
+      passengers,
+    }));
+
+    // Go to customer details page
+    goto("/booking/customerDetails");
+  }
 
   function formatDateTime(dateString) {
     return new Date(dateString).toLocaleString("en-GB", {
@@ -397,6 +410,14 @@
       <div class="mt-4 pt-2">
         <button
           class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded"
+          on:click={() => {
+            bookingStore.update((current) => ({
+              ...current,
+              flight: selectedFlight,
+              passengers: passengers, // include passenger count
+            }));
+            goto("/booking/customerDetails");
+          }}
         >
           Select This Flight
         </button>
