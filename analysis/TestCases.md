@@ -322,8 +322,8 @@ This document outlines the test cases for the project. Each test case describes 
 5. Actor enters an invalid price (e.g., "-0.15" or "abc").
 6. System validates the entered price:
    - Checks if the price is a valid number
-   - Confirms the price is within the acceptable range (e.g., €0.10 - €0.25)
-7. System displays an error message: "Invalid price. Please enter a valid number within the range €0.10 - €0.25."
+   - Confirms the price is larger than €0
+7. System displays an error message: "Invalid price. Please enter a valid number larger than €0"
 8. Actor corrects the price and submits the form again.
 
 **Result**:
