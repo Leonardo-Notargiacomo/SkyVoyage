@@ -39,6 +39,6 @@ class BusinessLogicImpl implements BusinessLogic {
 
     @Override
     public LoginService getLoginService() {
-        return null;
+        return new LoginServiceImpl(persistenceAPI.getUserRepository());
     }
 }

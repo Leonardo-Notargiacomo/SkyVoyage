@@ -18,6 +18,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequest request) {
+        System.out.println("AuthController: Login attempt with email: " + request.email());
         boolean success = loginService.login(request.email(), request.password());
         return success ? ResponseEntity.ok("Login successful") : ResponseEntity.status(401).body("Invalid credentials");
     }

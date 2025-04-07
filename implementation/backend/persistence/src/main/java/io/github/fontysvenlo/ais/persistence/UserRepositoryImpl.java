@@ -5,13 +5,13 @@ import java.sql.*;
 import java.util.Optional;
 
 public class UserRepositoryImpl implements UserRepository {
-    private final String url = System.getenv("PRJ2-Database-09");
-    private final String user = System.getenv("PRJ2-User-09");
-    private final String password = System.getenv("PRJ2-Password-09");
+    private final String url = "localhost";
+    private final String user = "PRJ2-User-09";
+    private final String password = "PRJ2-Password-09";
 
     @Override
     public Optional<String> getPasswordByEmail(String email) {
-        String query = "SELECT password FROM users WHERE email = ?";
+        String query = "SELECT password FROM employeeqq WHERE email = ?";
         try (Connection conn = DriverManager.getConnection(url, user, password);
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, email);
