@@ -28,7 +28,7 @@ public class AviationStackClient {
     private final String apiKey;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
-    private final int pricePerKm = 11;
+    private int pricePerKm = 15;
 
     /**
      * Creates a new AviationStackClient.
@@ -255,6 +255,10 @@ public class AviationStackClient {
         }
 
         return formattedFlights;
+    }
+
+    public void updatePrice(int newPrice) {
+        this.pricePerKm = newPrice;
     }
 
     //calculate km using duration * 15 is the km per minute

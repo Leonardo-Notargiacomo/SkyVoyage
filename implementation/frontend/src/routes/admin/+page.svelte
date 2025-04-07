@@ -1,119 +1,114 @@
 <script>
-    let pricePerKm = 0.15;
-    let priceHistory = [
-        {date: '2023-01-15', price: 0.12},
-        {date: '2023-03-22', price: 0.14},
-        {date: '2023-06-10', price: 0.15}
-    ];
+    import { api } from "$lib/api";
+    import { onMount } from "svelte";
 
-    let customDistance = 1000;
-    let customDistanceOptions = [
-        {value: 500, label: '500 km'},
-        {value: 1000, label: '1,000 km'},
-        {value: 2500, label: '2,500 km'},
-        {value: 5000, label: '5,000 km'},
-        {value: 10000, label: '10,000 km'}
-    ];
-
+    let pricePerKm = 15;
     let newPrice = pricePerKm;
     let isSubmitting = false;
+    let error = null;
+    let successMessage = null;
 
-    function updatePrice() {
+    onMount(async () => {
+        try {
+            const response = await api.fetchAPI("flights/price");
+            pricePerKm = response.price;
+        } catch (error) {
+            console.error("Failed to fetch price:", error);
+        }
+    });
+
+    async function updatePrice() {
         isSubmitting = true;
+        successMessage = null;
+        error = null;
 
-        // Simulate API call
-        setTimeout(() => {
+        try {
+            await api.create("/flights/price", { 
+                price: newPrice 
+            });
             pricePerKm = newPrice;
-            const today = new Date();
-            const dateStr = today.toISOString().split('T')[0];
-            priceHistory = [...priceHistory, {date: dateStr, price: newPrice}];
+            successMessage = "Price updated successfully!";
+        } catch (err) {
+            error = "Failed to update price - " + (err.errorData?.error || err.message);
+            console.error("Full error:", err);
+        } finally {
             isSubmitting = false;
-        }, 800);
-    }
-
-    function formatDate(dateStr) {
-        const date = new Date(dateStr);
-        return new Intl.DateTimeFormat('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        }).format(date);
+        }
     }
 
     function formatCurrency(value) {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'EUR',
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }).format(value);
+        return `${value/100} €`;
     }
 </script>
 
 <div class="min-h-screen">
-
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold text-slate-800 mb-8">Sales Manager Dashboard</h1>
+        <h1 class="text-3xl font-bold text-slate-800 mb-8">
+            Sales Manager Dashboard
+        </h1>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-white p-6 rounded-lg shadow-sm">
-                <h2 class="text-xl font-semibold text-slate-800 mb-4">Update Pricing</h2>
+                <h2 class="text-xl font-semibold text-slate-800 mb-4">
+                    Update Pricing
+                </h2>
                 <form on:submit|preventDefault={updatePrice}>
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1" for="price-per-km">
-                            Set Price Per Kilometer (EUR)
+                        <label
+                            class="block text-sm font-medium text-gray-700 mb-1"
+                            for="price-per-km"
+                        >
+                            Set Price Per Kilometer (cents)
                         </label>
                         <input
-                                bind:value={newPrice}
-                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
-                                id="price-per-km"
-                                min="0.01"
-                                placeholder="Enter price per kilometer"
-                                required
-                                step="0.01"
-                                type="number"
+                            bind:value={newPrice}
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                            id="price-per-km"
+                            min="1"
+                            placeholder="Enter price per kilometer"
+                            required
+                            step="1"
+                            type="number"
                         />
                     </div>
 
-                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                    <div
+                        class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4"
+                    >
                         <button
-                                class={`px-6 py-2 rounded-md text-white font-medium ${ isSubmitting || newPrice === pricePerKm
-        ? 'bg-gray-400 cursor-not-allowed'
-        : 'bg-sky-600 hover:bg-sky-700 transition-colors'
-    }`}
-                                disabled={isSubmitting || newPrice === pricePerKm}
-                                type="submit"
+                            class={`px-6 py-2 rounded-md text-white font-medium ${
+                                isSubmitting || newPrice === pricePerKm
+                                    ? "bg-gray-400 cursor-not-allowed"
+                                    : "bg-sky-600 hover:bg-sky-700 transition-colors"
+                            }`}
+                            disabled={isSubmitting || newPrice === pricePerKm}
+                            type="submit"
                         >
-                            {isSubmitting ? 'Updating...' : 'Update Price'}
+                            {isSubmitting ? "Updating..." : "Update Price"}
                         </button>
                     </div>
                 </form>
-            </div>
-
-            <div class="bg-white p-6 rounded-lg shadow-sm">
-                <h2 class="text-xl font-semibold text-slate-800 mb-4">Pricing History</h2>
-
-                {#if priceHistory.length === 0}
-                    <p class="text-gray-500 text-center py-6">No pricing history available</p>
-                {:else}
-                    <div class="space-y-4">
-                        {#each priceHistory as record, i}
-                            <div class={`flex justify-between items-center py-2 ${
-                i !== priceHistory.length - 1 ? 'border-b border-gray-100' : ''
-              }`}>
-                                <div>
-                                    <p class="text-sm text-gray-500">{formatDate(record.date)}</p>
-                                </div>
-                                <div>
-                  <span class={`text-sm font-medium ${
-                    i === priceHistory.length - 1 ? 'text-sky-600' : 'text-gray-700'
-                  }`}>
-                    {formatCurrency(record.price)}
-                  </span>
-                                </div>
-                            </div>
-                        {/each}
-                    </div>
+                {#if successMessage}
+                    <p class="text-green-500 mt-4">{successMessage}</p>
                 {/if}
+                {#if error}
+                    <p class="text-red-500 mt-4">{error}</p>
+                {/if}
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-xl font-semibold text-slate-800 mb-4">
+                        Current Pricing
+                    </h2>
+                    <div class="space-y-2">
+                        <p class="text-gray-600">
+                            Current price per kilometer: 
+                            <span class="font-medium text-sky-600">
+                                {formatCurrency(pricePerKm)}
+                            </span>
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

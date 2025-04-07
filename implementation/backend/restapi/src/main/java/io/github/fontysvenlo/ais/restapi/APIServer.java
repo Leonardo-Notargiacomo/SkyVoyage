@@ -8,6 +8,7 @@ import static io.javalin.apibuilder.ApiBuilder.crud;
 import static io.javalin.apibuilder.ApiBuilder.delete;
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
+import static io.javalin.apibuilder.ApiBuilder.post;
 
 /**
  * This class is responsible for starting the REST server and defining the
@@ -60,6 +61,9 @@ public class APIServer {
                 path("flights", () -> {
                     // GET operations
                     get("/", flightResource::getAll);
+                    get("/price", flightResource::getPrice);
+                    // POST operations
+                    post("/price", flightResource::updatePrice);
                     // Add a new endpoint to clear the flight data
                     delete("/cache", flightResource::clearCache);
                 });

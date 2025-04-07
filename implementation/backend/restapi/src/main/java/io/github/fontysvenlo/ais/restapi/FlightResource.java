@@ -24,6 +24,7 @@ class FlightResource implements CrudHandler {
     private static final Logger logger = LoggerFactory.getLogger(FlightResource.class);
     private final FlightManager flightManager;
     private final AviationStackClient aviationStackClient;
+    private int pricePerKm = 15;
 
     /**
      * Initializes the controller with the business logic and AviationStack
@@ -73,14 +74,52 @@ class FlightResource implements CrudHandler {
                 }
             }
 
-            // Return the API flights directly since they're already in the correct format
-            context.status(200).json(apiFlights);
+            
+            List<Map<String, Object>> formattedFlights = newFlights.stream()
+            .map(this::convertFlightDataToJson)
+            .toList();
+            context.status(200).json(formattedFlights);
+
         } catch (Exception e) {
             logger.error("Error retrieving flights", e);
             context.status(500).json(Map.of(
                     "error", "Failed to retrieve flights",
                     "details", e.getMessage()
             ));
+        }
+    }
+
+    /**
+     * Retrieves the current price per kilometer for flights.
+     * <p>
+     * This method returns the current pricePerKm variable in the response as a JSON object.
+     * </p>
+     *
+     * @param context the Javalin context containing the request and response
+     */
+
+    public void getPrice(Context context) {
+        context.json(Map.of("price", pricePerKm));
+    }
+
+    /**
+     * Updates the price per kilometer for flights.
+     * <p>
+     * This method expects a JSON body with a key "price" containing the new price in cents.
+     * It updates the internal pricePerKm variable and returns the updated price in the response.
+     * </p>
+     *
+     * @param context the Javalin context containing the request and response
+     */
+
+     public void updatePrice(Context context) {
+        try {
+            var body = context.bodyAsClass(Map.class);
+            pricePerKm = ((Number) body.get("price")).intValue();
+            aviationStackClient.updatePrice(pricePerKm);  // Update price in AviationStackClient
+            context.json(Map.of("price", pricePerKm));
+        } catch (Exception e) {
+            context.status(400).json(Map.of("error", "Invalid price format"));
         }
     }
 
@@ -117,10 +156,8 @@ class FlightResource implements CrudHandler {
         result.put("status", "scheduled"); // Default status
         result.put("airline", "Unknown Airline"); // Placeholder
 
-        // Calculate a price based on duration (similar to AviationStackClient logic)
-        int price = (flight.duration() * 15 * 11) / 100;
+        int price = (flight.duration() * 15 * pricePerKm) / 100;
         result.put("price", price);
-
         return result;
     }
 
