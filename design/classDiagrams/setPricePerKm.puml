@@ -1,0 +1,82 @@
+@startuml
+!theme blueprint
+
+skinparam linetype ortho
+left to right direction
+
+skinparam shadowing false
+skinparam packageStyle rectangle
+
+' Increase spacing around packages
+skinparam nodesep 50
+skinparam ranksep 150
+skinparam packageMargin 20
+
+title Class Diagram for the Setting the Price Per Km
+
+package "Frontend" {
+  class AdminPage {
+    - pricePerKm: number
+    - newPrice: number
+    - isSubmitting: boolean
+    - error: String
+    - successMessage: String
+    + onMount(): void
+    + updatePrice(): void
+    + formatCurrency(value: number): String
+  }
+
+  class API {
+    + fetchAPI(endpoint: String): Promise<any>
+    + create(endpoint: String, data: any): Promise<any>
+  }
+}
+
+package "Backend" {
+  class FlightResource {
+    - logger: Logger
+    - flightManager: FlightManager
+    - aviationStackClient: AviationStackClient
+    - pricePerKm: int
+    + getPrice(context: Context): void
+    + updatePrice(context: Context): void
+  }
+
+  class AviationStackClient {
+    - pricePerKm: int
+    + updatePrice(newPrice: int): void
+  }
+
+  interface FlightManager {
+    + list(): List<FlightData>
+  }
+
+  class FlightData {
+    + id: String
+    + duration: int
+    // other flight attributes
+  }
+}
+
+AdminPage --> API : uses
+API ...> FlightResource : HTTP requests
+FlightResource --> AviationStackClient : updates
+FlightResource --> FlightManager : uses
+FlightResource ..> FlightData : creates
+
+note right of AdminPage
+  Handles price update UI
+  and user interactions
+end note
+
+note right of FlightResource
+  Manages price updates and
+  flight data operations
+end note
+
+note right of AviationStackClient
+  Stores and manages
+  price information
+end note
+
+@enduml
