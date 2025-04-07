@@ -5,8 +5,11 @@ import java.util.Map;
 import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
 import io.github.fontysvenlo.ais.datarecords.LoginRequest;
 import io.javalin.Javalin;
-
-import static io.javalin.apibuilder.ApiBuilder.*;
+import static io.javalin.apibuilder.ApiBuilder.crud;
+import static io.javalin.apibuilder.ApiBuilder.delete;
+import static io.javalin.apibuilder.ApiBuilder.get;
+import static io.javalin.apibuilder.ApiBuilder.path;
+import static io.javalin.apibuilder.ApiBuilder.post;
 
 /**
  * This class is responsible for starting the REST server and defining the
@@ -63,7 +66,7 @@ public class APIServer {
                     delete("/cache", flightResource::clearCache);
                 });
                 // Add login endpoint
-                post("login", ctx -> {;
+                post("login", ctx -> {
                     LoginRequest loginRequest = ctx.bodyAsClass(LoginRequest.class);
                     boolean success = businessLogic.getLoginService().login(loginRequest.email(), loginRequest.password());
                     if (success) {
