@@ -28,7 +28,7 @@
     };
 </script>
 
-<div class="flex items-center justify-center min-h-screen">
+<div class="flex items-center justify-center min-h-screen fixed inset-0">
     <div class="w-full max-w-sm p-6 bg-white rounded-lg shadow-lg">
         <!-- Logo -->
         <div class="flex justify-center mb-4">
