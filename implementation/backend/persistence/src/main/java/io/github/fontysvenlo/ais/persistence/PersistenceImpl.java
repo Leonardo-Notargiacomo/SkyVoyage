@@ -34,6 +34,6 @@ class PersistenceImpl implements Persistence {
     }
 
     @Override
-    public UserRepository getUserRepository() { return new UserRepositoryImpl();
+    public UserRepository getUserRepository() { return new UserRepositoryImpl(config);
     }
 }

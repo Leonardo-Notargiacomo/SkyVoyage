@@ -1,22 +1,28 @@
 package io.github.fontysvenlo.ais.persistence;
 import io.github.fontysvenlo.ais.persistence.api.UserRepository;
+import org.postgresql.ds.PGSimpleDataSource;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.Optional;
 
 public class UserRepositoryImpl implements UserRepository {
-    private final String url = "localhost";
-    private final String user = "PRJ2-User-09";
-    private final String password = "PRJ2-Password-09";
+
+    private final DataSource db;
+    public UserRepositoryImpl(DBConfig config) {
+        this.db = DBProvider.getDataSource(config);
+    }
+
+
 
     @Override
     public Optional<String> getPasswordByEmail(String email) {
-        String query = "SELECT password FROM employeeqq WHERE email = ?";
-        try (Connection conn = DriverManager.getConnection(url, user, password);
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, email);
-            ResultSet rs = stmt.executeQuery();
+        String query = "SELECT password FROM public.employee where email = ?;";
+        try (PreparedStatement statement = db.getConnection().prepareStatement(query)) {
+            statement.setString(1, email);
+            ResultSet rs = statement.executeQuery();
             if (rs.next()) return Optional.of(rs.getString("password"));
+
         } catch (SQLException e) {
             e.printStackTrace();
             // Handle exception (e.g., log it)

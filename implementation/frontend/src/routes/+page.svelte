@@ -1,4 +1,5 @@
 <script>
+    import { goto } from '$app/navigation';
     let email = "";
     let password = "";
     let rememberMe = false;
@@ -14,6 +15,8 @@
             if (response.ok) {
                 alert("✅ Login successful!");
                 // redirect or store token
+                goto('/home');
+
             } else {
                 const error = await response.text();
                 alert("❌ Login failed: " + error);
