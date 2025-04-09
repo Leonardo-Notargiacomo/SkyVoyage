@@ -115,9 +115,20 @@ class FlightResource implements CrudHandler {
      public void updatePrice(Context context) {
         try {
             var body = context.bodyAsClass(Map.class);
-            pricePerKm = ((Number) body.get("price")).intValue();
-            aviationStackClient.updatePrice(pricePerKm);  // Update price in AviationStackClient
-            context.json(Map.of("price", pricePerKm));
+            if (!body.containsKey("price")) {
+                context.status(400).json(Map.of("error", "Invalid price format"));
+                return;
+            }
+    
+            int newPrice = ((Number) body.get("price")).intValue();
+            if (newPrice < 0) {
+                context.status(400).json(Map.of("error", "Price per kilometer cannot be negative"));
+                return;
+            }
+    
+            pricePerKm = newPrice;
+            aviationStackClient.updatePrice(pricePerKm);
+            context.status(200).json(Map.of("price", pricePerKm));
         } catch (Exception e) {
             context.status(400).json(Map.of("error", "Invalid price format"));
         }
