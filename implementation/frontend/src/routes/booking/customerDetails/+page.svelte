@@ -8,9 +8,6 @@
   let passengers = booking.passengers || 1;
 
   // Redirect if no flight selected
-  if (!flight) {
-    goto("/SearchFlights");
-  }
 
   let customers = Array.from({ length: passengers }, () => ({
     firstName: "",
@@ -117,10 +114,12 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+            <label for="firstname" class="block text-sm font-medium text-gray-700 mb-1">
               First Name
             </label>
             <input
+              id="firstname"
+              name="firstname"
               type="text"
               bind:value={customer.firstName}
               required
@@ -130,10 +129,11 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+            <label for="lastname" class="block text-sm font-medium text-gray-700 mb-1">
               Last Name
             </label>
             <input
+              id="lastname"
               type="text"
               bind:value={customer.lastName}
               required
@@ -143,10 +143,11 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
               Email
             </label>
             <input
+              id="email"
               type="email"
               bind:value={customer.email}
               required
@@ -156,10 +157,11 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
               Phone (optional)
             </label>
             <input
+              id="phone"
               type="tel"
               bind:value={customer.phone}
               class="w-full border p-2 rounded-md border-gray-300"
