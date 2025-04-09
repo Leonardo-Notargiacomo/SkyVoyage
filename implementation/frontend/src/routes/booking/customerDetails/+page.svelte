@@ -5,7 +5,7 @@
 
   const booking = get(bookingStore);
   let flight = booking.flight;
-  let passengers = booking.passengers || 1;
+  let passengers = 2;
 
   // Redirect if no flight selected
 
@@ -14,6 +14,7 @@
     lastName: "",
     email: "",
     phone: "",
+    isInfant: false,
   }));
 
   function continueToSummary() {
@@ -158,16 +159,32 @@
 
           <div>
             <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
-              Phone (optional)
+              Phone {index == 0? "(required)" : "(optional)"}
             </label>
             <input
               id="phone"
               type="tel"
               bind:value={customer.phone}
+              required={index==0}
               class="w-full border p-2 rounded-md border-gray-300"
               placeholder="+49 123 4567890"
             />
           </div>
+
+          {#if index !== 0}
+            <div class="col-span-2">
+              <label for="isInfant-{index}" class="inline-flex items-center text-sm font-medium text-gray-700 mb-1">
+                <input
+                  id="isInfant-{index}"
+                  type="checkbox"
+                  bind:checked={customer.isInfant}
+                  class="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                />
+                Does not need a seat (Infant)
+              </label>
+            </div>
+          {/if}
+
         </div>
       </fieldset>
     {/each}
