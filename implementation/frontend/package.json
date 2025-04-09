@@ -7,7 +7,10 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
-		"prepare": "svelte-kit sync || echo ''"
+		"prepare": "svelte-kit sync || echo ''",
+		"audit": "npm audit",
+		"audit:fix": "npm audit fix",
+		"audit:fix:force": "npm audit fix --force"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^4.0.0",
