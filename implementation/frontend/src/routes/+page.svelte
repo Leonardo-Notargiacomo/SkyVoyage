@@ -13,16 +13,23 @@
             });
 
             if (response.ok) {
-                alert("✅ Login successful!");
-                // redirect or store token
-                goto('/home');
+                const data = await response.json();
+                console.log(data)
+                if(data.firstname && data.lastname && data.type) {
+                    // save user data to cookies
+                    document.cookie = `firstname=${data.firstname};`;
+                    document.cookie = `lastname=${data.lastname};`;
+                    document.cookie = `type=${data.type};`;
+                    goto("/home");
+                } else {
+                    console.error("Invalid response format");
+                }
 
             } else {
                 const error = await response.text();
-                alert("❌ Login failed: " + error);
+                console.error(err)
             }
         } catch (err) {
-            alert("⚠️ Could not connect to server.");
             console.error(err);
         }
     };

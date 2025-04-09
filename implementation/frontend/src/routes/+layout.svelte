@@ -2,6 +2,39 @@
     import { page } from '$app/stores';
 	import '../app.css';
 	let { children } = $props();
+    let firstname = $state('');
+    let lastname = $state('');
+    let type = $state('');
+    let initials = $state('');
+
+    if (typeof window !== 'undefined') {
+        firstname = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('firstname='))
+            ?.split('=')[1] || '';
+        lastname = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('lastname='))
+            ?.split('=')[1] || '';
+        type = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('type='))
+            ?.split('=')[1] || '';
+        switch (type) {
+            case '1' :
+                type = 'Sales Manager';
+                break;
+            case '2' :
+                type = 'Sales Employee';
+                break;
+            case '3' :
+                type = 'Account Manager';
+                break;
+        }
+        initials = firstname.charAt(0).toUpperCase() + lastname.charAt(0).toUpperCase();
+    }
+
+
 </script>
 
 {#if $page.url.pathname !== '/'}
@@ -38,11 +71,11 @@
         <div class="mt-auto pt-4 space-y-2 font-medium border-t border-gray-200 dark:border-gray-700">
             <div class="flex gap-4">
                 <div class="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
-                    <span class="font-medium text-gray-600 dark:text-gray-300">LN</span>
+                    <span class="font-medium text-gray-600 dark:text-gray-300">{initials}</span>
                 </div>
                 <div class="font-medium dark:text-white">
-                    <div>Furkan Öztürk</div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400">Software Developer</div>
+                    <div> {firstname + ' ' + lastname}</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">{type}</div>
                 </div>
             </div>
         </div>

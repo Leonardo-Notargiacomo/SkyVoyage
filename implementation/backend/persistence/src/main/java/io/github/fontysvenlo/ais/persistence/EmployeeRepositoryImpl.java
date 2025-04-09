@@ -1,5 +1,6 @@
 package io.github.fontysvenlo.ais.persistence;
 
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -82,5 +83,28 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
         // TODO: Implement the actual database storage
         // For now, return a dummy list
         return Collections.unmodifiableList(employees);
+    }
+    @Override
+    public EmployeeData getByEmail(String email) {
+        String statement = "SELECT * FROM public.employee WHERE email = ?";
+        try {
+            PreparedStatement preparedStatement = db.getConnection().prepareStatement(statement);
+            preparedStatement.setString(1, email);
+            var resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return new EmployeeData(
+                        resultSet.getInt("id"),
+                        resultSet.getString("firstname"),
+                        resultSet.getString("lastname"),
+                        resultSet.getString("email"),
+                        resultSet.getString("password"),
+                        resultSet.getString("roleid")
+                );
+            }
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

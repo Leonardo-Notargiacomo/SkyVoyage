@@ -3,8 +3,10 @@ package io.github.fontysvenlo.ais.restapi;
 import java.util.Map;
 
 import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
+import io.github.fontysvenlo.ais.datarecords.EmployeeData;
 import io.github.fontysvenlo.ais.datarecords.LoginRequest;
 import io.javalin.Javalin;
+
 import static io.javalin.apibuilder.ApiBuilder.crud;
 import static io.javalin.apibuilder.ApiBuilder.delete;
 import static io.javalin.apibuilder.ApiBuilder.get;
@@ -24,8 +26,8 @@ public class APIServer {
      * Initializes the REST API server
      *
      * @param businessLogic the business logic implementation to communicate
-     * with
-     * @param apiKey the API key for the AviationStack API
+     *                      with
+     * @param apiKey        the API key for the AviationStack API
      */
     public APIServer(BusinessLogic businessLogic, String apiKey) {
         this.businessLogic = businessLogic;
@@ -70,7 +72,13 @@ public class APIServer {
                     LoginRequest loginRequest = ctx.bodyAsClass(LoginRequest.class);
                     boolean success = businessLogic.getLoginService().login(loginRequest.email(), loginRequest.password());
                     if (success) {
-                        ctx.status(200).json(Map.of("message", "Login successful"));
+                        // Fetch the employee's first name from the database
+                        EmployeeData employee = businessLogic.getEmployeeManager().getByEmail(loginRequest.email());
+                        ctx.status(200).json(Map.of(
+                                "message", "Login successful",
+                                "firstname", employee.Firstname(),
+                                "lastname", employee.Lastname(),
+                                "type", employee.Type()));
                     } else {
                         ctx.status(401).json(Map.of("error", "Invalid credentials"));
                     }

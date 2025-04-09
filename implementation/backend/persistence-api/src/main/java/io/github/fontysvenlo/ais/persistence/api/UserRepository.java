@@ -1,4 +1,5 @@
 package io.github.fontysvenlo.ais.persistence.api;
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository {
