@@ -20,6 +20,9 @@
                     document.cookie = `firstname=${data.firstname};`;
                     document.cookie = `lastname=${data.lastname};`;
                     document.cookie = `type=${data.type};`;
+                    // Notify layout to update user info
+                    window.dispatchEvent(new Event('userInfoChanged'));
+
                     goto("/home");
                 } else {
                     console.error("Invalid response format");
@@ -27,10 +30,10 @@
 
             } else {
                 const error = await response.text();
-                console.error(err)
+                console.error(error);
             }
         } catch (err) {
-            console.error(err);
+            console.error(error);
         }
     };
 </script>

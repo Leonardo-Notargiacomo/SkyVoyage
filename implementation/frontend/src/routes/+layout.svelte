@@ -1,41 +1,64 @@
 <script>
+    import { onMount } from 'svelte';
+    import { goto } from '$app/navigation';
     import { page } from '$app/stores';
-	import '../app.css';
-	let { children } = $props();
-    let firstname = $state('');
-    let lastname = $state('');
-    let type = $state('');
-    let initials = $state('');
+    import '../app.css';
 
-    if (typeof window !== 'undefined') {
-        firstname = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('firstname='))
-            ?.split('=')[1] || '';
-        lastname = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('lastname='))
-            ?.split('=')[1] || '';
-        type = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('type='))
-            ?.split('=')[1] || '';
-        switch (type) {
-            case '1' :
-                type = 'Sales Manager';
-                break;
-            case '2' :
-                type = 'Sales Employee';
-                break;
-            case '3' :
-                type = 'Account Manager';
-                break;
-        }
-        initials = firstname.charAt(0).toUpperCase() + lastname.charAt(0).toUpperCase();
+    let firstname = '';
+    let lastname = '';
+    let type = '';
+    let initials = '';
+
+    function logout() {
+        // Clear cookies
+        document.cookie = "firstname=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        document.cookie = "lastname=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        document.cookie = "type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+
+        // Notify layout to clear user info
+        window.dispatchEvent(new Event('userInfoChanged'));
+
+        // Redirect to login
+        goto('/');
     }
 
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return '';
+    }
 
+    function updateUserInfo() {
+        firstname = getCookie('firstname') || '';
+        lastname = getCookie('lastname') || '';
+        const rawType = getCookie('type') || '';
+
+        const roleLabels = {
+            '1': 'Sales Manager',
+            '2': 'Sales Employee',
+            '3': 'Account Manager'
+        };
+
+        type = roleLabels[rawType] || rawType;
+
+        initials = (firstname.charAt(0) || '').toUpperCase() + (lastname.charAt(0) || '').toUpperCase();
+    }
+
+    onMount(() => {
+        updateUserInfo();
+
+        // Listen for changes after login
+        window.addEventListener('userInfoChanged', updateUserInfo);
+
+        return () => {
+            window.removeEventListener('userInfoChanged', updateUserInfo);
+        };
+
+    });
 </script>
+
+
 
 {#if $page.url.pathname !== '/'}
 <button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar" aria-controls="default-sidebar" type="button" class="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
@@ -61,7 +84,7 @@
                     <span class="flex-1 ms-3 whitespace-nowrap">Customers</span>
                 </a>
             </li> -->
-            <li>
+         <li>
                 <a href="/employees" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                     <span class="flex-1 ms-3 whitespace-nowrap">Employees</span>
@@ -77,12 +100,17 @@
                     <div> {firstname + ' ' + lastname}</div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">{type}</div>
                 </div>
+                <button on:click={logout} class="w-9 h-9 flex items-center justify-center rounded-full background: bg-red-600 text-white hover:bg-red-700 hover:text-white transition" title="Logout">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 27 25" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7" />
+                    </svg>
+                </button>
             </div>
         </div>
     </div>
 </aside>
 {/if}
 
- <div class="p-4 {($page.url.pathname !== '/login') ? 'sm:ml-64' : ''}">
-   {@render children()}
+<div class="p-4 {($page.url.pathname !== '/' && $page.url.pathname !== '/login') ? 'sm:ml-64' : ''}">
+    <slot />
 </div>
