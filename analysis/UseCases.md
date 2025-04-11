@@ -116,3 +116,33 @@ This document outlines the use cases for the project. Each use case describes a 
 - N/A
 
 ---
+
+# Use Case: Log into system
+
+**Actor**: Sales Employee, Sales Manager, Account Manager
+
+**Description**: The system authenticates actor with different roles and grants them access to the related application functions.
+
+**Precondition**: The Actor has a valid account with an assigned role (e.g., Sales Employee, Account Manager, Sales Manager).
+
+**Scenario**:
+1. Actor is on the login page.
+2. System displays the login interface.
+3. Actor enters their credentials (email & password).
+4. Actor submits the login request.
+5. The system verifies the credentials:
+   * If credentials are valid, proceed to step 6.
+   * If credentials are invalid, display an error message.
+6. System checks the actor's role and grants access based on role permissions.
+7. The system redirects the Actor to the appropriate dashboard.
+
+**Result**: The Actor successfully logs in and access functions according to their assigned role.
+
+**Exception**:
+- **5a.** Invalid Credentials: If the email or password is incorrect, the system displays an error message: "Invalid email or password. Please try again."
+
+
+**Extensions**:
+- N/A
+
+---
