@@ -182,7 +182,8 @@
     bookingStore.update((store) => ({
       ...store,
       flight: flightData,
-      passengers: parseInt(searchParams.adults),
+      AdultPassengers: parseInt(searchParams.adults),
+      infantsPassengers: parseInt(searchParams.infants) || 0,
       travelClass: searchParams.travelClass,
     }));
 
@@ -253,7 +254,7 @@
   <div class="flex justify-between items-center mb-8">
     <h1 class="text-3xl font-bold text-gray-800">Flight Search Results</h1>
     <a
-      href="/"
+      href="/home"
       class="bg-blue-50 hover:bg-blue-100 text-blue-600 font-medium py-2 px-4 rounded-md transition-all"
     >
       New Search
@@ -599,7 +600,7 @@
 
   <div class="mt-6">
     <a
-      href="/"
+      href="/home"
       class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-5 rounded-lg shadow-sm transition-all duration-200 transform hover:-translate-y-0.5"
     >
       <svg

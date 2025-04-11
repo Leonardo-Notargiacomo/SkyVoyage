@@ -5,13 +5,25 @@
   import { goto } from "$app/navigation";
   import { bookingStore } from "$lib/stores/bookingStore";
   import { get } from "svelte/store";
+
+  // Basic search parameters
   let departure = "";
   let arrival = "";
   let departureDate = "";
   let returnDate = "";
   let stops = "Any";
   let passengers = 1;
-  let travelClass = "ECONOMY"; // Added travel class
+  let travelClass = "ECONOMY";
+
+  // Additional parameters
+  let adults = 1;
+  let infants = 0;
+  let currencyCode = "EUR";
+  let maxResults = 5;
+  let includedAirlineCodes = "";
+  let excludedAirlineCodes = "";
+  let maxPrice = "";
+
   let flights = [];
   let showAdvancedOptions = false;
   let loading = false;
@@ -42,11 +54,17 @@
     // Build query parameters based on form inputs
     const params = new URLSearchParams();
 
+    // Basic parameters
     if (departure) params.append("originLocationCode", departure);
     if (arrival) params.append("destinationLocationCode", arrival);
     if (departureDate) params.append("departureDate", departureDate);
     if (returnDate) params.append("returnDate", returnDate);
-    params.append("adults", passengers.toString());
+
+    // Passenger counts - only adults and infants
+    params.append("adults", adults.toString());
+    if (infants > 0) params.append("infants", infants.toString());
+
+    // Travel options
     params.append("travelClass", travelClass);
 
     // Convert stops selection to nonStop parameter
@@ -56,7 +74,14 @@
       params.append("nonStop", "false");
     }
 
-    params.append("max", "5"); // Limit results to 5 flights
+    // Additional filters
+    params.append("max", maxResults.toString());
+    if (currencyCode) params.append("currencyCode", currencyCode);
+    if (maxPrice) params.append("maxPrice", maxPrice);
+    if (includedAirlineCodes)
+      params.append("includedAirlineCodes", includedAirlineCodes);
+    if (excludedAirlineCodes)
+      params.append("excludedAirlineCodes", excludedAirlineCodes);
 
     const queryString = params.toString();
     goto(`/SearchFlights?${queryString}`);
@@ -131,7 +156,7 @@
         </div>
       </div>
 
-      <!-- Departure/Return dates unchanged -->
+      <!-- Departure/Return dates -->
       <div class="flex flex-col md:flex-row gap-4 items-start">
         <div class="flex-1">
           <label
@@ -145,9 +170,6 @@
             bind:value={departureDate}
             class="w-full p-2 border border-gray-300 rounded-md"
           />
-          <label class="inline-flex items-center mt-2 text-sm text-gray-600">
-            <input type="checkbox" class="mr-2" /> Flexible (+/- 2 days)
-          </label>
         </div>
         <div class="flex-1">
           <label
@@ -161,9 +183,6 @@
             bind:value={returnDate}
             class="w-full p-2 border border-gray-300 rounded-md"
           />
-          <label class="inline-flex items-center mt-2 text-sm text-gray-600">
-            <input type="checkbox" class="mr-2" /> Flexible (+/- 2 days)
-          </label>
         </div>
       </div>
 
@@ -184,9 +203,10 @@
       {#if showAdvancedOptions}
         <div transition:slide={{ duration: 300 }}>
           <div
-            class="flex flex-col md:flex-row gap-4 items-start pt-2 border-t border-gray-200"
+            class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pt-2 border-t border-gray-200"
           >
-            <div class="flex-1">
+            <!-- Flight Type options -->
+            <div>
               <label
                 for="flight-type"
                 class="block text-sm font-medium text-gray-700 mb-1"
@@ -212,38 +232,60 @@
                   />
                   Only direct flights
                 </label>
-                <label class="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="stops"
-                    value="MaxOneStop"
-                    bind:group={stops}
-                  />
-                  Max. one stop
-                </label>
               </div>
             </div>
 
-            <div class="flex-1">
-              <label
-                for="passengers"
-                class="block text-sm font-medium text-gray-700 mb-1"
+            <!-- Passenger counts -->
+            <div>
+              <label for="passengers" class="block text-sm font-medium text-gray-700 mb-1"
                 >Passengers</label
               >
-              <select
-                id="passengers"
-                bind:value={passengers}
-                class="w-full p-2 border border-gray-300 rounded-md"
-              >
-                {#each Array(9) as _, i}
-                  <option value={i + 1}
-                    >{i + 1} Passenger{i > 0 ? "s" : ""}</option
-                  >
-                {/each}
-              </select>
+
+              <div class="flex flex-col gap-2">
+                <!-- Adults -->
+                <div class="flex items-center justify-between">
+                  <span class="text-sm">Adults (12+ years)</span>
+                  <div class="flex items-center">
+                    <button
+                      type="button"
+                      class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center"
+                      on:click={() => (adults = Math.max(1, adults - 1))}
+                      >-</button
+                    >
+                    <span class="mx-2 w-6 text-center">{adults}</span>
+                    <button
+                      type="button"
+                      class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center"
+                      on:click={() => (adults = Math.min(9, adults + 1))}
+                      >+</button
+                    >
+                  </div>
+                </div>
+
+                <!-- Infants -->
+                <div class="flex items-center justify-between">
+                  <span class="text-sm">Infants (0-2 years)</span>
+                  <div class="flex items-center">
+                    <button
+                      type="button"
+                      class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center"
+                      on:click={() => (infants = Math.max(0, infants - 1))}
+                      >-</button
+                    >
+                    <span class="mx-2 w-6 text-center">{infants}</span>
+                    <button
+                      type="button"
+                      class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center"
+                      on:click={() => (infants = Math.min(adults, infants + 1))}
+                      >+</button
+                    >
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div class="flex-1">
+            <!-- Travel class -->
+            <div>
               <label
                 for="travelClass"
                 class="block text-sm font-medium text-gray-700 mb-1"
@@ -259,6 +301,73 @@
                 <option value="BUSINESS">Business</option>
                 <option value="FIRST">First</option>
               </select>
+            </div>
+          </div>
+
+          <!-- Additional filters section -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div>
+              <label
+                for="maxPrice"
+                class="block text-sm font-medium text-gray-700 mb-1"
+                >Maximum Price in €</label
+              >
+              <input
+                id="maxPrice"
+                type="number"
+                bind:value={maxPrice}
+                placeholder="e.g. 1000"
+                class="w-full p-2 border border-gray-300 rounded-md"
+              />
+            </div>
+
+            <div>
+              <label
+                for="maxResults"
+                class="block text-sm font-medium text-gray-700 mb-1"
+                >Maximum Results</label
+              >
+              <input
+                id="maxResults"
+                type="number"
+                min="1"
+                max="250"
+                bind:value={maxResults}
+                class="w-full p-2 border border-gray-300 rounded-md"
+              />
+            </div>
+          </div>
+
+          <!-- Airline preferences -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div>
+              <label
+                for="includedAirlineCodes"
+                class="block text-sm font-medium text-gray-700 mb-1"
+                >Preferred Airlines (comma-separated codes)</label
+              >
+              <input
+                id="includedAirlineCodes"
+                type="text"
+                bind:value={includedAirlineCodes}
+                placeholder="e.g. LH,AF,BA"
+                class="w-full p-2 border border-gray-300 rounded-md"
+              />
+            </div>
+
+            <div>
+              <label
+                for="excludedAirlineCodes"
+                class="block text-sm font-medium text-gray-700 mb-1"
+                >Excluded Airlines (comma-separated codes)</label
+              >
+              <input
+                id="excludedAirlineCodes"
+                type="text"
+                bind:value={excludedAirlineCodes}
+                placeholder="e.g. FR,W6,U2"
+                class="w-full p-2 border border-gray-300 rounded-md"
+              />
             </div>
           </div>
         </div>
