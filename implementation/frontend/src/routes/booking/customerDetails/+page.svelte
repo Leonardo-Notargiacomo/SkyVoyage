@@ -3,22 +3,23 @@
   import { bookingStore } from "$lib/stores/bookingStore";
   import { get } from "svelte/store";
 
-  // const booking = get(bookingStore);
-  // let flight = booking.flight;
-  let passengers = 2;
+  const booking = get(bookingStore);
+  let flight = booking.flight;
+  let passengers = booking.passengers || 1;
 
   // Redirect if no flight selected
+  if (!flight) {
+    goto("/SearchFlights");
+  }
 
   let customers = Array.from({ length: passengers }, () => ({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
-    isInfant: false,
   }));
 
   function continueToSummary() {
-    console.log("Updating booking store with customers:", customers);
     bookingStore.update((state) => ({
       ...state,
       customers: customers,
@@ -184,12 +185,10 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label for="firstname" class="block text-sm font-medium text-gray-700 mb-1">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
               First Name
             </label>
             <input
-              id="firstname"
-              name="firstname"
               type="text"
               bind:value={customer.firstName}
               required
@@ -199,11 +198,10 @@
           </div>
 
           <div>
-            <label for="lastname" class="block text-sm font-medium text-gray-700 mb-1">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
               Last Name
             </label>
             <input
-              id="lastname"
               type="text"
               bind:value={customer.lastName}
               required
@@ -213,11 +211,10 @@
           </div>
 
           <div>
-            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
               Email
             </label>
             <input
-              id="email"
               type="email"
               bind:value={customer.email}
               required
@@ -227,33 +224,16 @@
           </div>
 
           <div>
-            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
-              Phone {index === 0? "(required)" : "(optional)"}
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Phone (optional)
             </label>
             <input
-              id="phone"
               type="tel"
               bind:value={customer.phone}
-              required={index===0}
               class="w-full border p-2 rounded-md border-gray-300"
               placeholder="+49 123 4567890"
             />
           </div>
-
-          {#if index !== 0}
-            <div class="col-span-2">
-              <label for="isInfant-{index}" class="inline-flex items-center text-sm font-medium text-gray-700 mb-1">
-                <input
-                  id="isInfant-{index}"
-                  type="checkbox"
-                  bind:checked={customer.isInfant}
-                  class="h-4 w-4 text-blue-600 border-gray-300 rounded"
-                />
-                Does not need a seat (Infant)
-              </label>
-            </div>
-          {/if}
-
         </div>
       </fieldset>
     {/each}
