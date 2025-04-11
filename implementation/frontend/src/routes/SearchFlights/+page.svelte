@@ -133,7 +133,7 @@
     const outboundTrip = offer.trips.find((trip) => trip.type === "outbound");
     const returnTrip = offer.trips.find((trip) => trip.type === "return");
     const firstOutboundFlight = outboundTrip?.flights[0];
-    outboundTrip?.flights[outboundTrip.flights.length - 1];
+    const lastOutboundFlight = outboundTrip?.flights[outboundTrip.flights.length - 1];
 
     const flightData = {
       id: offer.id,
