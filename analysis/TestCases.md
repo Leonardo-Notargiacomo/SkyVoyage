@@ -324,7 +324,7 @@ This document outlines the test cases for the project. Each test case describes 
 - Actor successfully sets a new price per kilometre.
 - The new price is saved and used for future calculations.
 
-
+---
 
 # Test Case: Log into system
 
