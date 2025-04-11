@@ -323,3 +323,47 @@ This document outlines the test cases for the project. Each test case describes 
 
 - Actor successfully sets a new price per kilometre.
 - The new price is saved and used for future calculations.
+
+
+
+# Test Case: Log into system
+
+**Name**: testLoginSuccessful
+
+**Precondition**: Actor has a valid account with an assigned role & is on the login page.
+
+**Scenario**:
+
+1. Actor enters a valid email and correct password.
+2. Actor submits the login request.
+3. System verifies the credentials.
+4. System checks the user’s role and grants access:
+    - Sales Employee → Flight search and booking.
+    - Account Manager → User creation, flight search.
+    - Sales Manager → Flight search, booking management, and viewing bookings.
+5. System redirects the Actor to the appropriate dashboard.
+
+**Result**:
+
+- Actor is successfully logged in.
+- Actor is redirected to the dashboard.
+  
+---
+
+**Name**: testLoginInvalidCredentials
+
+**Precondition**: Actor is on the login
+
+**Scenario**:
+
+1. Actor enters an incorrect email or wrong password
+2. Actor submits the login request.
+3. System verifies credentials and determines they are invalid.
+4. System displays an error message:
+   -  Invalid username or password. Please try again."
+5. Actor remains on the login page.
+
+**Result**:
+
+- Actor is not logged in.
+- System displays an error message.
