@@ -75,11 +75,23 @@
 
 | Name     | 01-Apr | 01-Apr Remarks | 02-Apr | 02-Apr Remarks | 04-Apr | 04-Apr Remarks |
 |----------|--------|---------------|--------|---------------|--------|---------------|
-| Furkan   |   ✅   |               |    ✅    |               |       |               |
-| Leonardo |   ✅   |               |    ✅    |               |       |               |
-| Soheil   |   ✅   |               |    ✅    |               |       |               |
-| Thomas   |   ✅   |               |    ✅    |               |       |               |
-| Til      |   ✅   |               |    ✅    |               |       |               |
+| Furkan   |   ✅   |               |    ✅    |               |   ✅    |               |
+| Leonardo |   ✅   |               |    ✅    |               |   ✅    |               |
+| Soheil   |   ✅   |               |    ✅    |               |   ✅    |               |
+| Thomas   |   ✅   |               |    ✅    |               |   ✅    |               |
+| Til      |   ✅   |               |    ✅    |               |   ✅    |               |
+
+
+
+**Week 9 (07th- 11 April):**
+
+| Name     | 07-Apr | 07-Apr Remarks | 09-Apr | 09-Apr Remarks | 11-Apr | 11-Apr Remarks |
+|----------|--------|---------------|--------|---------------|--------|---------------|
+| Furkan   |   ✅   |               |    ✅    |               |   ✅    |               |
+| Leonardo |   ✅   |               |    ✅    |               |   ✅    |               |
+| Soheil   |   ✅   |               |    ✅    |               |   ❌    |      Sick     |
+| Thomas   |   ✅   |               |    ✅    |               |   ✅    |               |
+| Til      |   ✅   |               |    ✅    |               |   ✅    |               |
 
 **Template:**
 
