@@ -85,7 +85,7 @@ public class AviationStackClient {
      */
     public JsonNode getAllFlightsHome() {
         try {
-            String url = API_BASE_URL + "/flights?access_key=" + apiKey + "&dep_iata=AMS";
+            String url = API_BASE_URL + "/flights?access_key=" + apiKey + "&dep_iata=AMS&flight_status=scheduled";
             logger.info("Fetching flights from URL: {}", url);
 
             HttpRequest request = HttpRequest.newBuilder()
