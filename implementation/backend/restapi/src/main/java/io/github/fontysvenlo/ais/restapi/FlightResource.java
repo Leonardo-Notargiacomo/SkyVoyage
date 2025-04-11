@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.github.fontysvenlo.ais.businesslogic.api.FlightManager;
 import io.github.fontysvenlo.ais.datarecords.FlightData;
@@ -24,14 +25,16 @@ class FlightResource implements CrudHandler {
     private static final Logger logger = LoggerFactory.getLogger(FlightResource.class);
     private final FlightManager flightManager;
     private final AviationStackClient aviationStackClient;
+    private final AmadeusClient amadeusClient;
 
     /**
-     * Initializes the controller with the business logic and AviationStack
-     * client.
+     * Initializes the controller with the business logic, AviationStack client
+     * and Amadeus client.
      */
-    FlightResource(FlightManager flightManager, AviationStackClient aviationStackClient) {
+    FlightResource(FlightManager flightManager, AviationStackClient aviationStackClient, AmadeusClient amadeusClient) {
         this.flightManager = flightManager;
         this.aviationStackClient = aviationStackClient;
+        this.amadeusClient = amadeusClient;
     }
 
     /**
@@ -48,7 +51,7 @@ class FlightResource implements CrudHandler {
             logger.info("Returning {} flights from repository", flights.size());
             // Convert FlightData objects to the expected JSON format
             List<Map<String, Object>> formattedFlights = flights.stream()
-                    .map(this::convertFlightDataToJson)
+                    .map(aviationStackClient::convertFlightDataToJson)
                     .toList();
             context.status(200).json(formattedFlights);
             return;
@@ -63,10 +66,23 @@ class FlightResource implements CrudHandler {
                 return;
             }
 
+            logger.info("Retrieved {} flights from AviationStack API", apiFlights.size());
+
             // Store flights in the repository for future use
             List<FlightData> newFlights = new ArrayList<>();
+            
             for (JsonNode flightNode : apiFlights) {
-                FlightData flight = convertJsonToFlightData(flightNode);
+                // Ensure the flight node has an ID
+                String flightId = flightNode.path("id").asText("");
+                if (flightId.isEmpty()) {
+                    // Generate an ID if missing
+                    String depCode = flightNode.path("departure").path("iata").asText("XXX");
+                    String arrCode = flightNode.path("arrival").path("iata").asText("YYY");
+                    flightId = depCode + "-" + arrCode + "-" + System.currentTimeMillis();
+                    ((ObjectNode) flightNode).put("id", flightId);
+                }
+                
+                FlightData flight = aviationStackClient.convertJsonToFlightData(flightNode);
                 if (flight != null) {
                     flightManager.add(flight);
                     newFlights.add(flight);
@@ -81,88 +97,6 @@ class FlightResource implements CrudHandler {
                     "error", "Failed to retrieve flights",
                     "details", e.getMessage()
             ));
-        }
-    }
-
-    /**
-     * Converts a FlightData object to a Map with the structure expected by the
-     * frontend
-     */
-    private Map<String, Object> convertFlightDataToJson(FlightData flight) {
-        Map<String, Object> result = new HashMap<>();
-        result.put("id", flight.id());
-
-        // Create departure object
-        Map<String, Object> departure = new HashMap<>();
-        departure.put("airport", flight.departureAirport());
-        departure.put("iata", flight.departureAirportShort());
-        departure.put("terminal", flight.departureTerminal());
-        departure.put("gate", flight.departureGate());
-        departure.put("scheduled", flight.departureScheduledTime().toString());
-        departure.put("delay", flight.departureDelay());
-        result.put("departure", departure);
-
-        // Create arrival object
-        Map<String, Object> arrival = new HashMap<>();
-        arrival.put("airport", flight.arrivalAirport());
-        arrival.put("iata", flight.arrivalAirportShort());
-        arrival.put("terminal", flight.arrivalTerminal());
-        arrival.put("gate", flight.arrivalGate());
-        arrival.put("scheduled", flight.arrivalScheduledTime().toString());
-        arrival.put("delay", flight.arrivalDelay());
-        result.put("arrival", arrival);
-
-        // Add other flight details
-        result.put("duration", flight.duration().toString());
-        result.put("status", "scheduled"); // Default status
-        result.put("airline", "Unknown Airline"); // Placeholder
-
-        // Calculate a price based on duration (similar to AviationStackClient logic)
-        int price = (flight.duration() * 15 * 11) / 100;
-        result.put("price", price);
-
-        return result;
-    }
-
-    /**
-     * Converts a JsonNode flight from the API to a FlightData object
-     */
-    private FlightData convertJsonToFlightData(JsonNode flightNode) {
-        try {
-            String id = flightNode.path("id").asText();
-
-            // Departure info
-            String depAirport = flightNode.path("departure").path("airport").asText();
-            String depIata = flightNode.path("departure").path("iata").asText();
-            String depTerminal = flightNode.path("departure").path("terminal").asText();
-            String depGate = flightNode.path("departure").path("gate").asText();
-            String depScheduledStr = flightNode.path("departure").path("scheduled").asText();
-            OffsetDateTime depScheduled = OffsetDateTime.parse(depScheduledStr);
-            int depDelay = flightNode.path("departure").path("delay").asInt();
-
-            // Arrival info
-            String arrAirport = flightNode.path("arrival").path("airport").asText();
-            String arrIata = flightNode.path("arrival").path("iata").asText();
-            String arrTerminal = flightNode.path("arrival").path("terminal").asText();
-            String arrGate = flightNode.path("arrival").path("gate").asText();
-            String arrScheduledStr = flightNode.path("arrival").path("scheduled").asText();
-            OffsetDateTime arrScheduled = OffsetDateTime.parse(arrScheduledStr);
-            int arrDelay = flightNode.path("arrival").path("delay").asInt();
-
-            // Duration
-            int duration = Integer.parseInt(flightNode.path("duration").asText());
-
-            return new FlightData(
-                    id,
-                    depAirport, depIata, depTerminal, depGate,
-                    depScheduled.toLocalDateTime(), depDelay,
-                    arrAirport, arrIata, arrTerminal, arrGate,
-                    arrScheduled.toLocalDateTime(), arrDelay,
-                    duration
-            );
-        } catch (Exception e) {
-            logger.error("Error converting flight JSON to FlightData", e);
-            return null;
         }
     }
 
@@ -209,5 +143,96 @@ class FlightResource implements CrudHandler {
             logger.error("Error clearing flight data", e);
             context.status(500).json(Map.of("error", "Failed to clear flight data: " + e.getMessage()));
         }
+    }
+
+    /**
+     * Searches for flights using the Amadeus API based on query parameters.
+     * Expected query parameters: - originLocationCode: Origin airport code
+     * (e.g., AMS) - destinationLocationCode: Destination airport code (e.g.,
+     * JFK) - departureDate: Departure date in YYYY-MM-DD format - returnDate:
+     * Return date in YYYY-MM-DD format (optional for one-way flights)
+     * Additional parameters supported: - adults: Number of adult travelers
+     * (default: 1) - children: Number of child travelers - infants: Number of
+     * infant travelers - travelClass: Cabin class (ECONOMY, PREMIUM_ECONOMY,
+     * BUSINESS, FIRST) - includedAirlineCodes: Airlines to include in search
+     * (comma-separated IATA codes) - excludedAirlineCodes: Airlines to exclude
+     * from search (comma-separated IATA codes) - nonStop: If true, only
+     * non-stop flights are returned - currencyCode: Preferred currency (ISO
+     * 4217 format) - maxPrice: Maximum price per traveler - max: Maximum number
+     * of flight offers to return
+     */
+    public void searchFlights(Context context) {
+        try {
+            // Extract required query parameters using Amadeus parameter names directly
+            String originLocationCode = context.queryParam("originLocationCode");
+            String destinationLocationCode = context.queryParam("destinationLocationCode");
+            String departureDate = context.queryParam("departureDate");
+            String returnDate = context.queryParam("returnDate");
+
+            // Validate required parameters
+            if (originLocationCode == null || destinationLocationCode == null || departureDate == null) {
+                context.status(400).json(Map.of("error", "Missing required parameters: originLocationCode, destinationLocationCode, and departureDate are required"));
+                return;
+            }
+
+            // Create parameters map - now parameter names already match Amadeus API
+            Map<String, String> params = new HashMap<>();
+            params.put("originLocationCode", originLocationCode);
+            params.put("destinationLocationCode", destinationLocationCode);
+            params.put("departureDate", departureDate);
+
+            // Add return date if provided (for round trips)
+            if (returnDate != null && !returnDate.isEmpty()) {
+                params.put("returnDate", returnDate);
+                logger.info("Searching for round-trip flight: {} to {} and back, departing {} and returning {}",
+                        originLocationCode, destinationLocationCode, departureDate, returnDate);
+            } else {
+                logger.info("Searching for one-way flight: {} to {}, departing {}",
+                        originLocationCode, destinationLocationCode, departureDate);
+            }
+
+            // Add optional parameters if provided - using Amadeus parameter names directly
+            addParamIfPresent(context, params, "adults", "adults", "1");
+            addParamIfPresent(context, params, "travelClass", "travelClass", "ECONOMY");
+            addParamIfPresent(context, params, "max", "max", "10");
+            addParamIfPresent(context, params, "nonStop", "nonStop");
+            addParamIfPresent(context, params, "currencyCode", "currencyCode");
+            addParamIfPresent(context, params, "maxPrice", "maxPrice");
+            addParamIfPresent(context, params, "children", "children");
+            addParamIfPresent(context, params, "infants", "infants");
+
+            // Call Amadeus API with all parameters
+            Map<String, Object> processedResults = amadeusClient.searchFlightOffersWithParams(params);
+
+            // Return processed results
+            context.status(200).json(processedResults);
+
+        } catch (Exception e) {
+            logger.error("Error searching flights with Amadeus API", e);
+            context.status(500).json(Map.of(
+                    "error", "Failed to search flights",
+                    "details", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Helper method to add a parameter to the params map if it exists in the
+     * context
+     */
+    private void addParamIfPresent(Context context, Map<String, String> params, String contextKey, String paramKey) {
+        String value = context.queryParam(contextKey);
+        if (value != null) {
+            params.put(paramKey, value);
+        }
+    }
+
+    /**
+     * Helper method to add a parameter to the params map if it exists in the
+     * context, with a default value
+     */
+    private void addParamIfPresent(Context context, Map<String, String> params, String contextKey, String paramKey, String defaultValue) {
+        String value = context.queryParam(contextKey);
+        params.put(paramKey, value != null ? value : defaultValue);
     }
 }
