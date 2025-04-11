@@ -11,6 +11,7 @@
   let returnDate = "";
   let stops = "Any";
   let passengers = 1;
+  let travelClass = "ECONOMY"; // Added travel class
   let flights = [];
   let showAdvancedOptions = false;
   let loading = false;
@@ -38,40 +39,27 @@
     loading = true;
     error = null;
 
-    goto(`/SearchFlights`);
-    return;
+    // Build query parameters based on form inputs
+    const params = new URLSearchParams();
 
-    //  // Build query parameters based on form inputs
-    //  const params = new URLSearchParams();
+    if (departure) params.append("originLocationCode", departure);
+    if (arrival) params.append("destinationLocationCode", arrival);
+    if (departureDate) params.append("departureDate", departureDate);
+    if (returnDate) params.append("returnDate", returnDate);
+    params.append("adults", passengers.toString());
+    params.append("travelClass", travelClass);
 
-    //  if (departure) params.append("departure", departure);
-    //  if (arrival) params.append("arrival", arrival);
-    //  if (departureDate) params.append("departure_date", departureDate);
-    //  if (returnDate) params.append("return_date", returnDate);
-    //  if (stops !== "Any") params.append("stops", stops);
-    //  if (passengers) params.append("passengers", passengers);
+    // Convert stops selection to nonStop parameter
+    if (stops === "Direct") {
+      params.append("nonStop", "true");
+    } else {
+      params.append("nonStop", "false");
+    }
 
-    //  const queryString = params.toString();
-    //  const endpoint = queryString ? `flights?${queryString}` : "flights";
+    params.append("max", "5"); // Limit results to 5 flights
 
-    //  try {
-    //    flights = await api.all(endpoint);
-    //    if (flights.length === 0) {
-    //      error =
-    //        "No flights found matching your search criteria. Please try different parameters.";
-    //    } else {
-    //      // Redirect to search results page with the query parameters
-    //      goto(`/SearchFlights?${queryString}`);
-    //      return; // Stop execution after redirection
-    //    }
-    //  } catch (err) {
-    //    console.error("Failed to search flights:", err);
-    //    error =
-    //      "An error occurred while searching for flights. Please try again later.";
-    //    flights = [];
-    //  } finally {
-    //    loading = false;
-    //  }
+    const queryString = params.toString();
+    goto(`/SearchFlights?${queryString}`);
   };
 
   function selectFlight(flight) {
@@ -252,6 +240,24 @@
                     >{i + 1} Passenger{i > 0 ? "s" : ""}</option
                   >
                 {/each}
+              </select>
+            </div>
+
+            <div class="flex-1">
+              <label
+                for="travelClass"
+                class="block text-sm font-medium text-gray-700 mb-1"
+                >Travel Class</label
+              >
+              <select
+                id="travelClass"
+                bind:value={travelClass}
+                class="w-full p-2 border border-gray-300 rounded-md"
+              >
+                <option value="ECONOMY">Economy</option>
+                <option value="PREMIUM_ECONOMY">Premium Economy</option>
+                <option value="BUSINESS">Business</option>
+                <option value="FIRST">First</option>
               </select>
             </div>
           </div>
