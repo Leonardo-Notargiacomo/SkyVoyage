@@ -3,8 +3,8 @@
   import { bookingStore } from "$lib/stores/bookingStore";
   import { get } from "svelte/store";
 
-  const booking = get(bookingStore);
-  let flight = booking.flight;
+  // const booking = get(bookingStore);
+  // let flight = booking.flight;
   let passengers = 2;
 
   // Redirect if no flight selected
@@ -18,6 +18,7 @@
   }));
 
   function continueToSummary() {
+    console.log("Updating booking store with customers:", customers);
     bookingStore.update((state) => ({
       ...state,
       customers: customers,
@@ -25,82 +26,9 @@
     goto("/booking/overview");
   }
 
-  function formatDateTime(dateString) {
-    return new Date(dateString).toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
-
-  function formatDuration(minutes) {
-    if (minutes < 60) return `${minutes}min`;
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    return `${h}h ${m > 0 ? `${m}min` : ""}`;
-  }
 </script>
 
 <div class="max-w-4xl mx-auto p-6">
-  <!-- Flight Summary Card -->
-  {#if flight}
-    <div class="bg-white border border-gray-200 rounded-xl shadow-sm mb-8 p-6">
-      <h2 class="text-xl font-semibold text-blue-700 mb-4">Flight Overview</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-        <div>
-          <p class="text-gray-500">Airline</p>
-          <p class="font-medium">{flight.airline}</p>
-          <p class="text-gray-500 mt-2">Flight Number</p>
-          <p class="font-medium">{flight.id}</p>
-        </div>
-        <div>
-          <p class="text-gray-500">Price</p>
-          <p class="font-medium text-lg text-blue-800">€{flight.price}</p>
-          <p class="text-gray-500 mt-2">Status</p>
-          <p class="font-medium capitalize">{flight.status}</p>
-        </div>
-        <div>
-          <p class="text-gray-500">From</p>
-          <p class="font-medium">
-            {flight.departure.airport} ({flight.departure.iata})
-          </p>
-          <p class="text-sm">
-            Terminal: {flight.departure.terminal !== "null"
-              ? flight.departure.terminal
-              : "TBA"}, Gate: {flight.departure.gate !== "null"
-              ? flight.departure.gate
-              : "TBA"}
-          </p>
-          <p class="text-sm">
-            Departure: {formatDateTime(flight.departure.scheduled)}
-          </p>
-        </div>
-        <div>
-          <p class="text-gray-500">To</p>
-          <p class="font-medium">
-            {flight.arrival.airport} ({flight.arrival.iata})
-          </p>
-          <p class="text-sm">
-            Terminal: {flight.arrival.terminal !== "null"
-              ? flight.arrival.terminal
-              : "TBA"}, Gate: {flight.arrival.gate !== "null"
-              ? flight.arrival.gate
-              : "TBA"}
-          </p>
-          <p class="text-sm">
-            Arrival: {formatDateTime(flight.arrival.scheduled)}
-          </p>
-        </div>
-      </div>
-      <div class="mt-4 text-sm">
-        <p class="text-gray-500">Duration</p>
-        <p class="font-medium">{formatDuration(parseInt(flight.duration))}</p>
-      </div>
-    </div>
-  {/if}
-
   <!-- Passenger Form -->
   <h1 class="text-2xl font-semibold mb-6 text-gray-800">
     Enter Passenger Details
@@ -159,13 +87,13 @@
 
           <div>
             <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
-              Phone {index == 0? "(required)" : "(optional)"}
+              Phone {index === 0? "(required)" : "(optional)"}
             </label>
             <input
               id="phone"
               type="tel"
               bind:value={customer.phone}
-              required={index==0}
+              required={index===0}
               class="w-full border p-2 rounded-md border-gray-300"
               placeholder="+49 123 4567890"
             />
