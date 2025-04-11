@@ -115,10 +115,6 @@ class FlightResource implements CrudHandler {
      public void updatePrice(Context context) {
         try {
             var body = context.bodyAsClass(Map.class);
-            if (!body.containsKey("price")) {
-                context.status(400).json(Map.of("error", "Invalid price format"));
-                return;
-            }
     
             int newPrice = ((Number) body.get("price")).intValue();
             if (newPrice < 0) {
