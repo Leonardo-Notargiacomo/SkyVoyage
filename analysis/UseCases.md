@@ -100,11 +100,10 @@ This document outlines the use cases for the project. Each use case describes a 
 **Scenario**:
 1. Actor navigates to the sales manager section.
 2. System displays the sales manager interface.
-3. Actor selects the option to set the price per kilometre.
-4. System prompts the actor to enter the new price per kilometre.
-5. Actor enters the desired price.
-6. System validates the entered price.
-7. System updates the price per kilometre in the system.
+3. System prompts the actor to enter the new price per kilometre.
+4. Actor enters the desired price.
+5. System validates the entered price.
+6. System updates the price per kilometre in the system.
 
 **Result**: Sales Manager successfully sets the price Per Kilometre.
 
