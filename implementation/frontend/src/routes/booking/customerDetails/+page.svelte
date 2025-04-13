@@ -15,16 +15,19 @@
   let customers = Array.from({ length: passengers }, () => ({
     firstName: "",
     lastName: "",
-    email: "NaN",
-    phone: "NaN",
-    street: "NaN",
-    houseNumber: "NaN",
-    city: "NaN",
-    country: "NaN",
+    email: "",
+    phone: "",
+    street: "",
+    houseNumber: "",
+    city: "",
+    country: "",
     isInfant: false,
   }));
 
   function continueToSummary() {
+    // Save customers to sessionStorage
+    sessionStorage.setItem("customers", JSON.stringify(customers));
+
     bookingStore.update((state) => ({
       ...state,
       customers: customers,
