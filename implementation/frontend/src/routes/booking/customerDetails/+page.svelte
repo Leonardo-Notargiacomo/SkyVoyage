@@ -211,6 +211,9 @@
           {#if index === 0}
             (Lead Passenger)
           {/if}
+          {#if index >= booking.AdultPassengers}
+            (Infant, does not need seat)
+          {/if}
         </legend>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -248,39 +251,43 @@
             />
           </div>
 
-          <div>
-            <label
-              for="email-{index}"
-              class="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Email
-            </label>
-            <input
-              id="email-{index}"
-              type="email"
-              bind:value={customer.email}
-              required={index === 0}
-              class="w-full border p-2 rounded-md border-gray-300"
-              placeholder="john@example.com"
-            />
-          </div>
+          {#if index < booking.AdultPassengers}
+            <div>
+              <label
+                for="email-{index}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Email
+              </label>
+              <input
+                id="email-{index}"
+                type="email"
+                bind:value={customer.email}
+                required={index === 0}
+                class="w-full border p-2 rounded-md border-gray-300"
+                placeholder="john@example.com"
+              />
+            </div>
+          {/if}
 
-          <div>
-            <label
-              for="phone-{index}"
-              class="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Phone Number
-            </label>
-            <input
-              id="phone-{index}"
-              type="tel"
-              bind:value={customer.phone}
-              required={index === 0}
-              class="w-full border p-2 rounded-md border-gray-300"
-              placeholder="+31 123 4567890"
-            />
-          </div>
+          {#if index < booking.AdultPassengers}
+            <div>
+              <label
+                for="phone-{index}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Phone Number
+              </label>
+              <input
+                id="phone-{index}"
+                type="tel"
+                bind:value={customer.phone}
+                required={index === 0}
+                class="w-full border p-2 rounded-md border-gray-300"
+                placeholder="+31 123 4567890"
+              />
+            </div>
+          {/if}
 
           <div>
             <label
@@ -350,22 +357,10 @@
             />
           </div>
 
-          {#if index !== 0}
-            <div class="col-span-2">
-              <label
-                for="isInfant-{index}"
-                class="inline-flex items-center text-sm font-medium text-gray-700 mb-1"
-              >
-                <input
-                  id="isInfant-{index}"
-                  type="checkbox"
-                  bind:checked={customer.isInfant}
-                  class="h-4 w-4 text-blue-600 border-gray-300 rounded"
-                />
-                Does not need a seat (Infant)
-              </label>
-            </div>
+          {#if index >= booking.AdultPassengers}
+            {customer.isInfant = true}
           {/if}
+
         </div>
       </fieldset>
     {/each}
