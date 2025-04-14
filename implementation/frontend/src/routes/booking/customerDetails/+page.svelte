@@ -5,7 +5,7 @@
 
   const booking = get(bookingStore);
   let flight = booking.flight;
-  let passengers = booking.AdultPassengers + booking.infantsPassengers || 1; 
+  let passengers = booking.AdultPassengers + booking.infantsPassengers || 1;
 
   // Redirect if no flight selected
   if (!flight) {
@@ -215,7 +215,10 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label for="firstName-{index}" class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              for="firstName-{index}"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >
               First Name
             </label>
             <input
@@ -229,7 +232,10 @@
           </div>
 
           <div>
-            <label for="lastName-{index}" class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              for="lastName-{index}"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >
               Last Name
             </label>
             <input
@@ -243,7 +249,10 @@
           </div>
 
           <div>
-            <label for="email-{index}" class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              for="email-{index}"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >
               Email
             </label>
             <input
@@ -257,7 +266,10 @@
           </div>
 
           <div>
-            <label for="phone-{index}" class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              for="phone-{index}"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >
               Phone Number
             </label>
             <input
@@ -266,12 +278,15 @@
               bind:value={customer.phone}
               required={index === 0}
               class="w-full border p-2 rounded-md border-gray-300"
-              placeholder="+49 123 4567890"
+              placeholder="+31 123 4567890"
             />
           </div>
 
           <div>
-            <label for="street-{index}" class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              for="street-{index}"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >
               Street Name
             </label>
             <input
@@ -280,40 +295,15 @@
               bind:value={customer.street}
               required={index === 0}
               class="w-full border p-2 rounded-md border-gray-300"
-              placeholder="123 Main St"
+              placeholder="Borelstraat"
             />
           </div>
 
           <div>
-            <label for="city-{index}" class="block text-sm font-medium text-gray-700 mb-1">
-              City
-            </label>
-            <input
-              id="city-{index}"
-              type="text"
-              bind:value={customer.city}
-              required={index === 0}
-              class="w-full border p-2 rounded-md border-gray-300"
-              placeholder="Berlin"
-            />
-          </div>
-
-          <div>
-            <label for="country-{index}" class="block text-sm font-medium text-gray-700 mb-1">
-              Country
-            </label>
-            <input
-              id="country-{index}"
-              type="text"
-              bind:value={customer.country}
-              required={index === 0}
-              class="w-full border p-2 rounded-md border-gray-300"
-              placeholder="Germany"
-            />
-          </div>
-
-          <div>
-            <label for="houseNumber-{index}" class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              for="houseNumber-{index}"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >
               House Number
             </label>
             <input
@@ -322,13 +312,50 @@
               bind:value={customer.houseNumber}
               required={index === 0}
               class="w-full border p-2 rounded-md border-gray-300"
-              placeholder="Apt 4B"
+              placeholder="41"
+            />
+          </div>
+
+          <div>
+            <label
+              for="city-{index}"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >
+              City
+            </label>
+            <input
+              id="city-{index}"
+              type="text"
+              bind:value={customer.city}
+              required={index === 0}
+              class="w-full border p-2 rounded-md border-gray-300"
+              placeholder="Heerlen"
+            />
+          </div>
+
+          <div>
+            <label
+              for="country-{index}"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Country
+            </label>
+            <input
+              id="country-{index}"
+              type="text"
+              bind:value={customer.country}
+              required={index === 0}
+              class="w-full border p-2 rounded-md border-gray-300"
+              placeholder="Netherlands"
             />
           </div>
 
           {#if index !== 0}
             <div class="col-span-2">
-              <label for="isInfant-{index}" class="inline-flex items-center text-sm font-medium text-gray-700 mb-1">
+              <label
+                for="isInfant-{index}"
+                class="inline-flex items-center text-sm font-medium text-gray-700 mb-1"
+              >
                 <input
                   id="isInfant-{index}"
                   type="checkbox"
@@ -339,7 +366,6 @@
               </label>
             </div>
           {/if}
-
         </div>
       </fieldset>
     {/each}
