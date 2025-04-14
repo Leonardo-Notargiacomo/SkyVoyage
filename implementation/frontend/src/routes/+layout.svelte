@@ -8,6 +8,7 @@
     let lastname = '';
     let type = '';
     let initials = '';
+    let activeUser = false;
 
     function logout() {
         // Clear cookies
@@ -47,6 +48,14 @@
 
     onMount(() => {
         updateUserInfo();
+
+        if(activeUser === false){
+            // Check if user is logged in
+            const userType = getCookie('type');
+            if (!userType) {
+                goto('/');
+            }
+        }
 
         // Listen for changes after login
         window.addEventListener('userInfoChanged', updateUserInfo);

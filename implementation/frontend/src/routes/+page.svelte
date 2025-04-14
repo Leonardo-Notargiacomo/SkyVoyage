@@ -4,7 +4,8 @@
 
     let email = "";
     let password = "";
-    let rememberMe = false;
+    let activeUser = false;
+    let errorMessage = "";
 
     const handleLogin = async () => {
         try {
@@ -22,11 +23,13 @@
 
             // Notify layout to update user info
             window.dispatchEvent(new Event('userInfoChanged'));
+            activeUser = true;
 
             // Redirect to home page
             goto("/home");
             
         } catch (err) {
+            errorMessage = "Invalid email or password. Please try again.";
             console.error(err);
         }
     };
@@ -44,6 +47,13 @@
         <p class="text-sm text-gray-600">
             Welcome back. Enter your credentials to access your account
         </p>
+
+        <!-- Error Message -->
+        {#if errorMessage}
+            <div class="mt-4 p-2 text-sm text-red-600 bg-red-100 rounded">
+                {errorMessage}
+            </div>
+        {/if}
 
         <!-- Email Input -->
         <div class="mt-4">
@@ -71,22 +81,6 @@
             />
         </div>
 
-        <!-- Forgot Password Link -->
-        <div class="mt-2 text-right">
-            <a href="/forgot-password" class="text-sm text-blue-600 hover:underline"
-            >Forgot password?</a
-            >
-        </div>
-
-        <!-- Remember Me Checkbox -->
-        <div class="mt-4 flex items-center">
-            <input
-                    type="checkbox"
-                    bind:checked={rememberMe}
-                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            />
-            <label class="ml-2 text-sm text-gray-700">Keep me signed in</label>
-        </div>
 
         <!-- Submit Button -->
         <button
