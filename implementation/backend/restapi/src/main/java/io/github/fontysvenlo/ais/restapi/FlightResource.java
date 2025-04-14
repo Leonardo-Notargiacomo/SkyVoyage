@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.github.fontysvenlo.ais.datarecords.PricePerKmData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +25,6 @@ class FlightResource implements CrudHandler {
     private static final Logger logger = LoggerFactory.getLogger(FlightResource.class);
     private final FlightManager flightManager;
     private final AviationStackClient aviationStackClient;
-    private int pricePerKm = 15;
 
     /**
      * Initializes the controller with the business logic and AviationStack
@@ -90,47 +90,6 @@ class FlightResource implements CrudHandler {
     }
 
     /**
-     * Retrieves the current price per kilometer for flights.
-     * <p>
-     * This method returns the current pricePerKm variable in the response as a JSON object.
-     * </p>
-     *
-     * @param context the Javalin context containing the request and response
-     */
-
-    public void getPrice(Context context) {
-        context.json(Map.of("price", pricePerKm));
-    }
-
-    /**
-     * Updates the price per kilometer for flights.
-     * <p>
-     * This method expects a JSON body with a key "price" containing the new price in cents.
-     * It updates the internal pricePerKm variable and returns the updated price in the response.
-     * </p>
-     *
-     * @param context the Javalin context containing the request and response
-     */
-
-     public void updatePrice(Context context) {
-        try {
-            var body = context.bodyAsClass(Map.class);
-    
-            int newPrice = ((Number) body.get("price")).intValue();
-            if (newPrice < 0) {
-                context.status(400).json(Map.of("error", "Price per kilometer cannot be negative"));
-                return;
-            }
-    
-            pricePerKm = newPrice;
-            aviationStackClient.updatePrice(pricePerKm);
-            context.status(200).json(Map.of("price", pricePerKm));
-        } catch (Exception e) {
-            context.status(400).json(Map.of("error", "Invalid price format"));
-        }
-    }
-
-    /**
      * Converts a FlightData object to a Map with the structure expected by the
      * frontend
      */
@@ -163,7 +122,7 @@ class FlightResource implements CrudHandler {
         result.put("status", "scheduled"); // Default status
         result.put("airline", "Unknown Airline"); // Placeholder
 
-        int price = (flight.duration() * 15 * pricePerKm) / 100;
+        int price = (flight.duration() * 15 * 11) / 100;
         result.put("price", price);
         return result;
     }

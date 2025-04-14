@@ -1,9 +1,6 @@
 package io.github.fontysvenlo.ais.persistence;
 
-import io.github.fontysvenlo.ais.persistence.api.CustomerRepository;
-import io.github.fontysvenlo.ais.persistence.api.EmployeeRepository;
-import io.github.fontysvenlo.ais.persistence.api.FlightRepository;
-import io.github.fontysvenlo.ais.persistence.api.Persistence;
+import io.github.fontysvenlo.ais.persistence.api.*;
 
 /**
  * Actual creator of storage services.
@@ -35,4 +32,7 @@ class PersistenceImpl implements Persistence {
     public FlightRepository getFlightRepository() {
         return new FlightRepositoryImpl(config);
     }
+
+    @Override
+    public PriceRepository getPriceRepository() { return new PriceRepositoryImpl(config);}
 }

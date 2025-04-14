@@ -2,7 +2,10 @@ package io.github.fontysvenlo.ais.restapi;
 
 import java.util.Map;
 
+import io.github.fontysvenlo.ais.businesslogic.PriceManagerImpl;
 import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
+import io.github.fontysvenlo.ais.businesslogic.api.PriceManager;
+import io.github.fontysvenlo.ais.datarecords.PricePerKmData;
 import io.javalin.Javalin;
 import static io.javalin.apibuilder.ApiBuilder.crud;
 import static io.javalin.apibuilder.ApiBuilder.delete;
@@ -56,16 +59,20 @@ public class APIServer {
                         aviationStackClient
                 );
 
+                PriceResource priceResource = new PriceResource(businessLogic.getPriceManager());
+
                 // Add custom endpoint to refresh flight data
                 // Replace automatic CRUD with explicit path definitions
                 path("flights", () -> {
                     // GET operations
                     get("/", flightResource::getAll);
-                    get("/price", flightResource::getPrice);
-                    // POST operations
-                    post("/price", flightResource::updatePrice);
                     // Add a new endpoint to clear the flight data
                     delete("/cache", flightResource::clearCache);
+                });
+
+                path("price", () -> {
+                    get("/", priceResource::getAll);
+                    post("/create", priceResource::create);
                 });
             });
         });

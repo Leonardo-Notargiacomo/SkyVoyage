@@ -10,6 +10,7 @@ module restapi_module {
     requires datarecords_module;
     requires java.logging;
     requires java.net.http;
+    requires annotations;
 
     exports io.github.fontysvenlo.ais.restapi;
 
