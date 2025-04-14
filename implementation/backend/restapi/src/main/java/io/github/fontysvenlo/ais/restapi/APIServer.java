@@ -21,6 +21,7 @@ public class APIServer {
 
     private final BusinessLogic businessLogic;
     private AviationStackClient aviationStackClient;
+    private AmadeusClient amadeusClient;
 
     /**
      * Initializes the REST API server
@@ -32,6 +33,42 @@ public class APIServer {
     public APIServer(BusinessLogic businessLogic, String apiKey) {
         this.businessLogic = businessLogic;
         this.aviationStackClient = new AviationStackClient(apiKey);
+
+        // Read Amadeus credentials from environment variables
+        String amadeusClientId = System.getenv("AMADEUS_API_KEY");
+        String amadeusClientSecret = System.getenv("AMADEUS_API_SECRET");
+
+        // Print debug information
+        System.out.println("========= EXTERNAL API CREDENTIALS =========");
+        System.out.println("AviationStack API Key: " + (apiKey != null ? apiKey.substring(0, 5) + "..." : "null"));
+        System.out.println("Amadeus API Key:       " + (amadeusClientId != null ? amadeusClientId.substring(0, 5) + "..." : "null"));
+        System.out.println("Amadeus API Secret:    " + (amadeusClientSecret != null ? (amadeusClientSecret.length() > 5 ? amadeusClientSecret.substring(0, 5) + "..." : amadeusClientSecret) : "null"));
+        System.out.println("============================================");
+
+        if (amadeusClientId == null || amadeusClientSecret == null) {
+            System.err.println("WARNING: Amadeus API credentials not found in environment variables. "
+                    + "Set AMADEUS_API_KEY and AMADEUS_API_SECRET to use the flight search functionality.");
+            // Default to empty strings to avoid null pointer exceptions
+            amadeusClientId = "";
+            amadeusClientSecret = "";
+        }
+
+        this.amadeusClient = new AmadeusClient(amadeusClientId, amadeusClientSecret);
+    }
+
+    /**
+     * Initializes the REST API server with Amadeus credentials
+     *
+     * @param businessLogic the business logic implementation
+     * @param aviationStackApiKey the API key for AviationStack
+     * @param amadeusClientId the client ID for Amadeus API
+     * @param amadeusClientSecret the client secret for Amadeus API
+     */
+    public APIServer(BusinessLogic businessLogic, String aviationStackApiKey,
+            String amadeusClientId, String amadeusClientSecret) {
+        this.businessLogic = businessLogic;
+        this.aviationStackClient = new AviationStackClient(aviationStackApiKey);
+        this.amadeusClient = new AmadeusClient(amadeusClientId, amadeusClientSecret);
     }
 
     /**
@@ -56,17 +93,21 @@ public class APIServer {
                 // Add flight routes
                 FlightResource flightResource = new FlightResource(
                         businessLogic.getFlightManager(),
-                        aviationStackClient
+                        aviationStackClient,
+                        amadeusClient
                 );
 
                 PriceResource priceResource = new PriceResource(businessLogic.getPriceManager());
 
                 // Add custom endpoint to refresh flight data
                 // Replace automatic CRUD with explicit path definitions
+                // Define flight paths
                 path("flights", () -> {
                     // GET operations
                     get("/", flightResource::getAll);
-                    // Add a new endpoint to clear the flight data
+                    // Add search endpoint
+                    get("/search", flightResource::searchFlights);
+                    // Add a endpoint to clear the flight data
                     delete("/cache", flightResource::clearCache);
                 });
 
