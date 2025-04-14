@@ -367,3 +367,116 @@ This document outlines the test cases for the project. Each test case describes 
 
 - Actor is not logged in.
 - System displays an error message.
+
+---
+
+# Test Case: Create Booking
+
+**Name**: testCreateBookingValid
+
+**Precondition**: Sales Employee is logged in and on the booking overview page with a selected flight and entered customer data.
+
+**Scenario**:
+
+1. Sales Employee selects a flight.
+2. Sales Employee fills in all required customer details.
+3. Sales Employee clicks on “Confirm Booking.”
+4. System checks that all required fields are completed.
+5. System saves the booking data.
+6. System redirects to the homepage.
+
+**Result**:
+
+- Booking is stored in sessionStorage under “confirmedBooking”.
+- System displays a success message: “Booking confirmed! ✅”.
+
+---
+
+**Name**: testCreateBookingWithDiscountReason
+
+**Precondition**: Sales Employee is on the booking overview page with valid flight and customer data.
+
+**Scenario**:
+
+1. Sales Employee enters a discount between 0–100%.
+2. Sales Employee provides a reason in the “Reason for Discount” field.
+3. Sales Employee clicks on “Apply Discount.”
+4. System checks the discount range and updates the store.
+5. System updates the total price based on the discount.
+
+**Result**:
+
+- Discount is applied correctly.
+- Reason is saved in the store.
+- Total price is recalculated and updated.
+- If discount is 69%, Dank Mode is activated with visual effects.
+
+---
+
+**Name**: testCreateBookingReservation
+
+**Precondition**: Sales Employee is on the booking overview page with all fields completed.
+
+**Scenario**:
+
+1. Sales Employee clicks on “Reserve (Pay Later).”
+2. System verifies that all necessary data is entered.
+3. System saves the booking as a reservation.
+4. System redirects to the homepage.
+
+**Result**:
+
+- Booking is stored in sessionStorage under “reservedBooking”.
+- System displays a message: “Booking reserved for later payment! ⏳”.
+
+---
+
+**Name**: testCreateBookingMissingCustomerData
+
+**Precondition**: Sales Employee selects a flight but does not enter complete customer data.
+
+**Scenario**:
+
+1. Sales Employee clicks on “Confirm Booking.”
+2. System checks for missing required fields.
+3. System prevents submission and shows an error or blocks the button.
+
+**Result**:
+
+- Booking is not stored.
+- System displays an error or prevents the action until all fields are completed.
+
+---
+
+**Name**: testCreateBookingInvalidDiscount
+
+**Precondition**: Sales Employee is on the booking overview page.
+
+**Scenario**:
+
+1. Sales Employee enters a discount below 0 or above 100.
+2. Sales Employee clicks on “Apply Discount.”
+3. System checks the discount range.
+
+**Result**:
+
+- Discount is not applied.
+- System may show a warning or ignore invalid input.
+
+---
+
+**Name**: testCreateBookingCancel
+
+**Precondition**: Sales Employee is in the middle of a booking process.
+
+**Scenario**:
+
+1. Sales Employee clicks on “Cancel Booking.”
+2. System resets the booking store.
+3. System redirects to the homepage.
+
+**Result**:
+
+- Booking is removed.
+- System displays message: “Booking cancelled.”
+- User is redirected to the homepage.
