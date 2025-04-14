@@ -59,31 +59,28 @@ This document outlines the use cases for the project. Each use case describes a 
 
 ---
 
-# Use Case: Search Flights 
+# Use Case: Search Flight 
 
 **Actor**: Sales Employee
 
 **Description**: Actor searches for available flights based on specified criteria.
 
 **Precondition**: Actor is logged into the system. 
-                  Actor is on the search flight page
+                  Actor is on the Home page
 
-**Scenario**:
-1. Actor enters the flight search section.
-2. System displays the flight search interface.
-3. Actor enters search criteria (e.g., departure city, date, number of passengers...).
-4. Actor submits the search request.
-5. System processes the request and retrieves available flights.
-6. System displays a list of available flights matching the search criteria.
+**Scenatio:**
+1. Actor fills in the Search Flight form.
+2. System searches available flights accortding to the users flight criteria.
+3. System redirects user to a different page with the result flights.
 
 **Result**: Actor successfully views a list of available flights.
 
 **Exception**:
-- **4a.** If no flights match the criteria, the system displays a message no results found.
-- **5a.** If the system encounters an error retrieving flights, an error message is displayed.
+- **2a.** If no flights match the criteria, the system displays a message no results found.
+- **3a.** If the system encounters an error retrieving flights, an error message is displayed.
 
 **Extensions**:
-- **5b** Actor can apply additional filters (e.g., price, airline..).
+- **2b** Actor can apply additional filters (e.g., price, airline..).
 1. Actor selects filter options.
 2. System updates the flight list based on the selected filters.
 
