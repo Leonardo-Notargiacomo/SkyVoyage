@@ -33,9 +33,15 @@
             console.error(err);
         }
     };
+    const handleKeyDown = (event) => {
+        if (event.key === "Enter") {
+            handleLogin();
+        }
+    };
 </script>
 
 <div class="flex items-center justify-center min-h-screen fixed inset-0">
+
     <div class="w-full max-w-sm p-6 bg-white rounded-lg shadow-lg">
         <!-- Logo -->
         <div class="flex justify-center mb-4">
@@ -71,13 +77,13 @@
         <!-- Password Input -->
         <div class="mt-4">
             <label class="block text-sm font-medium text-gray-700"
-            >Enter your password</label
-            >
+            >Enter your password</label>
             <input
                     type="password"
                     bind:value={password}
                     class="w-full mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Password"
+                    on:keydown={handleKeyDown}
             />
         </div>
 
@@ -85,9 +91,6 @@
         <!-- Submit Button -->
         <button
                 on:click={handleLogin}
-                class="w-full mt-4 p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-        >
-            Continue
-        </button>
+                class="w-full mt-4 p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Continue</button>
     </div>
 </div>
