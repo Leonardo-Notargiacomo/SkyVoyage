@@ -75,7 +75,12 @@ public class APIServer {
                         ctx.status(200).json(Map.of(
                                 "message", "Login successful"));
                     }
+                    else {
+                        ctx.status(401).json(Map.of(
+                                "error", "Invalid email or password"));
+                    }
                 });
+
                 get("getLoginUser", ctx -> {
                     String email = ctx.queryParam("email");
                     EmployeeData employeeData = businessLogic.getEmployeeManager().getByEmail(email);

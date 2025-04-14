@@ -1,44 +1,33 @@
 <script>
     import { goto } from '$app/navigation';
+    import { api } from "$lib/api";
+
     let email = "";
     let password = "";
     let rememberMe = false;
 
     const handleLogin = async () => {
         try {
-            const response = await fetch("http://localhost:8080/api/v1/login", {
+            const response = await api.fetchAPI("login", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ email, password })
             });
+            
+            const data = await api.fetchAPI(`getLoginUser?email=${encodeURIComponent(email)}`);
+        
+            // Save user data to cookies
+            document.cookie = `firstname=${data.Firstname}; path=/;`;
+            document.cookie = `lastname=${data.Lastname}; path=/;`;
+            document.cookie = `type=${data.Type}; path=/;`;
 
-            if (response.ok) {
-                const data = await api.all("/getLoginUser");
+            // Notify layout to update user info
+            window.dispatchEvent(new Event('userInfoChanged'));
 
-                if (!data || typeof data !== 'object') {
-                    console.error("Invalid response format");
-                    return;
-                }
-
-                if(data.firstname && data.lastname && data.type) {
-                    // save user data to cookies
-                    document.cookie = `firstname=${data.firstname};`;
-                    document.cookie = `lastname=${data.lastname};`;
-                    document.cookie = `type=${data.type};`;
-                    // Notify layout to update user info
-                    window.dispatchEvent(new Event('userInfoChanged'));
-
-                    goto("/home");
-                } else {
-                    console.error("Invalid response format");
-                }
-
-            } else {
-                const error = await response.text();
-                console.error(error);
-            }
+            // Redirect to home page
+            goto("/home");
+            
         } catch (err) {
-            console.error(error);
+            console.error(err);
         }
     };
 </script>

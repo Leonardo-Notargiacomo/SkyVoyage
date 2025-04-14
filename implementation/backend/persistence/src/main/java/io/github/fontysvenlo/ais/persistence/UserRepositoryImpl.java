@@ -1,11 +1,12 @@
 package io.github.fontysvenlo.ais.persistence;
-import io.github.fontysvenlo.ais.persistence.api.UserRepository;
-import org.postgresql.ds.PGSimpleDataSource;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Optional;
 
 import javax.sql.DataSource;
-import java.sql.*;
-import java.util.List;
-import java.util.Optional;
+
+import io.github.fontysvenlo.ais.persistence.api.UserRepository;
 
 public class UserRepositoryImpl implements UserRepository {
 
@@ -13,9 +14,13 @@ public class UserRepositoryImpl implements UserRepository {
     public UserRepositoryImpl(DBConfig config) {
         this.db = DBProvider.getDataSource(config);
     }
-
-
-
+    
+    /**
+     * Retrieves the password for a given email from the database.
+     *
+     * @param email the email address of the user
+     * @return an Optional containing the password if found, or an empty Optional if not found
+     */
     @Override
     public Optional<String> getPasswordByEmail(String email) {
         String query = "SELECT password FROM public.employee where email = ?;";
