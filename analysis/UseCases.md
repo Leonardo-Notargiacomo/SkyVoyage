@@ -145,3 +145,38 @@ This document outlines the use cases for the project. Each use case describes a 
 - N/A
 
 ---
+
+# Use Case: Create Booking
+
+**Actor**: Sales Employee
+
+**Description**:  
+The system allows the Sales Employee to create a booking by entering customer details, reviewing the selected flight, optionally applying a discount with a reason, and confirming, reserving, or canceling the booking.
+
+**Precondition**:  
+The Sales Employee is logged in and has selected a flight from the flight search results.
+
+**Scenario**:
+
+1. Sales Employee is on the customer details page.
+2. System displays the selected flight overview and a form to enter passenger details.
+3. Sales Employee enters customer information (first name, last name, email, and optionally phone).
+4. Sales Employee proceeds to the booking summary page.
+5. System displays booking summary including flight details, passenger details, and price calculation.
+6. Sales Employee optionally enters a discount percentage and a reason for the discount.
+7. Sales Employee chooses one of the following actions:
+    - Confirm Booking → Saves the booking as confirmed.
+    - Reserve (Pay Later) → Saves the booking as reserved (pending payment).
+    - Cancel Booking → Cancels the booking process and returns to the home screen.
+
+**Result**:  
+The booking is created with accurate customer details and stored as confirmed or reserved, or the process is canceled.
+
+**Exception**:
+
+- 6a. Invalid Discount: If the discount entered is not a number between 0 and 100, the system ignores it.
+- 7a. Missing Details: If customer data is incomplete, the system prevents booking confirmation.
+
+**Extensions**:
+
+- If the discount is 69%, the system enters "Dank Mode" with animations and gifs for entertainment.
