@@ -229,4 +229,27 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
 
         return result;
     }
+    @Override
+    public EmployeeData getByEmail(String email) {
+        String statement = "SELECT * FROM public.employee WHERE email = ?";
+        try {
+            PreparedStatement preparedStatement = db.getConnection().prepareStatement(statement);
+            preparedStatement.setString(1, email);
+            var resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return new EmployeeData(
+                        resultSet.getInt("id"),
+                        resultSet.getString("firstname"),
+                        resultSet.getString("lastname"),
+                        resultSet.getString("email"),
+                        resultSet.getString("password"),
+                        resultSet.getString("roleid")
+                );
+            }
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }
