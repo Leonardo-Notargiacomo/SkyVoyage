@@ -72,15 +72,17 @@ public class APIServer {
                     LoginRequest loginRequest = ctx.bodyAsClass(LoginRequest.class);
                     boolean success = businessLogic.getLoginService().login(loginRequest.email(), loginRequest.password());
                     if (success) {
-                        // Fetch the employee's first name from the database
-                        EmployeeData employee = businessLogic.getEmployeeManager().getByEmail(loginRequest.email());
                         ctx.status(200).json(Map.of(
-                                "message", "Login successful",
-                                "firstname", employee.Firstname(),
-                                "lastname", employee.Lastname(),
-                                "type", employee.Type()));
+                                "message", "Login successful"));
+                    }
+                });
+                get("getLoginUser", ctx -> {
+                    String email = ctx.queryParam("email");
+                    EmployeeData employeeData = businessLogic.getEmployeeManager().getByEmail(email);
+                    if (employeeData != null) {
+                        ctx.status(200).json(employeeData);
                     } else {
-                        ctx.status(401).json(Map.of("error", "Invalid credentials"));
+                        ctx.status(404).json(Map.of("error", "User not found"));
                     }
                 });
             });

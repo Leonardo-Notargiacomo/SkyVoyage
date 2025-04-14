@@ -13,8 +13,13 @@
             });
 
             if (response.ok) {
-                const data = await response.json();
-                console.log(data)
+                const data = await api.all("/getLoginUser");
+
+                if (!data || typeof data !== 'object') {
+                    console.error("Invalid response format");
+                    return;
+                }
+
                 if(data.firstname && data.lastname && data.type) {
                     // save user data to cookies
                     document.cookie = `firstname=${data.firstname};`;
