@@ -388,7 +388,7 @@ This document outlines the test cases for the project. Each test case describes 
 **Result**:
 
 - Booking is stored in sessionStorage under “confirmedBooking”.
-- System displays a success message: “Booking confirmed! ✅”.
+- System displays a success message: “Booking confirmed!”.
 
 ---
 
@@ -427,7 +427,7 @@ This document outlines the test cases for the project. Each test case describes 
 **Result**:
 
 - Booking is stored in sessionStorage under “reservedBooking”.
-- System displays a message: “Booking reserved for later payment! ⏳”.
+- System displays a message: “Booking reserved for later payment!”.
 
 ---
 
