@@ -92,7 +92,7 @@ class FlightResource implements CrudHandler {
 
             
             List<Map<String, Object>> formattedFlights = newFlights.stream()
-            .map(this::convertFlightDataToJson)
+            .map(aviationStackClient::convertFlightDataToJson)
             .toList();
             context.status(200).json(formattedFlights);
 

@@ -2,10 +2,7 @@ package io.github.fontysvenlo.ais.restapi;
 
 import java.util.Map;
 
-import io.github.fontysvenlo.ais.businesslogic.PriceManagerImpl;
 import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
-import io.github.fontysvenlo.ais.businesslogic.api.PriceManager;
-import io.github.fontysvenlo.ais.datarecords.PricePerKmData;
 import io.javalin.Javalin;
 import static io.javalin.apibuilder.ApiBuilder.crud;
 import static io.javalin.apibuilder.ApiBuilder.delete;
@@ -33,6 +30,7 @@ public class APIServer {
     public APIServer(BusinessLogic businessLogic, String apiKey) {
         this.businessLogic = businessLogic;
         this.aviationStackClient = new AviationStackClient(apiKey);
+        aviationStackClient.setPriceManager(businessLogic.getPriceManager());
 
         // Read Amadeus credentials from environment variables
         String amadeusClientId = System.getenv("AMADEUS_API_KEY");
@@ -54,6 +52,7 @@ public class APIServer {
         }
 
         this.amadeusClient = new AmadeusClient(amadeusClientId, amadeusClientSecret);
+        amadeusClient.setPriceManager(businessLogic.getPriceManager()); // Set PriceManager for AmadeusClient
     }
 
     /**
@@ -68,7 +67,10 @@ public class APIServer {
             String amadeusClientId, String amadeusClientSecret) {
         this.businessLogic = businessLogic;
         this.aviationStackClient = new AviationStackClient(aviationStackApiKey);
+        aviationStackClient.setPriceManager(businessLogic.getPriceManager());
+        
         this.amadeusClient = new AmadeusClient(amadeusClientId, amadeusClientSecret);
+        amadeusClient.setPriceManager(businessLogic.getPriceManager()); // Set PriceManager for AmadeusClient
     }
 
     /**
@@ -97,7 +99,11 @@ public class APIServer {
                         amadeusClient
                 );
 
-                PriceResource priceResource = new PriceResource(businessLogic.getPriceManager());
+                PriceResource priceResource = new PriceResource(
+                        businessLogic.getPriceManager(),
+                        aviationStackClient,
+                        amadeusClient  // Pass the AmadeusClient to PriceResource
+                );
 
                 // Add custom endpoint to refresh flight data
                 // Replace automatic CRUD with explicit path definitions

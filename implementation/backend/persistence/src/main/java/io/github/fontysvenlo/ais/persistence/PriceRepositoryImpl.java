@@ -10,9 +10,8 @@ import java.util.List;
 
 public class PriceRepositoryImpl implements PriceRepository {
 
-    private PricePerKmData pricePerKmData;
-
     private final DataSource db;
+    private PricePerKmData pricePerKmData;
 
     public PriceRepositoryImpl(DBConfig config) {
         this.db = DBProvider.getDataSource(config);

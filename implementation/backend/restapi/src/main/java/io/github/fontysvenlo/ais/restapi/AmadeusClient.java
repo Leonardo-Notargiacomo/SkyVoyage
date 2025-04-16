@@ -13,15 +13,22 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import io.github.fontysvenlo.ais.businesslogic.api.PriceManager;
+import io.github.fontysvenlo.ais.datarecords.PricePerKmData;
+
 public class AmadeusClient {
 
     private static final String BASE_URL = "https://test.api.amadeus.com/v2";
     private static final String AUTH_URL = "https://test.api.amadeus.com/v1/security/oauth2/token";
+    private static final Logger logger = LoggerFactory.getLogger(AmadeusClient.class);
 
     private final String clientId;
     private final String clientSecret;
@@ -31,6 +38,7 @@ public class AmadeusClient {
     private String accessToken;
     private long tokenExpiry = 0;
     private int pricePerKm = 15; // Example price per km in cents.
+    private PriceManager priceManager; // Add PriceManager reference
 
     public AmadeusClient(String clientId, String clientSecret) {
         this.clientId = clientId;
@@ -409,5 +417,45 @@ public class AmadeusClient {
                 throw new IOException("Failed to get access token: " + response.statusCode() + " - " + response.body());
             }
         }
+    }
+
+    /**
+     * Sets the PriceManager for this client and updates the price.
+     * 
+     * @param priceManager The PriceManager to use
+     */
+    public void setPriceManager(PriceManager priceManager) {
+        this.priceManager = priceManager;
+        updatePriceFromManager();
+    }
+    
+    /**
+     * Updates the price from the PriceManager.
+     */
+    public void updatePriceFromManager() {
+        if (priceManager != null) {
+            try {
+                PricePerKmData priceData = priceManager.getPrice();
+                if (priceData != null) {
+                    this.pricePerKm = priceData.price();
+                    logger.info("Updated price per km to: {}", this.pricePerKm);
+                } else {
+                    logger.warn("Price data is null, using default price: {}", this.pricePerKm);
+                }
+            } catch (Exception e) {
+                logger.error("Error updating price from manager: {}", e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Updates the price per kilometer directly.
+     *
+     * @param newPrice The new price per kilometer
+     */
+    public void updatePrice(int newPrice) {
+        int oldPrice = this.pricePerKm;
+        this.pricePerKm = newPrice;
+        logger.info("Price manually updated from {} to {} in AmadeusClient", oldPrice, newPrice);
     }
 }

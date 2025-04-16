@@ -8,13 +8,21 @@
     let error = null;
     let successMessage = null;
 
-    onMount(async () => {
+    // Function to fetch the current price
+    async function fetchCurrentPrice() {
         try {
-            const response = await api.fetchAPI("flights/price");
+            const response = await api.fetchAPI("/price");
             pricePerKm = response.price;
+            console.log("Current price fetched:", pricePerKm);
+            return response.price;
         } catch (error) {
             console.error("Failed to fetch price:", error);
+            return null;
         }
+    }
+
+    onMount(async () => {
+        await fetchCurrentPrice();
     });
 
     async function updatePrice() {
@@ -23,14 +31,23 @@
         error = null;
 
         try {
-            await api.create("/flights/price", { 
-                price: newPrice 
+            await api.fetchAPI(`/price/create?price=${newPrice}`, {
+                method: 'POST'
             });
-            pricePerKm = newPrice;
+            
+            // Fetch the updated price after update
+            const updatedPrice = await fetchCurrentPrice();
+            if (updatedPrice !== null) {
+                pricePerKm = updatedPrice;
+                newPrice = updatedPrice;
+            } else {
+                pricePerKm = newPrice; // Fallback if fetch fails
+            }
+            
             successMessage = "Price updated successfully!";
         } catch (err) {
-            error = "Failed to update price - " + (err.errorData?.error || err.message);
-            console.error("Full error:", err);
+            error = err.message || "Failed to update price";
+            console.error("Error updating price:", err);
         } finally {
             isSubmitting = false;
         }
