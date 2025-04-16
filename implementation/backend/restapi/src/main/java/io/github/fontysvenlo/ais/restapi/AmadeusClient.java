@@ -352,9 +352,20 @@ public class AmadeusClient {
     }
 
     /**
+     * Sets the PriceManager for this client and updates the price.
+     *
+     * @param priceManager The PriceManager to use
+     */
+    public void setPriceManager(PriceManager priceManager) {
+        this.priceManager = priceManager;
+        logger.info("PriceManager set in AmadeusClient");
+    }
+
+    /**
      * Calculate flight price based on duration
      */
     private int flightPrice(int duration) {
+        logger.info(String.valueOf(priceManager.getPrice()));
         return (duration * 15) * priceManager.getPrice();
     }
 
@@ -416,15 +427,5 @@ public class AmadeusClient {
                 throw new IOException("Failed to get access token: " + response.statusCode() + " - " + response.body());
             }
         }
-    }
-
-    /**
-     * Sets the PriceManager for this client and updates the price.
-     * 
-     * @param priceManager The PriceManager to use
-     */
-    public void setPriceManager(PriceManager priceManager) {
-        this.priceManager = priceManager;
-        logger.info("PriceManager set in AmadeusClient");
     }
 }

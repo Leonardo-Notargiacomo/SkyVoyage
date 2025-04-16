@@ -12,13 +12,21 @@ import java.util.Map;
 public class PriceManagerImpl implements PriceManager {
 
     private final PriceRepository priceRepository;
+    private static PriceManager instance;
     private static final Logger logger = Logger.getLogger(PriceManagerImpl.class.getName());
     private final AtomicLong priceVersion = new AtomicLong(0);
 
     private int defaultPrice = 11;
 
-    public PriceManagerImpl(PriceRepository priceRepository){
+    private PriceManagerImpl(PriceRepository priceRepository){
         this.priceRepository = priceRepository;
+    }
+
+    public static synchronized PriceManager getInstance(PriceRepository priceRepository) {
+        if (instance == null) {
+            instance = new PriceManagerImpl(priceRepository);
+        }
+        return instance;
     }
 
     @Override
@@ -46,5 +54,6 @@ public class PriceManagerImpl implements PriceManager {
     public long getPriceVersion() {
         return priceVersion.get();
     }
+
 
 }

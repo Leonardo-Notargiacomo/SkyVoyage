@@ -52,7 +52,7 @@ public class APIServer {
         }
 
         this.amadeusClient = new AmadeusClient(amadeusClientId, amadeusClientSecret);
-        amadeusClient.setPriceManager(businessLogic.getPriceManager()); // Set PriceManager for AmadeusClient
+        amadeusClient.setPriceManager(businessLogic.getPriceManager());
     }
 
     /**

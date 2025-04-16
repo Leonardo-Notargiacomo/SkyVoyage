@@ -282,7 +282,6 @@ public class AviationStackClient {
     }
 
     private int flightPrice(int duration) {
-        logger.info(String.valueOf((duration * 15) * priceManager.getPrice()));
         return (duration * 15) * priceManager.getPrice();
     }
 
