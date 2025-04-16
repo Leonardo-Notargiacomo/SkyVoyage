@@ -49,8 +49,7 @@
         </div>
 
         <!-- Heading -->
-        <h2 class="text-2xl font-semibold text-gray-800">Login</h2>
-        <p class="text-sm text-gray-600">
+        <p class="text-sm mt-8 text-gray-600">
             Welcome back. Enter your credentials to access your account
         </p>
 
@@ -63,10 +62,11 @@
 
         <!-- Email Input -->
         <div class="mt-4">
-            <label class="block text-sm font-medium text-gray-700"
+            <label for="email" class="block text-sm font-medium text-gray-700"
             >Enter your email</label
             >
             <input
+                    id="email"
                     type="email"
                     bind:value={email}
                     class="w-full mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -76,9 +76,10 @@
 
         <!-- Password Input -->
         <div class="mt-4">
-            <label class="block text-sm font-medium text-gray-700"
+            <label for="password" class="block text-sm font-medium text-gray-700"
             >Enter your password</label>
             <input
+                    id="password"
                     type="password"
                     bind:value={password}
                     class="w-full mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -91,6 +92,6 @@
         <!-- Submit Button -->
         <button
                 on:click={handleLogin}
-                class="w-full mt-4 p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Continue</button>
+                class="w-full mt-4 p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Login</button>
     </div>
 </div>
