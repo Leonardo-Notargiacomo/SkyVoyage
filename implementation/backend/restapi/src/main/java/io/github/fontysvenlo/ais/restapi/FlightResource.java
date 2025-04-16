@@ -1,12 +1,10 @@
 package io.github.fontysvenlo.ais.restapi;
 
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.github.fontysvenlo.ais.datarecords.PricePerKmData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

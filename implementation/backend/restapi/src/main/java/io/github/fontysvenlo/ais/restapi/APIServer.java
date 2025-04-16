@@ -67,7 +67,6 @@ public class APIServer {
             String amadeusClientId, String amadeusClientSecret) {
         this.businessLogic = businessLogic;
         this.aviationStackClient = new AviationStackClient(aviationStackApiKey);
-        aviationStackClient.setPriceManager(businessLogic.getPriceManager());
         
         this.amadeusClient = new AmadeusClient(amadeusClientId, amadeusClientSecret);
         amadeusClient.setPriceManager(businessLogic.getPriceManager()); // Set PriceManager for AmadeusClient
@@ -101,8 +100,7 @@ public class APIServer {
 
                 PriceResource priceResource = new PriceResource(
                         businessLogic.getPriceManager(),
-                        aviationStackClient,
-                        amadeusClient  // Pass the AmadeusClient to PriceResource
+                        businessLogic.getFlightManager()
                 );
 
                 // Add custom endpoint to refresh flight data

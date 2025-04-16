@@ -37,8 +37,7 @@ public class AmadeusClient {
 
     private String accessToken;
     private long tokenExpiry = 0;
-    private int pricePerKm = 15; // Example price per km in cents.
-    private PriceManager priceManager; // Add PriceManager reference
+    private PriceManager priceManager;
 
     public AmadeusClient(String clientId, String clientSecret) {
         this.clientId = clientId;
@@ -356,7 +355,7 @@ public class AmadeusClient {
      * Calculate flight price based on duration
      */
     private int flightPrice(int duration) {
-        return (duration * 15) * pricePerKm;
+        return (duration * 15) * priceManager.getPrice();
     }
 
     /**
@@ -426,36 +425,6 @@ public class AmadeusClient {
      */
     public void setPriceManager(PriceManager priceManager) {
         this.priceManager = priceManager;
-        updatePriceFromManager();
-    }
-    
-    /**
-     * Updates the price from the PriceManager.
-     */
-    public void updatePriceFromManager() {
-        if (priceManager != null) {
-            try {
-                PricePerKmData priceData = priceManager.getPrice();
-                if (priceData != null) {
-                    this.pricePerKm = priceData.price();
-                    logger.info("Updated price per km to: {}", this.pricePerKm);
-                } else {
-                    logger.warn("Price data is null, using default price: {}", this.pricePerKm);
-                }
-            } catch (Exception e) {
-                logger.error("Error updating price from manager: {}", e.getMessage());
-            }
-        }
-    }
-
-    /**
-     * Updates the price per kilometer directly.
-     *
-     * @param newPrice The new price per kilometer
-     */
-    public void updatePrice(int newPrice) {
-        int oldPrice = this.pricePerKm;
-        this.pricePerKm = newPrice;
-        logger.info("Price manually updated from {} to {} in AmadeusClient", oldPrice, newPrice);
+        logger.info("PriceManager set in AmadeusClient");
     }
 }

@@ -44,6 +44,7 @@
                 pricePerKm = newPrice; // Fallback if fetch fails
             }
             
+            await api.clearFlightCache();
             successMessage = "Price updated successfully!";
         } catch (err) {
             error = err.message || "Failed to update price";

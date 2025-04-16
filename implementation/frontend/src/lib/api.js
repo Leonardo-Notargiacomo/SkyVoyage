@@ -107,5 +107,9 @@ export const api = {
         return this.fetchAPI(url, {
             method: 'DELETE'
         });
+    },
+    
+    async clearFlightCache() {
+        return this.delete('flights/cache');
     }
 };

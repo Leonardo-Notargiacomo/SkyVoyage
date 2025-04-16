@@ -1,6 +1,8 @@
 package io.github.fontysvenlo.ais.restapi;
 
+import io.github.fontysvenlo.ais.businesslogic.api.FlightManager;
 import io.github.fontysvenlo.ais.businesslogic.api.PriceManager;
+import io.github.fontysvenlo.ais.datarecords.FlightData;
 import io.github.fontysvenlo.ais.datarecords.PricePerKmData;
 import io.javalin.apibuilder.CrudHandler;
 import io.javalin.http.Context;
@@ -8,21 +10,16 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
 
 public class PriceResource implements CrudHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(PriceResource.class);
     private final PriceManager priceManager;
-    private final AviationStackClient aviationStackClient;
-    private final AmadeusClient amadeusClient;
 
-    public PriceResource(PriceManager priceManager, AviationStackClient aviationStackClient, AmadeusClient amadeusClient) {
+    public PriceResource(PriceManager priceManager, FlightManager flightManager) {
         this.priceManager = priceManager;
-        this.aviationStackClient = aviationStackClient;
-        this.amadeusClient = amadeusClient;
-        
-        // Initialize price from manager if available
         initializePrice();
     }
 
@@ -31,22 +28,7 @@ public class PriceResource implements CrudHandler {
      */
     private void initializePrice() {
         try {
-            PricePerKmData currentPrice = priceManager.getPrice();
-            if (currentPrice == null) {
-                // Set default price
-                PricePerKmData defaultPrice = new PricePerKmData(15);
-                priceManager.setPrice(defaultPrice);
-                logger.info("Initialized default price: {}", defaultPrice.price());
-                
-                // Update both clients
-                aviationStackClient.updatePrice(defaultPrice.price());
-                amadeusClient.updatePrice(defaultPrice.price());
-            } else {
-                // Update both clients with existing price
-                aviationStackClient.updatePrice(currentPrice.price());
-                amadeusClient.updatePrice(currentPrice.price());
-                logger.info("Using existing price: {}", currentPrice.price());
-            }
+            int currentPrice = priceManager.getPrice();
         } catch (Exception e) {
             logger.error("Error initializing price: {}", e.getMessage());
         }
@@ -69,12 +51,8 @@ public class PriceResource implements CrudHandler {
 
             PricePerKmData priceData = new PricePerKmData(price);
             priceManager.setPrice(priceData);
-            
-            // Update both clients with the new price
-            aviationStackClient.updatePrice(price);
-            amadeusClient.updatePrice(price);
             logger.info("Price updated to: {}", price);
-            
+
             context.status(201).json(priceData);
         } catch (NumberFormatException e) {
             context.status(400).json(Map.of("error", "Invalid price format"));
@@ -87,8 +65,8 @@ public class PriceResource implements CrudHandler {
     @Override
     public void getAll(@NotNull Context context) {
         try {
-            PricePerKmData currentPrice = priceManager.getPrice();
-            context.status(200).json(currentPrice);
+            int currentPrice = priceManager.getPrice();
+            context.status(200).json(Map.of("price", currentPrice));
         } catch (Exception e) {
             logger.error("Error getting price: {}", e.getMessage());
             context.status(500).json(Map.of("error", "Could not retrieve price"));

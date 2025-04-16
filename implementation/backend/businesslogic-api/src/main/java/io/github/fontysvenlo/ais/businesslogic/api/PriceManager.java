@@ -4,6 +4,7 @@ import io.github.fontysvenlo.ais.datarecords.PricePerKmData;
 
 public interface PriceManager {
 
-    PricePerKmData getPrice();
+    int getPrice();
     void setPrice(PricePerKmData newPrice);
+    long getPriceVersion();
 }

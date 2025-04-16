@@ -15,11 +15,12 @@ public class PriceRepositoryImpl implements PriceRepository {
 
     public PriceRepositoryImpl(DBConfig config) {
         this.db = DBProvider.getDataSource(config);
+        this.pricePerKmData = new PricePerKmData(15);
     }
 
     @Override
-    public PricePerKmData get() {
-        return pricePerKmData;
+    public int get() {
+        return pricePerKmData.price();
     }
 
     @Override

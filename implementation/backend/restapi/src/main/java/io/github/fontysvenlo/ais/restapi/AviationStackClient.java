@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.github.fontysvenlo.ais.businesslogic.api.PriceManager;
 import io.github.fontysvenlo.ais.datarecords.FlightData;
-import io.github.fontysvenlo.ais.datarecords.PricePerKmData;
 
 /**
  * Client for interacting with the AviationStack API.
@@ -34,7 +33,6 @@ public class AviationStackClient {
     private final String apiKey;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
-    private int pricePerKm = 15;
     private PriceManager priceManager;
 
     /**
@@ -278,61 +276,14 @@ public class AviationStackClient {
         return formattedFlights;
     }
 
-    /**
-     * Sets the price manager for this client
-     *
-     * @param priceManager The price manager to use for flight price calculations.
-     *
-     */
     public void setPriceManager(PriceManager priceManager) {
         this.priceManager = priceManager;
+        logger.info("PriceManager set in AviationStackClient");
     }
 
-    /**
-     * Updates the price per kilometer directly.
-     *
-     * @param newPrice The new price per kilometer
-     */
-    public void updatePrice(int newPrice) {
-        int oldPrice = this.pricePerKm;
-        this.pricePerKm = newPrice;
-        logger.info("Price manually updated from {} to {}", oldPrice, newPrice);
-    }
-
-    /**
-     * Calculates the price of a flight based on its duration.
-     * Uses the current price per kilometer value.
-     *
-     * @param duration The duration of the flight in minutes
-     * @return The calculated price of the flight (duration * 15 * price per km)
-     */
     private int flightPrice(int duration) {
-        // Check for updated price if price manager is available
-        if (priceManager != null) {
-            try {
-                PricePerKmData priceData = priceManager.getPrice();
-                if (priceData != null) {
-                    this.pricePerKm = priceData.price();
-                }
-            } catch (Exception e) {
-                logger.warn("Could not get updated price, using current value: {}", this.pricePerKm);
-            }
-        }
-        return (duration * 15) * this.pricePerKm;
-    }
-
-    private int getPricePerKm() {
-        try {
-            PricePerKmData priceData = priceManager.getPrice();
-            int oldPrice = this.pricePerKm;
-            this.pricePerKm = priceData.price();
-            logger.info("Price updated from {} to {}", oldPrice, this.pricePerKm);
-            return this.pricePerKm;
-        } catch (Exception e) {
-            logger.error("Price manager exception: ", e);
-            logger.warn("Could not get updated price, using current value: {}", this.pricePerKm);
-            return this.pricePerKm;
-        }
+        logger.info(String.valueOf((duration * 15) * priceManager.getPrice()));
+        return (duration * 15) * priceManager.getPrice();
     }
 
     /**
@@ -518,7 +469,7 @@ public class AviationStackClient {
         formattedFlight.put("duration", flight.duration().toString());
 
         // Add price of flight according to the duration
-        int price = (flight.duration() * 15 * getPricePerKm()) / 100;
+        int price = (flight.duration() * 15 * priceManager.getPrice()) / 100;
         formattedFlight.put("price", price);
 
         return formattedFlight;
@@ -560,7 +511,7 @@ public class AviationStackClient {
         result.put("airline", "Unknown Airline"); // Placeholder
 
         // Calculate a price based on duration (similar to AviationStackClient logic)
-        int price = (flight.duration() * 15 * getPricePerKm()) / 100;
+        int price = (flight.duration() * 15 * priceManager.getPrice()) / 100;
         result.put("price", price);
 
         return result;
