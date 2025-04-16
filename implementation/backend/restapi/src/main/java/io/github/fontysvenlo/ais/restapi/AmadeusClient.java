@@ -224,18 +224,10 @@ public class AmadeusClient {
                 processedOffer.put("id", flightOffer.get("id").asText());
                 processedOffer.put("source", flightOffer.get("source").asText());
 
-                // Process price information
-                if (flightOffer.has("price")) {
-                    JsonNode priceNode = flightOffer.get("price");
-                    Map<String, Object> price = new HashMap<>();
-                    price.put("currency", priceNode.get("currency").asText());
-                    price.put("total", priceNode.get("total").asText());
-                    price.put("grandTotal", priceNode.get("grandTotal").asText());
-                    processedOffer.put("price", price);
-                }
-
                 // Process itineraries (trips)
                 List<Map<String, Object>> trips = new ArrayList<>();
+                int totalOfferPrice = 0; // Track total price for all trips in this offer
+                
                 if (flightOffer.has("itineraries")) {
                     JsonNode itineraries = flightOffer.get("itineraries");
 
@@ -243,16 +235,39 @@ public class AmadeusClient {
                     if (itineraries.size() > 0) {
                         Map<String, Object> outboundTrip = processItinerary(itineraries.get(0), "outbound", flightOffer);
                         trips.add(outboundTrip);
+                        totalOfferPrice += (int) outboundTrip.get("price");
                     }
 
                     // Second itinerary (if exists) is return
                     if (itineraries.size() > 1) {
                         Map<String, Object> returnTrip = processItinerary(itineraries.get(1), "return", flightOffer);
                         trips.add(returnTrip);
+                        totalOfferPrice += (int) returnTrip.get("price");
                     }
                 }
 
                 processedOffer.put("trips", trips);
+
+                // Process price information with our total calculated price
+                if (flightOffer.has("price")) {
+                    JsonNode priceNode = flightOffer.get("price");
+                    Map<String, Object> price = new HashMap<>();
+                    price.put("currency", priceNode.get("currency").asText());
+                    
+                    // Use our calculated total price instead of the API price
+                    price.put("total", String.valueOf(totalOfferPrice));
+                    price.put("grandTotal", String.valueOf(totalOfferPrice));
+                    price.put("originalTotal", priceNode.get("total").asText()); // Keep original for reference
+                    
+                    logger.info("Flight offer {} price calculated: {} (original: {}) using price factor: {}", 
+                               flightOffer.get("id").asText(), 
+                               totalOfferPrice, 
+                               priceNode.get("total").asText(),
+                               priceManager.getPrice());
+                    
+                    processedOffer.put("price", price);
+                }
+
                 processedFlightOffers.add(processedOffer);
             }
         }
@@ -315,6 +330,8 @@ public class AmadeusClient {
 
         // Process segments (individual flights in this trip)
         List<Map<String, Object>> flights = new ArrayList<>();
+        int totalFlightMinutes = 0; // Track actual flight time only
+        
         if (itinerary.has("segments")) {
             for (JsonNode segment : itinerary.get("segments")) {
                 Map<String, Object> flight = new LinkedHashMap<>();
@@ -322,6 +339,10 @@ public class AmadeusClient {
                 flight.put("duration", segment.get("duration").asText());
                 flight.put("number", segment.get("number").asText());
                 flight.put("carrierCode", segment.get("carrierCode").asText());
+                
+                // Add the segment duration to our total flight time
+                int segmentDuration = parseDurationToMinutes(segment.get("duration").asText());
+                totalFlightMinutes += segmentDuration;
 
                 // Process departure first
                 JsonNode departureNode = segment.get("departure");
@@ -347,6 +368,14 @@ public class AmadeusClient {
             }
         }
 
+        // Calculate price using actual flight minutes, not total itinerary duration
+        int tripPrice = flightPrice(totalFlightMinutes);
+        trip.put("price", tripPrice);
+
+        // Log the calculation
+        logger.info("Trip {} price calculated: {} actual flight minutes duration = {} price",
+                tripType, totalFlightMinutes, tripPrice);
+
         trip.put("flights", flights);
         return trip;
     }
@@ -366,7 +395,7 @@ public class AmadeusClient {
      */
     private int flightPrice(int duration) {
         logger.info(String.valueOf(priceManager.getPrice()));
-        return (duration * 15) * priceManager.getPrice();
+        return (duration * 15) * priceManager.getPrice() / 100;
     }
 
     /**
