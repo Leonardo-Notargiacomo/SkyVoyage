@@ -1,0 +1,18 @@
+```mermaid
+
+classDiagram
+direction BT
+class AmadeusClient {
+  + searchFlights(String, String, String, String) Map~String, Object~
+  - processItinerary(JsonNode, String, JsonNode) Map~String, Object~
+  - parseDurationToMinutes(String) int
+  - flightPrice(int) int
+  + searchFlightOffersWithParams(Map~String, String~) Map~String, Object~
+  + searchFlightOffersWithQueryString(String) Map~String, Object~
+  - processAmadeusResponse(JsonNode) Map~String, Object~
+  - ensureValidToken() void
+  # createHttpClient() HttpClient
+  - processFlightResults(JsonNode) JsonNode
+}
+
+```
