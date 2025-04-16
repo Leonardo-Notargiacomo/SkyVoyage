@@ -2,7 +2,7 @@
 
 
 classDiagram
-
+direction BT
 class AmadeusClient {
   + searchFlights(String, String, String, String) Map~String, Object~
   - processItinerary(JsonNode, String, JsonNode) Map~String, Object~
