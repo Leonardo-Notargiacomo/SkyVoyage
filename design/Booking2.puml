@@ -1,0 +1,70 @@
+@startuml
+title Customer Details Entry Class Diagram
+
+' Classes
+class CustomerResource {
+  -customerManager: CustomerManager
+  +create(context: Context)
+  +getAll(context: Context)
+}
+
+class CustomerManagerImpl {
+  -customerRepository: CustomerRepository
+  +add(customerData: CustomerData): CustomerData
+  +list(): List<CustomerData>
+}
+
+class Customer {
+  -customerData: CustomerData
+}
+
+class CustomerData {
+  -id: Integer
+  -firstName: String
+  -lastName: String
+  -passportNumber: String
+  -dateOfBirth: LocalDate
+}
+
+class CustomerRepositoryImpl {
+  -db: DataSource
+  +add(customerData: CustomerData): CustomerData
+  +getAll(): List<CustomerData>
+}
+
+class BookingData {
+  -id: Integer
+  -customerId: Integer
+  -flightId: Integer
+  -status: BookingStatus
+  -createdAt: LocalDateTime
+}
+
+class Booking {
+  -bookingData: BookingData
+  -customer: Customer
+  +createBooking(): BookingData
+  +validateCustomerDetails(): boolean
+}
+
+' Interfaces
+interface CustomerManager {
+  +add(customerData: CustomerData): CustomerData
+  +list(): List<CustomerData>
+}
+
+interface CustomerRepository {
+  +add(customerData: CustomerData): CustomerData
+  +getAll(): List<CustomerData>
+}
+
+' Relationships
+CustomerResource --> CustomerManager
+CustomerManagerImpl ..|> CustomerManager
+CustomerManagerImpl --> CustomerRepository
+CustomerRepositoryImpl ..|> CustomerRepository
+Customer --> CustomerData
+Booking --> Customer
+Booking --> BookingData
+
+@enduml
