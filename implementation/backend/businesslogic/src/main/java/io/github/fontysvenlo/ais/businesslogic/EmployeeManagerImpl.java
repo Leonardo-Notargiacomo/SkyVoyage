@@ -122,4 +122,8 @@ public class EmployeeManagerImpl implements EmployeeManager {
     public EmployeeData delete(String id) {
         return employeeRepository.delete(id);
     }
+    @Override
+    public EmployeeData getByEmail(String email) {
+        return employeeRepository.getByEmail(email);
+    }
 }

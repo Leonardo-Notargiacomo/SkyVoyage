@@ -3,11 +3,15 @@ package io.github.fontysvenlo.ais.restapi;
 import java.util.Map;
 
 import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
+import io.github.fontysvenlo.ais.datarecords.EmployeeData;
+import io.github.fontysvenlo.ais.datarecords.LoginRequest;
 import io.javalin.Javalin;
+
 import static io.javalin.apibuilder.ApiBuilder.crud;
 import static io.javalin.apibuilder.ApiBuilder.delete;
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
+import static io.javalin.apibuilder.ApiBuilder.post;
 
 /**
  * This class is responsible for starting the REST server and defining the
@@ -23,8 +27,8 @@ public class APIServer {
      * Initializes the REST API server
      *
      * @param businessLogic the business logic implementation to communicate
-     * with
-     * @param apiKey the API key for the AviationStack API
+     *                      with
+     * @param apiKey        the API key for the AviationStack API
      */
     public APIServer(BusinessLogic businessLogic, String apiKey) {
         this.businessLogic = businessLogic;
@@ -102,7 +106,31 @@ public class APIServer {
                     // Add a endpoint to clear the flight data
                     delete("/cache", flightResource::clearCache);
                 });
+                // Add login endpoint
+                post("login", ctx -> {
+                    LoginRequest loginRequest = ctx.bodyAsClass(LoginRequest.class);
+                    boolean success = businessLogic.getLoginService().login(loginRequest.email(), loginRequest.password());
+                    if (success) {
+                        ctx.status(200).json(Map.of(
+                                "message", "Login successful"));
+                    }
+                    else {
+                        ctx.status(401).json(Map.of(
+                                "error", "Invalid email or password"));
+                    }
+                });
+
+                get("getLoginUser", ctx -> {
+                    String email = ctx.queryParam("email");
+                    EmployeeData employeeData = businessLogic.getEmployeeManager().getByEmail(email);
+                    if (employeeData != null) {
+                        ctx.status(200).json(employeeData);
+                    } else {
+                        ctx.status(404).json(Map.of("error", "User not found"));
+                    }
+                });
             });
+
         });
         app.exception(IllegalArgumentException.class, (e, ctx) -> {
             ctx.status(422).json(Map.of("error", e.getMessage()));
