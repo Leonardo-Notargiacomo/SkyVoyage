@@ -4,7 +4,7 @@
 
     <!-- Center TURKIYE -->
     <img
-            src="https://media.discordapp.net/attachments/1338828511682498643/1358750787659894804/pala-baba.gif?ex=67f4fac8&is=67f3a948&hm=462ff63b17910d0066714d05a312e735db26814dd6a9f25b9472189f3ac423eb&=&width=330&height=708"
+            src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExbmdkdTFwbXB2dWdzMG44Z3d0bWdiYzB0dzVyNW5vbDNoMWtmY21rMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/d6gXFbMVhWIJezJXP7/giphy.gif"
             alt="Turkiye"
             class="turkiye"
     />
