@@ -177,3 +177,28 @@ The booking is created with accurate customer details and stored as confirmed or
 **Extensions**:
 
 - If the discount is 69%, the system enters "Dank Mode" with animations and gifs for entertainment.
+
+---
+
+# Use Case: Fill in customer information
+
+**Actor**: Sales Employee
+
+**Description**:
+The actor fills in the passenger information for each passenger for the booking. 
+
+**Precondition**:
+The sales employee has selected a flight and is now on the page for filling out the customer information. 
+
+**Scenario**:
+1. Actor fills in all of the information fields of the first passenger.
+2. If there are multiple passengers, actor fills in first name and last name of these passengers, and possibly one or more of the other fields.
+3. Actor presses 'Continue to booking summary' button.
+4. System shows the booking overview page.
+
+**Result**:
+The details of all passengers are visible in the overview, ready to be accepted. Actor can still see them, and continue with the making of the booking. 
+
+**Exception**:
+- 3a. Missing details: If not all fields of the first passenger are filled out, the system gives a message of a field missing data.
+- 3b. Missing details: If the first name and/or the last name of any passenger that is not the first one is/are not filled out, the system gives a message of a field missing data.
