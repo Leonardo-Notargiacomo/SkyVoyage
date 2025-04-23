@@ -7,6 +7,9 @@ assignees: ''
 
 ---
 
+### 🧠 User Story
+**User Story:** 
+
 ---
 
 ### 1. 📘 Use Case Description
