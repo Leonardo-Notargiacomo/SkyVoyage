@@ -30,6 +30,7 @@ As a [role], I want to [action] so that [goal].
 - As a Sales Employee, I want to send tickets via email or provide printed copies so that customers receive their tickets in their preferred format.
 - As a Sales Employee, I want to see a list of bookings I have created, so that I can review them and delete them if no longer needed.
 - As a Sales Employee, I want to search for a booking using its Booking ID, so that I can quickly find and review a specific reservation.
+- As a Sales Employee, I want to view the ticket(s) corresponding to a booking I just finished so that I can see if everything went right.
 
 ---
 
