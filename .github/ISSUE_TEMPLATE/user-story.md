@@ -7,42 +7,51 @@ assignees: ''
 
 ---
 
-Checklist:
+---
 
-### 📘 Use Case Description  
-> Update `UseCases.md`  
-📄 Description of the use case, its purpose, and who it serves:
+### 1. 📘 Use Case Description
+- [ ] Update the use case description in `UseCases.md`  
+  > Describe the use case, its purpose, and who it serves.
 
 ---
 
-### ✅ Test Scenarios  
-> Update `TestCases.md`  
-📋 List the test cases that will validate this use case:
+### 2. ✅ Test Scenarios
+- [ ] Add test cases to `TestCases.md`  
+  > List the test scenarios that validate this use case.
 
 ---
 
-### 📊 Use Case Diagram  
-> Update `Use Case Diagram.svg`  
-Include relevant parts that this use case modifies or introduces.
+### 3. 🧩 Use Case Diagram
+- [ ] Update `Use Case Diagram.svg`  
+  > Reflect any new elements or changes introduced by this use case.
 
 ---
 
-### 🧱 Class Diagram  
-> Mention only the **new or changed classes** related to this use case.  
-(Do not paste the full diagram.)
+### 4. 🧱 Class Diagram
+- [ ] Update or create class diagram components  
+  > Mention only **new or modified classes** related to this use case.
 
 ---
 
-### 🔁 Sequence Diagram  
-> Create or update the sequence diagram reflecting this use case.
+### 5. 🔁 Sequence Diagram
+- [ ] Create or update the sequence diagram  
+  > Ensure it accurately represents this use case’s flow.
 
 ---
 
-### ✅ Acceptance Criteria  
-> Add acceptance criteria specific to the **user story**.  
-Write the default ones if none are provided.
+### 6. 🧪 Tests
+- [ ] Write and commit tests  
+  > Link test files and check that they work
 
-### 🚀 Additional Notes  
-- Create a **pull request** once implementation is done.  
-- Make sure the **user story is added to the project board**.  
-- Refer to **Sprint Review #1 conclusions**.
+---
+
+### 7. ✅ Acceptance Criteria
+- [ ] Define specific acceptance criteria for the user story  
+  > If none exist, use default ones.
+
+---
+
+### 8. 🚀 Final Steps
+- [ ] Create a **pull request** once done  
+- [ ] Add the **user story to the project board** 
+- [ ] Check the steps above
