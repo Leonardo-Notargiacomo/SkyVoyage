@@ -9,6 +9,7 @@ assignees: ''
 
 ### 🧠 User Story
 **User Story:** 
+[paste the user story here]
 
 ---
 
