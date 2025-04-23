@@ -44,4 +44,4 @@ assignees: ''
 ### 8. 🚀 Final Steps
 - [ ] Create a **pull request** once done  
 - [ ] Add the **user story to the project board** 
-- [ ] Check the steps above
+- [ ] Check the steps 1-7
