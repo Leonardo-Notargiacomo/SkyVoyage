@@ -12,6 +12,7 @@ module businesslogic_module {
     // These additional modules might be required for some Jackson functionality
     requires com.fasterxml.jackson.core;
     requires com.fasterxml.jackson.annotation;
+    requires java.naming;
     requires jbcrypt;
 
     exports io.github.fontysvenlo.ais.businesslogic;

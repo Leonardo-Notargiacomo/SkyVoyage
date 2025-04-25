@@ -33,6 +33,7 @@ public class APIServer {
     public APIServer(BusinessLogic businessLogic, String apiKey) {
         this.businessLogic = businessLogic;
         this.aviationStackClient = new AviationStackClient(apiKey);
+        aviationStackClient.setPriceManager(businessLogic.getPriceManager());
 
         // Read Amadeus credentials from environment variables
         String amadeusClientId = System.getenv("AMADEUS_API_KEY");
@@ -54,6 +55,7 @@ public class APIServer {
         }
 
         this.amadeusClient = new AmadeusClient(amadeusClientId, amadeusClientSecret);
+        amadeusClient.setPriceManager(businessLogic.getPriceManager());
     }
 
     /**
@@ -68,7 +70,9 @@ public class APIServer {
             String amadeusClientId, String amadeusClientSecret) {
         this.businessLogic = businessLogic;
         this.aviationStackClient = new AviationStackClient(aviationStackApiKey);
+        
         this.amadeusClient = new AmadeusClient(amadeusClientId, amadeusClientSecret);
+        amadeusClient.setPriceManager(businessLogic.getPriceManager()); // Set PriceManager for AmadeusClient
     }
 
     /**
@@ -97,6 +101,13 @@ public class APIServer {
                         amadeusClient
                 );
 
+                PriceResource priceResource = new PriceResource(
+                        businessLogic.getPriceManager(),
+                        businessLogic.getFlightManager()
+                );
+
+                // Add custom endpoint to refresh flight data
+                // Replace automatic CRUD with explicit path definitions
                 // Define flight paths
                 path("flights", () -> {
                     // GET operations
@@ -105,7 +116,13 @@ public class APIServer {
                     get("/search", flightResource::searchFlights);
                     // Add a endpoint to clear the flight data
                     delete("/cache", flightResource::clearCache);
+
+                    path("/price", () -> {
+                        get("/", priceResource::getAll);
+                        post("/create", priceResource::create);
+                    });
                 });
+              
                 // Add login endpoint
                 post("login", ctx -> {
                     LoginRequest loginRequest = ctx.bodyAsClass(LoginRequest.class);

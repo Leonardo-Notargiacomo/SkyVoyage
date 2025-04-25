@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import io.github.fontysvenlo.ais.businesslogic.api.PriceManager;
 import io.github.fontysvenlo.ais.datarecords.FlightData;
 import io.github.fontysvenlo.ais.persistence.api.FlightRepository;
 
@@ -18,6 +19,8 @@ class FlightRepositoryImpl implements FlightRepository {
     private final DataSource db;
     // Initialize with empty list - will be populated through API
     private final List<FlightData> flights = new ArrayList<>();
+    private long cachedPriceVersion = -1;
+    private PriceManager priceManager;
 
     public FlightRepositoryImpl(DBConfig config) {
         this.db = DBProvider.getDataSource(config);
@@ -64,6 +67,19 @@ class FlightRepositoryImpl implements FlightRepository {
 
     @Override
     public List<FlightData> getAll() {
+
+        if (priceManager != null) {
+            long currentVersion = priceManager.getPriceVersion();
+            if (currentVersion != cachedPriceVersion) {
+                flights.clear();
+                cachedPriceVersion = currentVersion;
+            }
+        }
+
         return new ArrayList<>(flights);
+    }
+
+    public void setPriceManager(PriceManager priceManager) {
+        this.priceManager = priceManager;
     }
 }

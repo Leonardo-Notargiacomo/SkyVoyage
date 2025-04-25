@@ -148,8 +148,17 @@
                     <span class="flex-1 ms-3 whitespace-nowrap">Customers</span>
                 </a>
             </li> -->
-
+        
         <li>
+          {#if type == "Sales Manager"}
+                    <li>
+                <a href="/admin" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    <span class="flex-1 ms-3 whitespace-nowrap">Sales Manager</span>
+                </a>
+            </li>
+        {/if}          
+          
           {#if type !== "Sales Employee"}
             <a
               href="/employees"

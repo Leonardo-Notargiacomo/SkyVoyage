@@ -22,6 +22,8 @@ public interface Persistence {
 
     FlightRepository getFlightRepository();
 
+    PriceRepository getPriceRepository();
+
     UserRepository getUserRepository();
 
 

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import io.github.fontysvenlo.ais.businesslogic.api.PriceManager;
 import io.github.fontysvenlo.ais.datarecords.FlightData;
 
 /**
@@ -32,7 +33,7 @@ public class AviationStackClient {
     private final String apiKey;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
-    private final int pricePerKm = 11;
+    private PriceManager priceManager;
 
     /**
      * Creates a new AviationStackClient.
@@ -275,10 +276,12 @@ public class AviationStackClient {
         return formattedFlights;
     }
 
-    //calculate km using duration * 15 is the km per minute
-    //price per km is 11 dummy value for now.
+    public void setPriceManager(PriceManager priceManager) {
+        this.priceManager = priceManager;
+    }
+
     private int flightPrice(int duration) {
-        return (duration * 15) * pricePerKm;
+        return (duration * 15) * priceManager.getPrice();
     }
 
     /**
@@ -464,7 +467,7 @@ public class AviationStackClient {
         formattedFlight.put("duration", flight.duration().toString());
 
         // Add price of flight according to the duration
-        int price = (flight.duration() * 15 * pricePerKm) / 100;
+        int price = (flight.duration() * 15 * priceManager.getPrice()) / 100;
         formattedFlight.put("price", price);
 
         return formattedFlight;
@@ -506,7 +509,7 @@ public class AviationStackClient {
         result.put("airline", "Unknown Airline"); // Placeholder
 
         // Calculate a price based on duration (similar to AviationStackClient logic)
-        int price = (flight.duration() * 15 * pricePerKm) / 100;
+        int price = (flight.duration() * 15 * priceManager.getPrice()) / 100;
         result.put("price", price);
 
         return result;

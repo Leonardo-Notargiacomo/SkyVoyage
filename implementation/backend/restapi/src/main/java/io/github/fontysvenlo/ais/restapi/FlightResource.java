@@ -1,6 +1,5 @@
 package io.github.fontysvenlo.ais.restapi;
 
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -89,8 +88,12 @@ class FlightResource implements CrudHandler {
                 }
             }
 
-            // Return the API flights directly since they're already in the correct format
-            context.status(200).json(apiFlights);
+            
+            List<Map<String, Object>> formattedFlights = newFlights.stream()
+            .map(aviationStackClient::convertFlightDataToJson)
+            .toList();
+            context.status(200).json(formattedFlights);
+
         } catch (Exception e) {
             logger.error("Error retrieving flights", e);
             context.status(500).json(Map.of(

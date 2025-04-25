@@ -38,6 +38,10 @@ class BusinessLogicImpl implements BusinessLogic {
     }
 
     @Override
+    public PriceManager getPriceManager() {
+        return PriceManagerImpl.getInstance(persistenceAPI.getPriceRepository());
+  
+    @Override  
     public LoginService getLoginService() {
         return new LoginServiceImpl(persistenceAPI.getUserRepository());
     }

@@ -1,0 +1,106 @@
+@startuml
+!theme blueprint
+
+skinparam shadowing false
+
+' Increase spacing around packages
+skinparam nodesep 50
+skinparam ranksep 150
+skinparam packageMargin 20
+
+title Class Diagram for the Setting the Price Per Km
+
+package "REST API" {
+  class PriceResource {
+    - priceManager: PriceManager
+    - logger: Logger
+    + PriceResource(priceManager: PriceManager, flightManager: FlightManager)
+    + create(context: Context): void
+    + getAll(context: Context): void
+    - initializePrice(): void
+  }
+
+  class AmadeusClient {
+    - priceManager: PriceManager
+    - accessToken: String
+    - tokenExpiry: long
+    + setPriceManager(priceManager: PriceManager): void
+    - flightPrice(duration: int): int
+    - ensureValidToken(): void
+    - processAmadeusResponse(response: JsonNode): Map<String, Object>
+  }
+}
+
+package "businesslogic-api" {
+  interface PriceManager <<interface>> {
+    + getPrice(): int
+    + setPrice(newPrice: PricePerKmData): void
+    + getPriceVersion(): long
+  }
+}
+
+package "businesslogic" {
+  class PriceManagerImpl {
+    - priceRepository: PriceRepository
+    - {static} instance: PriceManager
+    - logger: Logger
+    - defaultPrice: int = 11
+    - priceVersion: AtomicLong
+    - PriceManagerImpl(priceRepository: PriceRepository)
+    + {static} getInstance(priceRepository: PriceRepository): PriceManager
+    + getPrice(): int
+    + setPrice(newPrice: PricePerKmData): void
+    + getPriceVersion(): long
+  }
+}
+
+package "persistence-api" {
+  interface PriceRepository <<interface>> {
+    + get(): int
+    + change(newPrice: PricePerKmData): void
+  }
+}
+
+package "persistence" {
+  class PriceRepositoryImpl {
+    - db: DataSource
+    - pricePerKmData: PricePerKmData
+    + PriceRepositoryImpl(config: DBConfig)
+    + get(): int
+    + change(newPrice: PricePerKmData): void
+  }
+}
+
+package "datarecord" {
+  class PricePerKmData <<record>> {
+    + price: Integer
+  }
+}
+
+' Relationships
+PriceResource --> PriceManager : uses
+PriceManagerImpl ..|> PriceManager : implements
+PriceManagerImpl --> PriceRepository : uses
+PriceRepositoryImpl ..|> PriceRepository : implements
+PriceRepositoryImpl --> PricePerKmData : stores
+AmadeusClient --> PriceManager : uses
+PriceManager ..> PricePerKmData : uses as parameter
+PriceRepository ..> PricePerKmData : uses as parameter
+
+' Notes
+note bottom of AmadeusClient
+  duration * 15 * price / 100
+  (price in cents, result in euros)
+end note
+
+note top of PriceManagerImpl
+  Singleton pattern ensures
+  a single instance manages pricing
+end note
+
+note right of PricePerKmData
+  Java record that holds
+  price per km in cents
+end note
+
+@enduml
