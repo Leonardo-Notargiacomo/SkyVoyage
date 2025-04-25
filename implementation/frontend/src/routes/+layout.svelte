@@ -142,23 +142,32 @@
             <span class="flex-1 ms-3 whitespace-nowrap">Dashboard</span>
           </a>
         </li>
-        <!-- <li>
-                <a href="/customers" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    <span class="flex-1 ms-3 whitespace-nowrap">Customers</span>
-                </a>
-            </li> -->
-        
+        {#if type === "Sales Manager" || type === "Account Manager"}
+          <li>
+            <a
+              href="/admin"
+              class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="feather feather-dollar-sign"
+                ><line x1="12" y1="1" x2="12" y2="23"></line><path
+                  d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+                ></path></svg
+              >
+              <span class="flex-1 ms-3 whitespace-nowrap">Sales Manager</span>
+            </a>
+          </li>
+        {/if}
         <li>
-          {#if type == "Sales Manager"}
-                    <li>
-                <a href="/admin" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                    <span class="flex-1 ms-3 whitespace-nowrap">Sales Manager</span>
-                </a>
-            </li>
-        {/if}          
-          
           {#if type !== "Sales Employee"}
             <a
               href="/employees"
@@ -184,6 +193,12 @@
             </a>
           {/if}
         </li>
+                <!-- <li>
+                <a href="/customers" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span class="flex-1 ms-3 whitespace-nowrap">Customers</span>
+                </a>
+            </li> -->
       </ul>
       <div
         class="mt-auto pt-4 space-y-2 font-medium border-t border-gray-200 dark:border-gray-700"
@@ -207,14 +222,14 @@
               class="relative flex-shrink-0 inline-flex items-center justify-center w-12 h-12 overflow-hidden bg-gradient-to-br from-blue-700 to-blue-900 rounded-full text-white shadow-md mr-2"
             >
               <span class="font-bold text-sm">
-              {initials}
+                {initials}
               </span>
             </div>
             <div class="flex-grow font-medium dark:text-white">
               <div class="flex items-center justify-between">
-              <div class="truncate max-w-[140px]">
-                {firstname + " " + lastname}
-              </div>
+                <div class="truncate max-w-[140px]">
+                  {firstname + " " + lastname}
+                </div>
               </div>
               <div class="text-sm text-gray-500 dark:text-gray-400">{type}</div>
             </div>
