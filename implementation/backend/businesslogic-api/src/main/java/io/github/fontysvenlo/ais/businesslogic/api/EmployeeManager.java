@@ -48,4 +48,6 @@ public interface EmployeeManager {
      * @return the deleted employee data
      */
     public EmployeeData delete(String id);
+
+    public EmployeeData getByEmail(String email);
 }

@@ -35,4 +35,8 @@ class PersistenceImpl implements Persistence {
 
     @Override
     public PriceRepository getPriceRepository() { return new PriceRepositoryImpl(config);}
+
+    @Override
+    public UserRepository getUserRepository() { return new UserRepositoryImpl(config);
+    }
 }

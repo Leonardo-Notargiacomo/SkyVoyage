@@ -42,7 +42,12 @@ public class AmadeusClient {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.objectMapper = new ObjectMapper();
-        this.httpClient = HttpClient.newHttpClient();
+        this.httpClient = createHttpClient();
+    }
+    
+    // Added for testability - allows mocking the HttpClient in tests
+    protected HttpClient createHttpClient() {
+        return HttpClient.newHttpClient();
     }
 
     /**

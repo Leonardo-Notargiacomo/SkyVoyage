@@ -25,7 +25,6 @@ public interface BusinessLogic {
      * @return the FlightManager
      */
     FlightManager getFlightManager();
-
     /**
      * Get the FlightManager.
      *
@@ -33,4 +32,5 @@ public interface BusinessLogic {
      */
     PriceManager getPriceManager();
 
+    LoginService getLoginService();
 }

@@ -495,7 +495,11 @@
               {flight.departure.airport} → {flight.arrival.airport}
             </h3>
           </div>
-          <span class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full font-medium">{flight.airline}</span>
+          {#if flight.airline}
+            <div class="bg-gray-100 px-3 py-1.5 rounded-md">
+              <p class="font-semibold text-gray-700">{flight.airline.name}</p>
+            </div>
+          {/if}
         </div>
         
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-1 border-t border-gray-100 pt-2">
@@ -558,7 +562,13 @@
   <!-- Modal -->
   {#if selectedFlight}
     <div class="fixed inset-0 flex items-center justify-center z-50">
-      <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" on:click={() => (selectedFlight = null)}></div>
+      <button 
+        type="button" 
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm" 
+        on:click={() => (selectedFlight = null)} 
+        on:keydown={(e) => e.key === "Escape" && (selectedFlight = null)} 
+        aria-label="Close flight details modal">
+      </button>
 
       <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl z-10">
         <div class="bg-blue-50 p-4 rounded-t-lg border-b border-blue-100 flex justify-between items-center">
@@ -568,6 +578,7 @@
           <button 
             class="text-gray-400 hover:text-gray-600 transition-colors"
             on:click={() => (selectedFlight = null)}
+            aria-label="Close modal"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
