@@ -278,7 +278,6 @@ public class AviationStackClient {
 
     public void setPriceManager(PriceManager priceManager) {
         this.priceManager = priceManager;
-        logger.info("PriceManager set in AviationStackClient");
     }
 
     private int flightPrice(int duration) {

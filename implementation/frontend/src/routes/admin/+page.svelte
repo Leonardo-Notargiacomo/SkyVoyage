@@ -11,7 +11,7 @@
     // Function to fetch the current price
     async function fetchCurrentPrice() {
         try {
-            const response = await api.fetchAPI("/price");
+            const response = await api.fetchAPI("/flights/price");
             pricePerKm = response.price;
             console.log("Current price fetched:", pricePerKm);
             return response.price;
@@ -31,7 +31,7 @@
         error = null;
 
         try {
-            await api.fetchAPI(`/price/create?price=${newPrice}`, {
+            await api.fetchAPI(`/flights/price/create?price=${newPrice}`, {
                 method: 'POST'
             });
             

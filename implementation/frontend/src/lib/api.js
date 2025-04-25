@@ -84,7 +84,7 @@ export const api = {
     async create(endpoint, data) {
         return this.fetchAPI(endpoint, {
             method: 'POST',
-            body: JSON.stringify(data)
+            body: data
         });
     },
 

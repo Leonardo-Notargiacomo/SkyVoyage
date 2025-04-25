@@ -113,12 +113,13 @@ public class APIServer {
                     get("/search", flightResource::searchFlights);
                     // Add a endpoint to clear the flight data
                     delete("/cache", flightResource::clearCache);
+
+                    path("/price", () -> {
+                        get("/", priceResource::getAll);
+                        post("/create", priceResource::create);
+                    });
                 });
 
-                path("price", () -> {
-                    get("/", priceResource::getAll);
-                    post("/create", priceResource::create);
-                });
             });
         });
         app.exception(IllegalArgumentException.class, (e, ctx) -> {

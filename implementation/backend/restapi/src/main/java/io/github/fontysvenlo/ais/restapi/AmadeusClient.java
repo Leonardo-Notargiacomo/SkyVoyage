@@ -28,7 +28,6 @@ public class AmadeusClient {
 
     private static final String BASE_URL = "https://test.api.amadeus.com/v2";
     private static final String AUTH_URL = "https://test.api.amadeus.com/v1/security/oauth2/token";
-    private static final Logger logger = LoggerFactory.getLogger(AmadeusClient.class);
 
     private final String clientId;
     private final String clientSecret;
@@ -259,12 +258,6 @@ public class AmadeusClient {
                     price.put("grandTotal", String.valueOf(totalOfferPrice));
                     price.put("originalTotal", priceNode.get("total").asText()); // Keep original for reference
                     
-                    logger.info("Flight offer {} price calculated: {} (original: {}) using price factor: {}", 
-                               flightOffer.get("id").asText(), 
-                               totalOfferPrice, 
-                               priceNode.get("total").asText(),
-                               priceManager.getPrice());
-                    
                     processedOffer.put("price", price);
                 }
 
@@ -372,10 +365,6 @@ public class AmadeusClient {
         int tripPrice = flightPrice(totalFlightMinutes);
         trip.put("price", tripPrice);
 
-        // Log the calculation
-        logger.info("Trip {} price calculated: {} actual flight minutes duration = {} price",
-                tripType, totalFlightMinutes, tripPrice);
-
         trip.put("flights", flights);
         return trip;
     }
@@ -387,14 +376,12 @@ public class AmadeusClient {
      */
     public void setPriceManager(PriceManager priceManager) {
         this.priceManager = priceManager;
-        logger.info("PriceManager set in AmadeusClient");
     }
 
     /**
      * Calculate flight price based on duration
      */
     private int flightPrice(int duration) {
-        logger.info(String.valueOf(priceManager.getPrice()));
         return (duration * 15) * priceManager.getPrice() / 100;
     }
 
