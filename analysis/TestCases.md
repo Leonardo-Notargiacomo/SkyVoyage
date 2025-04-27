@@ -480,3 +480,58 @@ This document outlines the test cases for the project. Each test case describes 
 - Booking is removed.
 - System displays message: “Booking cancelled.”
 - User is redirected to the homepage.
+
+---
+
+# Test Case: Manage Discounts
+
+**Name**: testConfigureEarlyBirdDiscount
+
+**Precondition**: Sales Manager is logged into the system and is on the sales manager section.
+
+**Scenario**:
+
+1. Sales Manager selects the option to configure a new discount.
+2. System displays the discount type selection options.
+3. Actor selects "Early Bird Discount" type.
+4. System displays the early bird discount form.
+5. Actor enters the required information:
+   - Booking window: "30 days before departure"
+   - Discount percentage: "10%"
+6. System validates the information:
+   - Checks if percentage is within valid range (0-100%)
+   - Verifies booking window is a positive number
+7. Sales Manager submits the form.
+8. System creates the new early bird discount.
+9. Test checks if the discount was set successfully by querying the database for the new discount record.
+10. Actor receives a confirmation message: "Early bird discount (15% for bookings 30 days before departure) has been set successfully."
+
+
+**Result**:
+
+- Actor successfully configures a new early bird discount.
+
+---
+
+**Name**: testConfigureLastMinuteDiscount
+
+**Precondition**: Sales Manager is logged into the system and is on the sales manager section.
+
+**Scenario**:
+
+1. Sales Manager selects the option to configure a new discount.
+2. System displays the discount type selection options.
+3. Actor selects "Last-Minute Discount" type.
+4. System displays the last-minute bird discount form.
+5. Actor enters the required information:
+   - Booking window: "3 days before departure"
+   - Discount percentage: "20%"
+6. System validates the information
+7. Sales Manager submits the form.
+8. System creates the new last-minute discount.
+9. Test checks if the discount was set successfully.
+10. Actor receives a confirmation message: "Last-minute discount (20% for bookings within 3 days of departure) has been configured successfully."
+
+**Result**:
+
+- Actor successfully configures a new last-minute discount.
