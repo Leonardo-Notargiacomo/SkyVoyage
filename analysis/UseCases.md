@@ -202,3 +202,37 @@ The details of all passengers are visible in the overview, ready to be accepted.
 **Exception**:
 - 3a. Missing details: If not all fields of the first passenger are filled out, the system gives a message of a field missing data.
 - 3b. Missing details: If the first name and/or the last name of any passenger that is not the first one is/are not filled out, the system gives a message of a field missing data.
+
+---
+
+# Use Case: Manage Discounts
+
+**Actor**: Sales Manager
+
+**Description**:
+The actor manages early bird and last-minute discount offers.
+
+**Precondition**:
+Sales Manager is logged into the system.
+
+**Scenario**:
+1. Actor navigates to the sales manager section.
+2. System displays the discount management interface showing current discount settings.
+3. Actor selects the type of discount to configure (early bird or last-minute).
+4. System displays the configuration form for the selected discount type:
+5. Actor enters the discount parameters.
+6. System validates the entered information.
+7. Actor submits the new discounts.
+8. System updates the discount settings and applies them to future bookings.
+
+**Result**:
+Sales Manager successfully changes discount offers that will be automatically applied to eligible bookings.
+
+**Exception**:
+- 5a. If the entered discount percentage is invalid (e.g., negative or over 100%), the system displays an error message and prompts the actor to enter a valid percentage.
+- 5b. If the entered time parameters are invalid (e.g., negative days or exceeding limits), the system displays an error message.
+- 8a. If the system encounters an unexpected error, it displays an error message.
+
+**Extensions**:
+
+- N/A
