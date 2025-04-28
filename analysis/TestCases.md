@@ -535,3 +535,78 @@ This document outlines the test cases for the project. Each test case describes 
 **Result**:
 
 - Actor successfully configures a new last-minute discount.
+
+
+   ---
+
+# Test Case: View KPI Dashboard
+
+**Name**: testViewKPIDashboardWithData
+
+**Precondition**: Actor is logged into the system.
+                  Actor has the role "Account Manager" or "Sales Manager"
+                  Systsem has KPI data available
+
+**Scenario**:
+
+1. Actor navigates to the KPI dashboard section.
+2. System displays the KPI dashboard interface.
+3. System successfully retrieves business metrics.
+4. System displays: Revenue, Most Booked Destinations, Total Kilometers Traveled
+5. Actor sees and reviews the data.
+
+
+**Result**:
+
+- KPI dashboard loads successfully.
+- All metrics are visible and accurate.
+- Actor gains insights into business performance. 
+
+
+---
+
+
+**Name**: testViewKPIDashboardNoData
+
+**Precondition**: Actor is logged into the system. 
+                  Actor has the role "Account Manager" or "Sales Manager".
+                  No booking data is available.
+
+**Scenario**:
+
+1. Actor navigates to the KPI dashboard section.
+2. System attempts to retrieve KPI data.
+3. No KPI data is found.
+4. Systems displays message: „No KPI data available“
+
+
+**Result**:
+
+- Dashboard loads with no business metrics.
+- Actor is clearly informed that no data is available.
+
+
+---
+
+
+**Name**: testViewKPIDashboardDataRetrievalError
+
+**Precondition**: Actor is logged into the system. 
+                  Actor has the role "Account Manager" or "Sales Manager".
+                  System encounters a data retrieval error.
+
+**Scenario**:
+
+1. Actor navigates to the KPI dashboard section.
+2. System attempts to retrieve KPI data.
+3. System encounters a data retrieval error.
+4. System displays error message: „Error retrieving KPI data. Please try again later“.
+
+
+**Result**:
+
+- Dashboard fails to display KPI data.
+- Actor is informed of the issue and prompted to try again later.
+
+
+  ---
