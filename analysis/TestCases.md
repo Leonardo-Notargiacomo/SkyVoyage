@@ -536,8 +536,28 @@ This document outlines the test cases for the project. Each test case describes 
 
 - Actor successfully configures a new last-minute discount.
 
+---
 
-   ---
+**Name**: testConfigureDiscountInvalidPercentage   
+
+**Precondition**: Sales Manager is logged into the system and is on the sales manager section.
+
+**Scenario**:
+
+1. Sales Manager selects the option to configure a new discount.
+2. System displays the discount type selection options.
+3. Actor selects "Early Bird Discount" type.
+4. System displays the early bird discount form.
+5. Actor enters the required information:
+   - Booking window: "14 days before departure"
+   - Discount percentage: "120%"
+6. Test checks if the system displays the error message: "Invalid discount percentage. Please enter a value between 0 and 100."
+
+**Result**:
+
+- System displays the error message: "Invalid discount percentage. Please enter a value between 0 and 100."
+
+---
 
 # Test Case: View KPI Dashboard
 
