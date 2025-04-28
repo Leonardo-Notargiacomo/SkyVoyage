@@ -236,3 +236,37 @@ Sales Manager successfully changes discount offers that will be automatically ap
 **Extensions**:
 
 - N/A
+
+
+---
+
+# Use Case: View KPI Dashboard
+
+**Actor**: Sales Manager, Account Manager
+
+**Description**:
+The Actor accesses the KPI dashboard to view key business performance indicators, including revenue, most booked destinations, and total kilometers traveled.
+
+**Precondition**:
+Actor is logged into the system.
+Actor must have the role "Account Manager" or "Sales Manager".
+System has booking data available
+
+**Scenario**:
+1. Actor navigates to the KPI dashboard section.
+2. System displays the KPI dashboard interface.
+3. System retrieves and displays the following business metrics: Revenue, Most Booked Destinations, Total Kilometers Traveled.
+4. Actor can see all business metrics.
+
+**Result**:
+Actor successfully views business performance indicators and gains insight into booking trends and revenue.
+
+**Exception**:
+- 3a. No Data Available: If there are no available bookings system displays a message: „No KPI data available“.
+- 4a. Data Retrieval Error: If there is an issue retrieving KPI data, system display: „Error retrieving KPI data. Please try again later“.
+
+**Extensions**:
+
+- N/A
+
+---
