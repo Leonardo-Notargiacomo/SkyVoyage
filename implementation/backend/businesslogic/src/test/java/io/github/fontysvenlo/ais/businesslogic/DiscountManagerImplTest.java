@@ -16,12 +16,13 @@ public class DiscountManagerImplTest {
 
     @BeforeEach
     void setUp() {
-        discountRepository = mock(DiscountRepository.class);
+        this.discountRepository = mock(DiscountRepository.class);
+        this.discountManager = DiscountManagerImpl.getInstance(discountRepository);
     }
 
     @Test
     void testConfigureEarlyBirdDiscount() {
-        DiscountData earlyBird = new DiscountData(1, "Early Bird Discount", 10.0, "early_bird", 1);
+        DiscountData earlyBird = new DiscountData(1, "Early Bird Discount", 10.0, "early_bird", 1, 30);
         when(discountRepository.add(any(DiscountData.class))).thenReturn(earlyBird);
         when(discountRepository.getOne(1)).thenReturn(earlyBird);
 
@@ -30,6 +31,7 @@ public class DiscountManagerImplTest {
         assertEquals("Early Bird Discount", created.name());
         assertEquals(10, created.amount());
         assertEquals("early_bird", created.type());
+        assertEquals(30, created.days());
 
         DiscountData found = discountManager.getDiscountById(1).orElse(null);
         assertNotNull(found);
@@ -38,7 +40,7 @@ public class DiscountManagerImplTest {
 
     @Test
     void testConfigureLastMinuteDiscount() {
-        DiscountData lastMinute = new DiscountData(2, "Last-Minute Discount", 20.0, "last_minute", 2);
+        DiscountData lastMinute = new DiscountData(2, "Last-Minute Discount", 20.0, "last_minute", 2, 3);
         when(discountRepository.add(any(DiscountData.class))).thenReturn(lastMinute);
         when(discountRepository.getOne(2)).thenReturn(lastMinute);
 
@@ -47,10 +49,20 @@ public class DiscountManagerImplTest {
         assertEquals("Last-Minute Discount", created.name());
         assertEquals(20, created.amount());
         assertEquals("last_minute", created.type());
+        assertEquals(3, created.days());
 
         DiscountData found = discountManager.getDiscountById(2).orElse(null);
         assertNotNull(found);
         assertEquals(20, found.amount());
+    }
+
+    @Test
+    void testValidateDiscountWithInvalidPercentage() {
+        DiscountData negativeDiscount = new DiscountData(2, "Negative", -10.0, "regular", 2, 10);
+        DiscountData tooHighDiscount = new DiscountData(3, "Too High", 110.0, "regular", 3, 10);
+
+        assertFalse(discountManager.validateDiscount(negativeDiscount));
+        assertFalse(discountManager.validateDiscount(tooHighDiscount));
     }
 
 }
