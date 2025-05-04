@@ -26,7 +26,7 @@ public class DiscountManagerImplTest {
         when(discountRepository.add(any(DiscountData.class))).thenReturn(earlyBird);
         when(discountRepository.getOne(1)).thenReturn(earlyBird);
 
-        DiscountData created = discountManager.createDiscount(earlyBird);
+        discountManager.addDiscount(earlyBird);
         assertNotNull(created);
         assertEquals("Early Bird Discount", created.name());
         assertEquals(10, created.amount());
@@ -44,7 +44,7 @@ public class DiscountManagerImplTest {
         when(discountRepository.add(any(DiscountData.class))).thenReturn(lastMinute);
         when(discountRepository.getOne(2)).thenReturn(lastMinute);
 
-        DiscountData created = discountManager.createDiscount(lastMinute);
+        DiscountData created = discountManager.addDiscount(lastMinute);
         assertNotNull(created);
         assertEquals("Last-Minute Discount", created.name());
         assertEquals(20, created.amount());
