@@ -27,11 +27,11 @@ public class DiscountManagerImplTest {
         when(discountRepository.getOne(1)).thenReturn(earlyBird);
 
         discountManager.addDiscount(earlyBird);
-        assertNotNull(created);
-        assertEquals("Early Bird Discount", created.name());
-        assertEquals(10, created.amount());
-        assertEquals("early_bird", created.type());
-        assertEquals(30, created.days());
+        assertNotNull(discountManager.getDiscountById(1));
+        assertEquals("Early Bird Discount", discountManager.getDiscountById(1).orElse(null).name());
+        assertEquals(10, discountManager.getDiscountById(1).orElse(null).amount());
+        assertEquals("early_bird", discountManager.getDiscountById(1).orElse(null).type());
+        assertEquals(30, discountManager.getDiscountById(1).orElse(null).days());
 
         DiscountData found = discountManager.getDiscountById(1).orElse(null);
         assertNotNull(found);
@@ -44,12 +44,13 @@ public class DiscountManagerImplTest {
         when(discountRepository.add(any(DiscountData.class))).thenReturn(lastMinute);
         when(discountRepository.getOne(2)).thenReturn(lastMinute);
 
-        DiscountData created = discountManager.addDiscount(lastMinute);
-        assertNotNull(created);
-        assertEquals("Last-Minute Discount", created.name());
-        assertEquals(20, created.amount());
-        assertEquals("last_minute", created.type());
-        assertEquals(3, created.days());
+        discountManager.addDiscount(lastMinute);
+
+        assertNotNull(discountManager.getDiscountById(1));
+        assertEquals("Last-Minute Discount", discountManager.getDiscountById(2).orElse(null).name());
+        assertEquals(20, discountManager.getDiscountById(2).orElse(null).amount());
+        assertEquals("last_minute", discountManager.getDiscountById(2).orElse(null).type());
+        assertEquals(3, discountManager.getDiscountById(2).orElse(null).days());
 
         DiscountData found = discountManager.getDiscountById(2).orElse(null);
         assertNotNull(found);
