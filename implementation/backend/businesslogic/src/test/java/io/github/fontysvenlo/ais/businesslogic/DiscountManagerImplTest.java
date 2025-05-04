@@ -127,4 +127,23 @@ public class DiscountManagerImplTest {
         assertEquals("Early Bird 2", result.get(1).name());
     }
 
+    @Test
+    void testUpdateDiscount() {
+        DiscountData discount = new DiscountData(1, "Original Discount", 10.0, "type1", 1, 5);
+        DiscountData updatedDiscount = new DiscountData(1, "Updated Discount", 15.0, "type1", 1, 7);
+
+        when(discountRepository.update(any(DiscountData.class))).thenReturn(updatedDiscount);
+        when(discountRepository.getOne(1)).thenReturn(updatedDiscount);
+
+        discountManager.updateDiscount(updatedDiscount);
+
+        verify(discountRepository).update(updatedDiscount);
+
+        Optional<DiscountData> result = discountManager.getDiscountById(1);
+        assertTrue(result.isPresent());
+        assertEquals("Updated Discount", result.get().name());
+        assertEquals(15.0, result.get().amount());
+        assertEquals(7, result.get().days());
+    }
+
 }
