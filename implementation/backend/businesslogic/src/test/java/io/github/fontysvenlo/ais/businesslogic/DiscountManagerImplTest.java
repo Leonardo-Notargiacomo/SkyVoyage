@@ -66,4 +66,30 @@ public class DiscountManagerImplTest {
         assertFalse(discountManager.validateDiscount(tooHighDiscount));
     }
 
+    @Test
+    void testValidateDiscountWithValidInput() {
+        DiscountData validDiscount = new DiscountData(1, "Valid Discount", 50.0, "regular", 1, 10);
+        assertTrue(discountManager.validateDiscount(validDiscount));
+    }
+
+    @Test
+    void testValidateDiscountWithInvalidDays() {
+        DiscountData zeroDaysDiscount = new DiscountData(4, "Zero Days", 20.0, "regular", 4, 0);
+        DiscountData negativeDaysDiscount = new DiscountData(5, "Negative Days", 20.0, "regular", 5, -5);
+
+        assertFalse(discountManager.validateDiscount(zeroDaysDiscount));
+        assertFalse(discountManager.validateDiscount(negativeDaysDiscount));
+    }
+
+    @Test
+    void testAddDiscountThrowsExceptionForInvalidInput() {
+        DiscountData invalidDiscount = new DiscountData(6, "Invalid", 110.0, "regular", 6, 10);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            discountManager.addDiscount(invalidDiscount);
+        });
+
+        verify(discountRepository, never()).add(any());
+    }
+
 }
