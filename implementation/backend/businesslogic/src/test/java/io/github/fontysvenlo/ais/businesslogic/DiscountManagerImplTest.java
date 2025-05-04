@@ -146,4 +146,15 @@ public class DiscountManagerImplTest {
         assertEquals(7, result.get().days());
     }
 
+    @Test
+    void testDeleteDiscount() {
+        discountManager.deleteDiscount(1);
+
+        verify(discountRepository).delete(1);
+
+        when(discountRepository.getOne(1)).thenReturn(null);
+        Optional<DiscountData> result = discountManager.getDiscountById(1);
+        assertTrue(result.isEmpty());
+    }
+
 }
