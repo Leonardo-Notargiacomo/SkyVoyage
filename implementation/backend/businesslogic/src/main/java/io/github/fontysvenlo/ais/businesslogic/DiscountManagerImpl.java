@@ -38,7 +38,7 @@ public class DiscountManagerImpl implements DiscountManager {
 
     @Override
     public void deleteDiscount(Integer id) {
-        return null;
+
     }
 
     @Override
@@ -53,7 +53,8 @@ public class DiscountManagerImpl implements DiscountManager {
 
     @Override
     public Optional<DiscountData> getDiscountById(Integer id) {
-        return Optional.empty();
+        DiscountData discount = discountRepository.getOne(id);
+        return Optional.ofNullable(discount);
     }
 
     @Override
