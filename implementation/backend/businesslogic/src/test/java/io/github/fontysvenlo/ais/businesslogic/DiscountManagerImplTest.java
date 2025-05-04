@@ -6,6 +6,9 @@ import io.github.fontysvenlo.ais.persistence.api.DiscountRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -90,6 +93,38 @@ public class DiscountManagerImplTest {
         });
 
         verify(discountRepository, never()).add(any());
+    }
+
+    @Test
+    void testGetAllDiscounts() {
+        List<DiscountData> discounts = List.of(
+                new DiscountData(1, "Discount 1", 10.0, "type1", 1, 5),
+                new DiscountData(2, "Discount 2", 20.0, "type2", 2, 10)
+        );
+
+        when(discountRepository.getAll()).thenReturn(discounts);
+
+        List<DiscountData> result = discountManager.getAllDiscounts();
+
+        assertEquals(2, result.size());
+        assertEquals("Discount 1", result.get(0).name());
+        assertEquals("Discount 2", result.get(1).name());
+    }
+
+    @Test
+    void testGetDiscountsByType() {
+        List<DiscountData> earlyBirdDiscounts = List.of(
+                new DiscountData(1, "Early Bird 1", 15.0, "early_bird", 1, 30),
+                new DiscountData(3, "Early Bird 2", 25.0, "early_bird", 3, 20)
+        );
+
+        when(discountRepository.getByType("early_bird")).thenReturn(earlyBirdDiscounts);
+
+        List<DiscountData> result = discountManager.getDiscountsByType("early_bird");
+
+        assertEquals(2, result.size());
+        assertEquals("Early Bird 1", result.get(0).name());
+        assertEquals("Early Bird 2", result.get(1).name());
     }
 
 }
