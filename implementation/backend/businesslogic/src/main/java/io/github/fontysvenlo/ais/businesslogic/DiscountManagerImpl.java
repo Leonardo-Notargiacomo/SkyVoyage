@@ -41,7 +41,7 @@ public class DiscountManagerImpl implements DiscountManager {
 
     @Override
     public void deleteDiscount(Integer id) {
-
+        discountRepository.delete(id);
     }
 
     public List<DiscountData> getAllDiscounts() {
