@@ -6,15 +6,17 @@ import java.util.Optional;
 
 public interface DiscountManager {
 
-    DiscountData createDiscount(DiscountData discountData);
+    void addDiscount(DiscountData discountData);
 
-    DiscountData updateDiscount(DiscountData discountData);
+    void updateDiscount(DiscountData discountData);
 
-    DiscountData deleteDiscount(Integer id);
+    void deleteDiscount(Integer id);
 
     List<DiscountData> getAllDiscounts();
 
     List<DiscountData> getDiscountsByType(String type);
 
     Optional<DiscountData> getDiscountById(Integer id);
+
+    Boolean validateDiscount(DiscountData discountData);
 }
