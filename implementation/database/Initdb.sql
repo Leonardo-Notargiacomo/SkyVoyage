@@ -88,6 +88,7 @@ CREATE TABLE Discount (
     Amount DOUBLE PRECISION,
     Type VARCHAR(256),
     EmployeeID INTEGER,
+    Days INTEGER,
     FOREIGN KEY (EmployeeID) REFERENCES Employee(ID)
 );
 
