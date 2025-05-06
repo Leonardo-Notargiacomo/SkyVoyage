@@ -13,8 +13,9 @@ assignees: ''
 
 ---
 
-### 1. 📘 Use Case Description
-- [ ] Update the use case description in `UseCases.md`  
+### 1. 📘 Use Case Description and User Story
+- [ ] Update the use case description in `UseCases.md` 
+- [ ] The user story is in `user_stories.md`?
 ---
 
 ### 2. ✅ Test Scenarios
