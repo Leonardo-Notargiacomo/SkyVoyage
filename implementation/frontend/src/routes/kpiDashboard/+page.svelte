@@ -1,8 +1,16 @@
 <script>
     import {onMount} from "svelte";
-   let totalRevenue;
+    let totalRevenue;
     let mostBookedDestination;
     let totalKilometers;
+
+    // Format numbers with a dot as thousands separator
+    function formatNumber(num) {
+        return new Intl.NumberFormat('de-DE', {
+            useGrouping: true,
+            maximumFractionDigits: 0
+        }).format(num);
+    }
 
     onMount(async () => {
         const res = await fetch("http://localhost:8080/api/v1/kpi");
@@ -21,7 +29,7 @@
 
         <div class="bg-white p-6 rounded-2xl shadow hover:shadow-md transition text-center">
             <h2 class="text-lg font-medium text-gray-700">Total Revenue</h2>
-            <p class="text-2xl font-semibold text-green-600 mt-2">{totalRevenue}€</p>
+            <p class="text-2xl font-semibold text-green-600 mt-2">{formatNumber(totalRevenue)}€</p>
         </div>
 
         <div class="bg-white p-6 rounded-2xl shadow hover:shadow-md transition text-center">
@@ -31,7 +39,7 @@
 
         <div class="bg-white p-6 rounded-2xl shadow hover:shadow-md transition text-center">
             <h2 class="text-lg font-medium text-gray-700">Total Kilometers Traveled</h2>
-            <p class="text-2xl font-semibold text-blue-600 mt-2">{totalKilometers} Km</p>
+            <p class="text-2xl font-semibold text-blue-600 mt-2">{formatNumber(totalKilometers)} Km</p>
         </div>
 
     </div>
