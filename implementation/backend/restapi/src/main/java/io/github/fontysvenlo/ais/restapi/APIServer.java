@@ -105,6 +105,11 @@ public class APIServer {
                         businessLogic.getPriceManager(),
                         businessLogic.getFlightManager()
                 );
+                
+                // Add discount resource
+                DiscountResource discountResource = new DiscountResource(
+                        businessLogic.getDiscountManager()
+                );
 
                 // Add custom endpoint to refresh flight data
                 // Replace automatic CRUD with explicit path definitions
@@ -121,6 +126,18 @@ public class APIServer {
                         get("/", priceResource::getAll);
                         post("/create", priceResource::create);
                     });
+                });
+                
+                // Define discount paths
+                path("discounts", () -> {
+                    get("/", discountResource::getAll);
+                    get("/{discount-id}", ctx -> discountResource.getOne(ctx, ctx.pathParam("discount-id")));
+                    post("/{discount-id}", ctx -> discountResource.update(ctx, ctx.pathParam("discount-id")));
+                    delete("/{discount-id}", ctx -> discountResource.delete(ctx, ctx.pathParam("discount-id")));
+                    post("/", discountResource::create);
+                    get("/by-type", discountResource::getByType);
+                    get("/calculate", discountResource::calculateApplicableDiscount);
+                    get("/apply", discountResource::applyDiscount);
                 });
               
                 // Add login endpoint
