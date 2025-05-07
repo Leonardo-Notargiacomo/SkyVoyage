@@ -294,7 +294,5 @@ Actor sees all of the tickets of the booking
 **Exception**:
 - 2a. Data retrieval error: If there is an error while retrieving the data, system displays: "Something went wrong, please try again. If this error keeps occurring, please contact your IT support."
 
-**Extensions**:
-
 ---
 
