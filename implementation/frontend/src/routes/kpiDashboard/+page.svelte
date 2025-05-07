@@ -22,25 +22,78 @@
     });
 </script>
 
-<div>
-    <h1 class="text-3xl font-semibold mb-6 text-center text-gray-800">KPI Dashboard</h1>
+<style>
+    .dashboard {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        font-family: system-ui, sans-serif;
+    }
 
-    <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+    .title {
+        font-size: 2rem;
+        font-weight: 600;
+        text-align: center;
+        color: #1f2937;
+        margin-bottom: 2rem;
+    }
 
-        <div class="bg-white p-6 rounded-2xl shadow hover:shadow-md transition text-center">
-            <h2 class="text-lg font-medium text-gray-700">Total Revenue</h2>
-            <p class="text-2xl font-semibold text-green-600 mt-2">{formatNumber(totalRevenue)}€</p>
+    .cards {
+        display: grid;
+        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        padding: 1.5rem;
+        text-align: center;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .card h2 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+
+    .card p {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin: 0.5rem 0 0;
+    }
+
+    .green { color: #16a34a; }
+    .red { color: #dc2626; }
+    .blue { color: #2563eb; }
+</style>
+
+<div class="dashboard">
+    <h1 class="title">KPI Dashboard</h1>
+
+    <div class="cards">
+        <div class="card">
+            <h2>Total Revenue</h2>
+            <p class="green">{formatNumber(totalRevenue)}€</p>
         </div>
 
-        <div class="bg-white p-6 rounded-2xl shadow hover:shadow-md transition text-center">
-            <h2 class="text-lg font-medium text-gray-700">Most Booked Destination</h2>
-                    <p class="text-2xl font-semibold text-red-600 mt-2">{mostBookedDestination}</p>
+        <div class="card">
+            <h2>Most Booked Destination</h2>
+            <p class="red">{mostBookedDestination}</p>
         </div>
 
-        <div class="bg-white p-6 rounded-2xl shadow hover:shadow-md transition text-center">
-            <h2 class="text-lg font-medium text-gray-700">Total Kilometers Traveled</h2>
-            <p class="text-2xl font-semibold text-blue-600 mt-2">{formatNumber(totalKilometers)} Km</p>
+        <div class="card">
+            <h2>Total Kilometers Traveled</h2>
+            <p class="blue">{formatNumber(totalKilometers)} Km</p>
         </div>
-
     </div>
 </div>

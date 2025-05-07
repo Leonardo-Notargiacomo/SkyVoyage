@@ -8,7 +8,7 @@
   let lastname = "";
   let type = "";
   let initials = "";
-  let activeUser = true;
+  let activeUser = false;
   let dropdownOpen = false;
   let userMenuTransition = false;
 
