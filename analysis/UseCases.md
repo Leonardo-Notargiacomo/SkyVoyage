@@ -268,3 +268,33 @@ Actor successfully views business performance indicators and gains insight into 
 - N/A
 
 ---
+
+# Use Case: View Tickets
+
+**Actor**: Sales employee
+
+**Description**:
+The actor views all tickets of a booking. 
+
+**Precondition**:
+Actor is logged into the system.
+Actor must have the role "Sales Employee".
+System has booking data available
+One of the following:
+ * Actor is currently viewing the details of a booking and wants to press the view tickets button
+ * Actor is finishing up a booking and wants to press the button that finalizes a booking
+
+**Scenario**:
+1. Actor presses the butto mentioned in the precondition
+2. System returns page with all of the tickets belonging to the booking that was selected
+
+**Result**:
+Actor sees all of the tickets of the booking
+
+**Exception**:
+- 2a. Data retrieval error: If there is an error while retrieving the data, system displays: "Something went wrong, please try again. If this error keeps occurring, please contact your IT support."
+
+**Extensions**:
+
+---
+
