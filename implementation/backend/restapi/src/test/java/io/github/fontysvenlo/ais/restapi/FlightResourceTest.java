@@ -31,6 +31,7 @@ public class FlightResourceTest {
     private BusinessLogic businessLogic;
     private FlightManager flightManager;
     private AviationStackClient aviationStackClient;
+    private AmadeusClient mockAmadeusClient;
     private FlightResource flightResource;
 
     @BeforeEach
@@ -39,10 +40,11 @@ public class FlightResourceTest {
         businessLogic = mock(BusinessLogic.class);
         flightManager = mock(FlightManager.class);
         aviationStackClient = mock(AviationStackClient.class);
+        mockAmadeusClient = mock(AmadeusClient.class);
         when(businessLogic.getFlightManager()).thenReturn(flightManager);
 
         // Create the resource with the mocks
-        flightResource = new FlightResource(flightManager, aviationStackClient);
+        flightResource = new FlightResource(flightManager, aviationStackClient, mockAmadeusClient);
     }
 
     @Test

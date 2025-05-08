@@ -86,12 +86,12 @@ If you want to start the application with a completely fresh database (removing 
 
 For Windows:
 ```bash
-fresh-db.bat
+hard-reset.bat
 ```
 
 For Linux/MacOS:
 ```bash
-chmod +x fresh-db.sh
+chmod +x hard-reset.sh
 ./fresh-db.sh
 ```
 

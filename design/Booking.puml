@@ -1,0 +1,61 @@
+@startuml
+title Complete Class Diagram – Flight Booking Use Case
+
+class BookingStore {
+  -flight: Flight
+  -passengers: int
+  -customers: List<Customer>
+  -discount: int
+  -discountReason: String
+  +getTotalPrice(): float
+  +reset(): void
+}
+
+class Flight {
+  -id: String
+  -airline: String
+  -price: float
+  -status: String
+  -duration: int
+  -departure: AirportDetails
+  -arrival: AirportDetails
+}
+
+class AirportDetails {
+  -airport: String
+  -iata: String
+  -terminal: String
+  -gate: String
+  -scheduled: Date
+}
+
+class Customer {
+  -firstName: String
+  -lastName: String
+  -email: String
+  -phone: String
+}
+
+class BookingSession {
+  +storeBooking(booking: BookingStore): void
+  +getConfirmedBooking(): BookingStore
+  +getReservedBooking(): BookingStore
+  +clear(): void
+}
+
+class BookingActions {
+  +applyDiscount(value: int, reason: String): void
+  +confirm(): void
+  +reserve(): void
+  +cancel(): void
+}
+
+BookingStore --> Flight
+BookingStore --> "1..*" Customer
+Flight --> AirportDetails : departure
+Flight --> AirportDetails : arrival
+
+BookingSession --> BookingStore
+BookingActions --> BookingStore : uses
+
+@enduml

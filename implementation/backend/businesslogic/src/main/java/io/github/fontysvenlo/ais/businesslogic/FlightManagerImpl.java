@@ -35,7 +35,5 @@ public class FlightManagerImpl implements FlightManager {
     }
 
     @Override
-    public List<FlightData> search(String airline, String flightNumber, String departureIata, String arrivalIata) {
-        return List.of();
-    }
+    public List<FlightData> search(String airline, String flightNumber, String departureIata, String arrivalIata) {return List.of();}
 }

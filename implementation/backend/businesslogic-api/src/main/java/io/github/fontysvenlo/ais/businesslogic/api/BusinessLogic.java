@@ -25,4 +25,12 @@ public interface BusinessLogic {
      * @return the FlightManager
      */
     FlightManager getFlightManager();
+    /**
+     * Get the FlightManager.
+     *
+     * @return the FlightManager
+     */
+    PriceManager getPriceManager();
+
+    LoginService getLoginService();
 }
