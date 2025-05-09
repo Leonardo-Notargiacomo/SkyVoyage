@@ -1,0 +1,67 @@
+# Presentation Plan: Search Flights & Set Prices per km
+
+---
+
+### **1. Introduction (1-2 minutes)**  
+- **Start with Hook for Search Flights**:  
+  > *“What’s the simplest trillion-dollar idea ever? It made Google a \$1 trillion company, Amazon a \$1.7 trillion company, and Microsoft a \$2 trillion company. Ladies and gentlemen… Search—  
+  > in our case, **Search Flights**.”*
+
+---
+
+### **2. Search Flights (5-7 minutes)**  
+
+#### **2.1. Live Demo (2 minutes)**  
+- Walk through how users input their flight details and apply filters (dates, price range, etc.).  
+- Demonstrate how the results are shown clearly and organized.
+
+#### **2.2. Backend Explanation + Diagrams (2 minutes)**  
+- Describe the backend flow briefly, explaining how the REST API fetches data and processes it to deliver the search results.  
+- Show **Sequence Diagram** and/or **Class Diagram** to explain the structure of interactions and the flow of data in the backend.
+
+#### **2.3. Transition to Set Prices per km (1 minute)**  
+- Use the **Price per km** hook to transition to the next section:  
+  > *“Want to make 2×, 3×—or even 10× more money with a single click? And no, this isn’t a pyramid scheme and you don’t have to break any laws, ladies and gentlemen, we present to you - **Price per km**.”*
+
+---
+
+### **3. Set Prices per km (5-7 minutes)**  
+
+#### **3.1. Live Demo (2 minutes)**  
+- Walk through the process of setting or adjusting prices.  
+- Show how the price changes reflect instantly across the system.
+
+#### **3.2. Backend Explanation + Diagrams (2 minutes)**  
+- Explain how the backend handles price updates via Java and REST APIs, ensuring the changes are applied correctly and instantly.  
+- Show **Sequence Diagram** and/or **Class Diagram** to highlight the backend structure and how data flows during price updates.
+
+#### **3.3. Transition to Closing (1 minute)**  
+- Wrap up Set Prices per km and lead into the conclusion:  
+  > *“So, that’s how **Set Prices per km** works—simple, dynamic, and easy to manage. Now, let’s quickly review what we’ve covered and take any questions.”*
+
+---
+
+### **4. Closing (2-3 minutes)**  
+- **Recap**:  
+  > *“To summarize, we’ve shown you how **Search Flights** helps users find the perfect flights fast and how **Set Prices per km** makes it easy to update and manage flight pricing. Both features are powered by a strong backend, ensuring a smooth user experience.”*
+
+- **Call to Action**:  
+  > *“We believe these features can drastically improve the way people book and manage flights. If you have any questions, now’s the time!”*
+
+- **Q&A**: Open the floor for questions.  
+  > *“Thank you for your attention—feel free to ask anything about the project!”*
+
+---
+
+### **Timing Breakdown**:  
+- **Introduction**: 1-2 minutes  
+- **Search Flights**: 5-7 minutes  
+  - **Live Demo**: 2 minutes  
+  - **Backend Explanation + Diagrams**: 2 minutes  
+  - **Transition**: 1 minute  
+- **Set Prices per km**: 5-7 minutes  
+  - **Live Demo**: 2 minutes  
+  - **Backend Explanation + Diagrams**: 2 minutes  
+  - **Transition**: 1 minute  
+- **Closing**: 2-3 minutes  
+**Total**: 15-20 minutes
