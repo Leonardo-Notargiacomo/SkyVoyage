@@ -5,9 +5,11 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -19,7 +21,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import io.github.fontysvenlo.ais.businesslogic.api.DiscountManager;
 import io.github.fontysvenlo.ais.businesslogic.api.PriceManager;
+import io.github.fontysvenlo.ais.datarecords.DiscountData;
 import io.github.fontysvenlo.ais.datarecords.FlightData;
 
 /**
@@ -34,6 +38,7 @@ public class AviationStackClient {
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private PriceManager priceManager;
+    private DiscountManager discountManager;
 
     /**
      * Creates a new AviationStackClient.
@@ -46,6 +51,113 @@ public class AviationStackClient {
         this.objectMapper = new ObjectMapper();
 
         logger.info("AviationStackClient initialized with API key: {}", apiKey);
+    }
+
+    /**
+     * Sets the PriceManager for this client.
+     *
+     * @param priceManager The PriceManager to use
+     */
+    public void setPriceManager(PriceManager priceManager) {
+        this.priceManager = priceManager;
+    }
+
+    /**
+     * Sets the DiscountManager for this client.
+     *
+     * @param discountManager The DiscountManager to use
+     */
+    public void setDiscountManager(DiscountManager discountManager) {
+        this.discountManager = discountManager;
+    }
+
+    /**
+     * Calculates the discounted price based on days until departure and available discounts.
+     *
+     * @param basePrice The base price before discounts
+     * @param departureDate The departure date
+     * @return The final price after applying any applicable discounts
+     */
+    private double calculateDiscountedPrice(double basePrice, OffsetDateTime departureDate) {
+        try {
+            logger.info("Calculating discounted price for base price: {}", basePrice);
+            
+            if (discountManager == null) {
+                logger.warn("DiscountManager is not set, returning base price");
+                return basePrice;
+            }
+            
+            // Calculate days until departure
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime departure = departureDate.toLocalDateTime();
+            long daysUntilDeparture = ChronoUnit.DAYS.between(now, departure);
+            logger.info("Days until departure: {}", daysUntilDeparture);
+            
+            // Get all discounts
+            List<DiscountData> allDiscounts = discountManager.getAllDiscounts();
+            logger.info("Found {} discounts", allDiscounts.size());
+            
+            // Find the best applicable discount
+            double bestDiscount = 0.0;
+            for (DiscountData discount : allDiscounts) {
+                logger.info("Checking discount: {}, type: {}, days: {}, amount: {}%", 
+                    discount.name(), discount.type(), discount.days(), discount.amount());
+                
+                // Check if discount is applicable based on days before flight
+                if (daysUntilDeparture <= discount.days()) {
+                    logger.info("Discount is applicable (days until departure: {} <= discount days: {})", 
+                        daysUntilDeparture, discount.days());
+                    
+                    // Take the highest discount
+                    if (discount.amount() > bestDiscount) {
+                        bestDiscount = discount.amount();
+                        logger.info("New best discount: {}%", bestDiscount);
+                    }
+                } else {
+                    logger.info("Discount not applicable (days until departure: {} > discount days: {})", 
+                        daysUntilDeparture, discount.days());
+                }
+            }
+            
+            // Apply discount if found
+            if (bestDiscount > 0) {
+                double discountAmount = basePrice * (bestDiscount / 100.0);
+                double finalPrice = basePrice - discountAmount;
+                logger.info("Applied discount of {}% ({}), final price: {}", 
+                    bestDiscount, discountAmount, finalPrice);
+                return finalPrice;
+            } else {
+                logger.info("No applicable discounts found, returning base price");
+                return basePrice;
+            }
+        } catch (Exception e) {
+            logger.error("Error calculating discounted price", e);
+            return basePrice;
+        }
+    }
+
+    /**
+     * Calculate a flight price based on duration.
+     * 
+     * @param duration The duration in minutes
+     * @param departure The departure date and time
+     * @return The calculated price
+     */
+    private int flightPrice(int duration, OffsetDateTime departure) {
+        if (priceManager == null) {
+            logger.warn("PriceManager is not set, using default price");
+            return (duration * 15 * 10) / 100; // Default price formula
+        }
+        
+        // Calculate base price
+        int basePrice = (duration * 15 * priceManager.getPrice()) / 100;
+        logger.info("Base price calculated: {}", basePrice);
+        
+        // Apply discount if available
+        double finalPrice = calculateDiscountedPrice(basePrice, departure);
+        
+        // Return the final price as an integer (rounding down)
+        return (int) Math.floor(finalPrice);
     }
 
     /**
@@ -267,21 +379,13 @@ public class AviationStackClient {
             formattedFlight.put("duration", Duration);
 
             //add price of flight according to the duration
-            int price = flightPrice(Integer.parseInt(Duration)) / 100;
+            int price = flightPrice(Integer.parseInt(Duration), OffsetDateTime.parse(scheduledDeparture));
             formattedFlight.put("price", price);
 
             formattedFlights.add(formattedFlight);
         }
 
         return formattedFlights;
-    }
-
-    public void setPriceManager(PriceManager priceManager) {
-        this.priceManager = priceManager;
-    }
-
-    private int flightPrice(int duration) {
-        return (duration * 15) * priceManager.getPrice();
     }
 
     /**
@@ -467,7 +571,9 @@ public class AviationStackClient {
         formattedFlight.put("duration", flight.duration().toString());
 
         // Add price of flight according to the duration
-        int price = (flight.duration() * 15 * priceManager.getPrice()) / 100;
+        // Convert LocalDateTime to OffsetDateTime with system default offset
+        OffsetDateTime departureTime = flight.departureScheduledTime().atOffset(java.time.ZoneOffset.systemDefault().getRules().getOffset(flight.departureScheduledTime()));
+        int price = flightPrice(Integer.parseInt(flight.duration().toString()), departureTime);
         formattedFlight.put("price", price);
 
         return formattedFlight;
@@ -509,7 +615,9 @@ public class AviationStackClient {
         result.put("airline", "Unknown Airline"); // Placeholder
 
         // Calculate a price based on duration (similar to AviationStackClient logic)
-        int price = (flight.duration() * 15 * priceManager.getPrice()) / 100;
+        // Convert LocalDateTime to OffsetDateTime with system default offset
+        OffsetDateTime departureTime = flight.departureScheduledTime().atOffset(java.time.ZoneOffset.systemDefault().getRules().getOffset(flight.departureScheduledTime()));
+        int price = flightPrice(Integer.parseInt(flight.duration().toString()), departureTime);
         result.put("price", price);
 
         return result;
