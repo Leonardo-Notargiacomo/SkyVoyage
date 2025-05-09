@@ -7,6 +7,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -21,11 +25,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import io.github.fontysvenlo.ais.businesslogic.api.DiscountManager;
 import io.github.fontysvenlo.ais.businesslogic.api.PriceManager;
+import io.github.fontysvenlo.ais.datarecords.DiscountData;
 import io.github.fontysvenlo.ais.datarecords.PricePerKmData;
 
 public class AmadeusClient {
 
+    private static final Logger logger = LoggerFactory.getLogger(AmadeusClient.class);
     private static final String BASE_URL = "https://test.api.amadeus.com/v2";
     private static final String AUTH_URL = "https://test.api.amadeus.com/v1/security/oauth2/token";
 
@@ -37,12 +44,14 @@ public class AmadeusClient {
     private String accessToken;
     private long tokenExpiry = 0;
     private PriceManager priceManager;
+    private DiscountManager discountManager;
 
     public AmadeusClient(String clientId, String clientSecret) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.objectMapper = new ObjectMapper();
         this.httpClient = createHttpClient();
+        logger.info("AmadeusClient initialized with client ID: {}", clientId);
     }
     
     // Added for testability - allows mocking the HttpClient in tests
@@ -330,6 +339,31 @@ public class AmadeusClient {
         List<Map<String, Object>> flights = new ArrayList<>();
         int totalFlightMinutes = 0; // Track actual flight time only
         
+        // Extract departure date from first segment for discount calculation
+        OffsetDateTime departureDateTime = null;
+        
+        if (itinerary.has("segments") && itinerary.get("segments").size() > 0) {
+            JsonNode firstSegment = itinerary.get("segments").get(0);
+            if (firstSegment.has("departure") && firstSegment.get("departure").has("at")) {
+                String departureTimeStr = firstSegment.get("departure").get("at").asText();
+                try {
+                    // Try to parse as LocalDateTime first (most common case with Amadeus API)
+                    try {
+                        LocalDateTime localDt = LocalDateTime.parse(departureTimeStr);
+                        ZoneOffset offset = ZoneOffset.systemDefault().getRules().getOffset(localDt);
+                        departureDateTime = localDt.atOffset(offset);
+                        logger.info("Parsed local date: {} as offset date: {}", departureTimeStr, departureDateTime);
+                    } catch (Exception localDateException) {
+                        // If that fails, try as OffsetDateTime
+                        departureDateTime = OffsetDateTime.parse(departureTimeStr);
+                        logger.info("Parsed offset date directly: {}", departureDateTime);
+                    }
+                } catch (Exception e) {
+                    logger.warn("Could not parse departure date: {} with error: {}", departureTimeStr, e.getMessage());
+                }
+            }
+        }
+        
         if (itinerary.has("segments")) {
             for (JsonNode segment : itinerary.get("segments")) {
                 Map<String, Object> flight = new LinkedHashMap<>();
@@ -367,7 +401,8 @@ public class AmadeusClient {
         }
 
         // Calculate price using actual flight minutes, not total itinerary duration
-        int tripPrice = flightPrice(totalFlightMinutes);
+        // Apply discounts based on departure date
+        int tripPrice = flightPrice(totalFlightMinutes, departureDateTime);
         trip.put("price", tripPrice);
 
         trip.put("flights", flights);
@@ -381,13 +416,120 @@ public class AmadeusClient {
      */
     public void setPriceManager(PriceManager priceManager) {
         this.priceManager = priceManager;
+        logger.info("PriceManager set for AmadeusClient");
+    }
+    
+    /**
+     * Sets the DiscountManager for this client.
+     *
+     * @param discountManager The DiscountManager to use
+     */
+    public void setDiscountManager(DiscountManager discountManager) {
+        this.discountManager = discountManager;
+        logger.info("DiscountManager set for AmadeusClient");
     }
 
     /**
-     * Calculate flight price based on duration
+     * Calculate flight price based on duration and apply discounts if applicable
+     * 
+     * @param duration The flight duration in minutes
+     * @param departureTime The departure date and time if available, or null
+     * @return The final price after applying discounts
+     */
+    private int flightPrice(int duration, OffsetDateTime departureTime) {
+        if (priceManager == null) {
+            logger.warn("PriceManager is not set, using default price");
+            return (duration * 15 * 10) / 100; // Default price formula
+        }
+        
+        // Calculate base price
+        int basePrice = (duration * 15 * priceManager.getPrice()) / 100;
+        logger.info("Base price calculated: {}", basePrice);
+        
+        // Apply discount if available
+        double finalPrice = calculateDiscountedPrice(basePrice, departureTime);
+        
+        // Return the final price as an integer (rounding down)
+        return (int) Math.floor(finalPrice);
+    }
+    
+    /**
+     * Overloaded method for backward compatibility
      */
     private int flightPrice(int duration) {
-        return (duration * 15) * priceManager.getPrice() / 100;
+        // Use current time plus 1 week as default departure time if not provided
+        OffsetDateTime defaultDeparture = OffsetDateTime.now().plusWeeks(1);
+        return flightPrice(duration, defaultDeparture);
+    }
+    
+    /**
+     * Calculates the discounted price based on days until departure and available discounts.
+     *
+     * @param basePrice The base price before discounts
+     * @param departureDate The departure date
+     * @return The final price after applying any applicable discounts
+     */
+    private double calculateDiscountedPrice(double basePrice, OffsetDateTime departureDate) {
+        try {
+            logger.info("Calculating discounted price for base price: {}", basePrice);
+            
+            if (discountManager == null) {
+                logger.warn("DiscountManager is not set, returning base price");
+                return basePrice;
+            }
+            
+            if (departureDate == null) {
+                logger.warn("Departure date is not available, returning base price");
+                return basePrice;
+            }
+            
+            // Calculate days until departure
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime departure = departureDate.toLocalDateTime();
+            long daysUntilDeparture = ChronoUnit.DAYS.between(now, departure);
+            logger.info("Days until departure: {}", daysUntilDeparture);
+            
+            // Get all discounts
+            List<DiscountData> allDiscounts = discountManager.getAllDiscounts();
+            logger.info("Found {} discounts", allDiscounts.size());
+            
+            // Find the best applicable discount
+            double bestDiscount = 0.0;
+            for (DiscountData discount : allDiscounts) {
+                logger.info("Checking discount: {}, type: {}, days: {}, amount: {}%", 
+                    discount.name(), discount.type(), discount.days(), discount.amount());
+                
+                // Check if discount is applicable based on days before flight
+                if (daysUntilDeparture <= discount.days()) {
+                    logger.info("Discount is applicable (days until departure: {} <= discount days: {})", 
+                        daysUntilDeparture, discount.days());
+                    
+                    // Take the highest discount
+                    if (discount.amount() > bestDiscount) {
+                        bestDiscount = discount.amount();
+                        logger.info("New best discount: {}%", bestDiscount);
+                    }
+                } else {
+                    logger.info("Discount not applicable (days until departure: {} > discount days: {})", 
+                        daysUntilDeparture, discount.days());
+                }
+            }
+            
+            // Apply discount if found
+            if (bestDiscount > 0) {
+                double discountAmount = basePrice * (bestDiscount / 100.0);
+                double finalPrice = basePrice - discountAmount;
+                logger.info("Applied discount of {}% ({}), final price: {}", 
+                    bestDiscount, discountAmount, finalPrice);
+                return finalPrice;
+            } else {
+                logger.info("No applicable discounts found, returning base price");
+                return basePrice;
+            }
+        } catch (Exception e) {
+            logger.error("Error calculating discounted price", e);
+            return basePrice;
+        }
     }
 
     /**
