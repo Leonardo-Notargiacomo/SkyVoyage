@@ -57,6 +57,7 @@ public class APIServer {
 
         this.amadeusClient = new AmadeusClient(amadeusClientId, amadeusClientSecret);
         amadeusClient.setPriceManager(businessLogic.getPriceManager());
+        amadeusClient.setDiscountManager(businessLogic.getDiscountManager());
     }
 
     /**
@@ -71,9 +72,12 @@ public class APIServer {
             String amadeusClientId, String amadeusClientSecret) {
         this.businessLogic = businessLogic;
         this.aviationStackClient = new AviationStackClient(aviationStackApiKey);
+        aviationStackClient.setPriceManager(businessLogic.getPriceManager());
+        aviationStackClient.setDiscountManager(businessLogic.getDiscountManager());
         
         this.amadeusClient = new AmadeusClient(amadeusClientId, amadeusClientSecret);
         amadeusClient.setPriceManager(businessLogic.getPriceManager()); // Set PriceManager for AmadeusClient
+        amadeusClient.setDiscountManager(businessLogic.getDiscountManager()); // Set DiscountManager for AmadeusClient
     }
 
     /**
