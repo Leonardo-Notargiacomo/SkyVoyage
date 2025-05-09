@@ -19,33 +19,26 @@ public class DiscountRepositoryImpl implements DiscountRepository {
     private String discountTableName = "public.discount"; // Default table name
 
     public DiscountRepositoryImpl(DBConfig config) {
-        this.dataSource = DBProvider.getDataSource(config);
-        LOGGER.info("DiscountRepositoryImpl initialized with config: " + config);
-        
+        this.dataSource = DBProvider.getDataSource(config);        
         // Run a diagnostic check to see what tables exist
         try (Connection conn = dataSource.getConnection()) {
-            LOGGER.info("Got database connection for diagnostics");
             DatabaseMetaData metaData = conn.getMetaData();
             try (ResultSet rs = metaData.getTables(null, null, "%", new String[]{"TABLE"})) {
-                LOGGER.info("Checking all tables in database:");
                 boolean discountTableFound = false;
                 
                 while (rs.next()) {
                     String tableName = rs.getString("TABLE_NAME");
                     String schema = rs.getString("TABLE_SCHEM");
-                    LOGGER.info("Found table: " + schema + "." + tableName);
                     
                     // If this is the discount table, try a simple SELECT
                     if (tableName.equalsIgnoreCase("discount")) {
                         discountTableFound = true;
                         discountTableName = schema + "." + tableName;
-                        LOGGER.info("Found discount table: " + discountTableName);
                         
                         try (ResultSet countRs = conn.createStatement().executeQuery(
                                 "SELECT COUNT(*) FROM " + discountTableName)) {
                             if (countRs.next()) {
                                 int count = countRs.getInt(1);
-                                LOGGER.info("  - Discount table contains " + count + " rows");
                             }
                         } catch (SQLException e) {
                             LOGGER.warning("Could not count rows in " + discountTableName + ": " + e.getMessage());
@@ -60,7 +53,6 @@ public class DiscountRepositoryImpl implements DiscountRepository {
                         if (rs2.next()) {
                             String schema = rs2.getString("TABLE_SCHEM");
                             discountTableName = schema + ".\"Discount\"";
-                            LOGGER.info("Found capitalized Discount table: " + discountTableName);
                         }
                     }
                 }
@@ -68,8 +60,6 @@ public class DiscountRepositoryImpl implements DiscountRepository {
         } catch (SQLException e) {
             LOGGER.warning("Error during diagnostic check: " + e.getMessage());
         }
-        
-        LOGGER.info("Will use table name: " + discountTableName + " for all operations");
     }
 
     private DiscountData mapResultSetToDiscount(ResultSet rs) throws SQLException {
@@ -89,25 +79,20 @@ public class DiscountRepositoryImpl implements DiscountRepository {
 
     @Override
     public List<DiscountData> getAll() {
-        LOGGER.info("Fetching all discounts from " + discountTableName);
         List<DiscountData> discounts = new ArrayList<>();
         
         String query = "SELECT * FROM " + discountTableName;
-        LOGGER.info("Executing query: " + query);
         
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query);
              ResultSet rs = stmt.executeQuery()) {
             
-            LOGGER.info("Query executed successfully");
             int count = 0;
             while (rs.next()) {
                 DiscountData discount = mapResultSetToDiscount(rs);
-                LOGGER.info("Mapped discount: " + discount);
                 discounts.add(discount);
                 count++;
             }
-            LOGGER.info("Total discounts found: " + count);
         } catch (SQLException e) {
             LOGGER.severe("Error getting all discounts: " + e.getMessage());
             e.printStackTrace();

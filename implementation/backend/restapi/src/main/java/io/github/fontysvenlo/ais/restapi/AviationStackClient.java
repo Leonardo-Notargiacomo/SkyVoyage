@@ -49,8 +49,6 @@ public class AviationStackClient {
         this.apiKey = apiKey;
         this.httpClient = HttpClient.newHttpClient();
         this.objectMapper = new ObjectMapper();
-
-        logger.info("AviationStackClient initialized with API key: {}", apiKey);
     }
 
     /**
@@ -80,10 +78,8 @@ public class AviationStackClient {
      */
     private double calculateDiscountedPrice(double basePrice, OffsetDateTime departureDate) {
         try {
-            logger.info("Calculating discounted price for base price: {}", basePrice);
-            
+        
             if (discountManager == null) {
-                logger.warn("DiscountManager is not set, returning base price");
                 return basePrice;
             }
             
@@ -91,47 +87,32 @@ public class AviationStackClient {
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime departure = departureDate.toLocalDateTime();
             long daysUntilDeparture = ChronoUnit.DAYS.between(now, departure);
-            logger.info("Days until departure: {}", daysUntilDeparture);
             
             // Get all discounts
             List<DiscountData> allDiscounts = discountManager.getAllDiscounts();
-            logger.info("Found {} discounts", allDiscounts.size());
             
             // Find the best applicable discount
             double bestDiscount = 0.0;
             for (DiscountData discount : allDiscounts) {
-                logger.info("Checking discount: {}, type: {}, days: {}, amount: {}%", 
-                    discount.name(), discount.type(), discount.days(), discount.amount());
                 
-                // Check if discount is applicable based on days before flight
-                if (daysUntilDeparture <= discount.days()) {
-                    logger.info("Discount is applicable (days until departure: {} <= discount days: {})", 
-                        daysUntilDeparture, discount.days());
-                    
+                if (daysUntilDeparture <= discount.days()) {                    
                     // Take the highest discount
                     if (discount.amount() > bestDiscount) {
                         bestDiscount = discount.amount();
-                        logger.info("New best discount: {}%", bestDiscount);
+
                     }
-                } else {
-                    logger.info("Discount not applicable (days until departure: {} > discount days: {})", 
-                        daysUntilDeparture, discount.days());
-                }
+                } 
             }
             
             // Apply discount if found
             if (bestDiscount > 0) {
                 double discountAmount = basePrice * (bestDiscount / 100.0);
                 double finalPrice = basePrice - discountAmount;
-                logger.info("Applied discount of {}% ({}), final price: {}", 
-                    bestDiscount, discountAmount, finalPrice);
                 return finalPrice;
             } else {
-                logger.info("No applicable discounts found, returning base price");
                 return basePrice;
             }
         } catch (Exception e) {
-            logger.error("Error calculating discounted price", e);
             return basePrice;
         }
     }
@@ -151,8 +132,7 @@ public class AviationStackClient {
         
         // Calculate base price
         int basePrice = (duration * 15 * priceManager.getPrice()) / 100;
-        logger.info("Base price calculated: {}", basePrice);
-        
+
         // Apply discount if available
         double finalPrice = calculateDiscountedPrice(basePrice, departure);
         
