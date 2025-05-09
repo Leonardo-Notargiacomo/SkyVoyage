@@ -4,6 +4,7 @@
 
     let discounts = [];
     let newDiscount = {
+        name: "",
         type: "",
         amount: 0,
         days: 0
@@ -11,6 +12,11 @@
     let isSubmitting = false;
     let error = null;
     let successMessage = null;
+
+    const discountTypes = [
+        { value: "early_bird", label: "Early Bird" },
+        { value: "last_minute", label: "Last Minute" },
+    ];
 
     // Function to fetch all discounts
     async function fetchDiscounts() {
@@ -39,7 +45,7 @@
             });
             
             await fetchDiscounts();
-            newDiscount = { type: "", amount: 0, days: 0 };
+            newDiscount = { name: "", type: "", amount: 0, days: 0 };
             successMessage = "Discount added successfully!";
         } catch (err) {
             error = err.message || "Failed to add discount";
@@ -102,17 +108,34 @@
                 <form on:submit|preventDefault={addDiscount}>
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1" for="type">
-                                Discount Type
+                            <label class="block text-sm font-medium text-gray-700 mb-1" for="name">
+                                Discount Name
                             </label>
                             <input
-                                bind:value={newDiscount.type}
+                                bind:value={newDiscount.name}
                                 class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
-                                id="type"
-                                placeholder="e.g., Early Bird, Last Minute"
+                                id="name"
+                                placeholder="e.g., Early Bird Special"
                                 required
                                 type="text"
                             />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1" for="type">
+                                Discount Type
+                            </label>
+                            <select
+                                bind:value={newDiscount.type}
+                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                id="type"
+                                required
+                            >
+                                <option value="">Select a discount type</option>
+                                {#each discountTypes as type}
+                                    <option value={type.value}>{type.label}</option>
+                                {/each}
+                            </select>
                         </div>
 
                         <div>
@@ -173,7 +196,8 @@
                             <div class="border border-gray-200 rounded-lg p-4">
                                 <div class="flex justify-between items-start">
                                     <div>
-                                        <h3 class="font-medium text-slate-800">{discount.type}</h3>
+                                        <h3 class="font-medium text-slate-800">{discount.name}</h3>
+                                        <p class="text-sm text-gray-600">Type: {discount.type}</p>
                                         <p class="text-sm text-gray-600">{discount.amount}% off</p>
                                         <p class="text-sm text-gray-600">Applies {discount.days} days before flight</p>
                                     </div>
