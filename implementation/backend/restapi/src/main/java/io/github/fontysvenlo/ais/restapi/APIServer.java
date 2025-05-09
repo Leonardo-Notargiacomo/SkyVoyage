@@ -34,6 +34,7 @@ public class APIServer {
         this.businessLogic = businessLogic;
         this.aviationStackClient = new AviationStackClient(apiKey);
         aviationStackClient.setPriceManager(businessLogic.getPriceManager());
+        aviationStackClient.setDiscountManager(businessLogic.getDiscountManager());
 
         // Read Amadeus credentials from environment variables
         String amadeusClientId = System.getenv("AMADEUS_API_KEY");
