@@ -2,15 +2,34 @@
   import { bookingStore } from "$lib/stores/bookingStore";
   import { goto } from "$app/navigation";
   import DankMode from "$lib/components/DankMode.svelte";
+  import { api } from "$lib/api.js"; // Import the API helper
 
-  let discountInput;
+  let discountInput = 0;
   let discountReason = "";
   let isDank = false;
+  // Debug panel toggle state
+  let showDebugPanel = false;
 
   // Reactive values from store
   $: booking = $bookingStore;
-  $: discountInput = booking.discount;
-  $: isDank = booking.discount === 69;
+  
+  // Fix infinite loop - use a regular variable assignment instead of reactive statement
+  // and set the initial value when the component loads
+  $: {
+    if (booking && booking.discount !== undefined && discountInput !== booking.discount) {
+      discountInput = booking.discount;
+    }
+  }
+  
+  $: isDank = booking?.discount === 69;
+  // Convenience variable for debug panel
+  $: flight = booking?.flight;
+  $: fullBookingData = $bookingStore;
+
+  // Function to toggle debug panel visibility
+  function toggleDebugPanel() {
+    showDebugPanel = !showDebugPanel;
+  }
 
   const formatDateTime = (date) =>
           new Date(date).toLocaleString("en-GB", {
@@ -43,27 +62,87 @@
   const finalPrice = () =>
           (booking.flight.price * booking.passengers - discountedAmount()).toFixed(2);
 
-  function confirmBooking() {
-    sessionStorage.setItem("confirmedBooking", JSON.stringify($bookingStore));
-    alert("Booking confirmed! ✅");
-    goto("/home");
+  async function confirmBooking() {
+    try {
+      // Prepare booking data for backend
+      const bookingData = {
+        flightId: booking.flight.flightId || booking.flight.id || booking.flight.fullOffer?.trips?.[0]?.flights?.[0]?.id || `${booking.flight.departure.iata}-${booking.flight.arrival.iata}`,
+        airline: booking.flight.airline,
+        price: booking.flight.price,
+        adultPassengers: booking.AdultPassengers || 1,
+        infantPassengers: booking.infantsPassengers || 0,
+        travelClass: booking.travelClass || "ECONOMY",
+        discount: booking.discount || 0,
+        discountReason: booking.discountReason || "",
+        status: "CONFIRMED",
+        customers: booking.customers || []
+      };
+
+      console.log("Sending booking with flightId:", bookingData.flightId);
+      
+      // Use the API helper instead of direct fetch
+      const result = await api.create("bookings", JSON.stringify(bookingData));
+      
+      console.log("Booking confirmed:", result);
+      
+      // Save confirmed booking in session storage
+      sessionStorage.setItem("confirmedBooking", JSON.stringify($bookingStore));
+      alert("Booking confirmed! ✅");
+      goto("/home");
+    } catch (error) {
+      console.error("Error confirming booking:", error);
+      alert("Failed to confirm booking. Please try again.");
+    }
   }
 
-  function reserveBooking() {
-    sessionStorage.setItem("reservedBooking", JSON.stringify($bookingStore));
-    alert("Booking reserved for later payment! ⏳");
-    goto("/home");
+  async function reserveBooking() {
+    try {
+      // Prepare booking data for backend
+      const bookingData = {
+        flightId: booking.flight.flightId || booking.flight.id || booking.flight.fullOffer?.trips?.[0]?.flights?.[0]?.id || `${booking.flight.departure.iata}-${booking.flight.arrival.iata}`,
+        airline: booking.flight.airline,
+        price: booking.flight.price,
+        adultPassengers: booking.AdultPassengers || 1,
+        infantPassengers: booking.infantsPassengers || 0,
+        travelClass: booking.travelClass || "ECONOMY",
+        discount: booking.discount || 0,
+        discountReason: booking.discountReason || "",
+        status: "RESERVED",
+        customers: booking.customers || []
+      };
+
+      console.log("Sending booking with flightId:", bookingData.flightId);
+      
+      // Use the API helper instead of direct fetch
+      const result = await api.create("bookings", JSON.stringify(bookingData));
+      
+      console.log("Booking reserved:", result);
+      
+      // Save reserved booking in session storage
+      sessionStorage.setItem("reservedBooking", JSON.stringify($bookingStore));
+      alert("Booking reserved for later payment! ⏳");
+      goto("/home");
+    } catch (error) {
+      console.error("Error reserving booking:", error);
+      alert("Failed to reserve booking. Please try again.");
+    }
   }
 
   function cancelBooking() {
-    bookingStore.set({
-      flight: null,
-      passengers: 1,
-      customers: [],
-      discount: 0,
-    });
-    alert("Booking cancelled.");
-    goto("/home");
+    if (confirm("Are you sure you want to cancel this booking?")) {
+      // Clear booking store or reset to initial state
+      bookingStore.set({
+        flight: null,
+        customers: [],
+        AdultPassengers: 1,
+        infantsPassengers: 0,
+        travelClass: "ECONOMY",
+        discount: 0,
+        discountReason: ""
+      });
+      alert("Booking has been cancelled.");
+      goto("/home");
+    }
   }
 
   // Helper to get full trip details
@@ -180,6 +259,8 @@
     <h1 class="text-2xl font-bold text-center md:text-left text-gray-800">Booking Summary</h1>
     <p class="text-gray-500 text-center md:text-left">Review your booking details before confirming</p>
   </div>
+
+
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div class={`lg:col-span-2 space-y-6 ${isDank ? "shake" : ""}`}>
@@ -580,6 +661,76 @@
         </div>
       </div>
     </div>
+  </div>
+  
+  <!-- Debug Panel -->
+  <div class="mt-10 border-t-2 border-gray-200 pt-4">
+    <button
+      on:click={toggleDebugPanel}
+      class="flex items-center text-sm text-gray-500 hover:text-gray-700 font-mono"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+      </svg>
+      {showDebugPanel ? 'Hide' : 'Show'} Debug Data
+    </button>
+    
+    {#if showDebugPanel}
+      <div class="mt-4 p-4 bg-gray-900 text-green-400 rounded-md overflow-auto font-mono text-xs" style="max-height: 500px;">
+        <div class="mb-4 pb-2 border-b border-gray-700">
+          <h3 class="text-white font-bold">🛠️ DEBUG MODE - BOOKING STORE DATA</h3>
+          <p class="text-gray-400 text-xs mt-1">Available variables for development</p>
+        </div>
+        
+        <div class="mb-4">
+          <h4 class="text-purple-400 font-bold">Flight Object Structure:</h4>
+          <ul class="ml-4 text-gray-300">
+            <li>flight.id: <span class="text-yellow-300">{flight?.id || 'undefined'}</span></li>
+            <li>flight.airline: <span class="text-yellow-300">{flight?.airline || 'undefined'}</span></li>
+            <li>flight.price: <span class="text-yellow-300">{flight?.price || 'undefined'}</span></li>
+            <li>flight.currency: <span class="text-yellow-300">{flight?.currency || 'undefined'}</span></li>
+            <li>flight.duration: <span class="text-yellow-300">{flight?.duration || 'undefined'}</span></li>
+            <li>flight.status: <span class="text-yellow-300">{flight?.status || 'undefined'}</span></li>
+            <li>flight.departure: Object (iata, airport, terminal, gate, scheduled)</li>
+            <li>flight.arrival: Object (iata, airport, terminal, gate, scheduled)</li>
+            <li>flight.fullOffer: Full flight offer data from Amadeus</li>
+          </ul>
+        </div>
+        
+        <div class="mb-4">
+          <h4 class="text-purple-400 font-bold">Booking Store Variables:</h4>
+          <ul class="ml-4 text-gray-300">
+            <li>AdultPassengers: <span class="text-yellow-300">{fullBookingData?.AdultPassengers || 'undefined'}</span></li>
+            <li>infantsPassengers: <span class="text-yellow-300">{fullBookingData?.infantsPassengers || 'undefined'}</span></li>
+            <li>travelClass: <span class="text-yellow-300">{fullBookingData?.travelClass || 'undefined'}</span></li>
+            <!-- add all the customers and their details here -->
+            {#each fullBookingData?.customers as customer, index}
+              <li>Customer {index + 1}: <span class="text-yellow-300">{customer.firstName} {customer.lastName}</span></li>
+              <ul class="ml-4 text-gray-300">
+                <li>Email: <span class="text-yellow-300">{customer.email || 'undefined'}</span></li>
+                <li>Phone: <span class="text-yellow-300">{customer.phone || 'undefined'}</span></li>
+                <li>Address: <span class="text-yellow-300">{customer.street} {customer.houseNumber}, {customer.city}, {customer.country}</span></li>
+                <li>Is Infant: <span class="text-yellow-300">{customer.isInfant ? 'Yes' : 'No'}</span></li>
+
+              </ul>
+            {/each}
+
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="text-purple-400 font-bold">Raw Booking Store Data:</h4>
+          <pre class="text-green-300 mt-2 p-2 bg-gray-800 rounded overflow-auto" style="max-height: 300px;">{JSON.stringify(fullBookingData, null, 2)}</pre>
+        </div>
+        
+        {#if flight?.fullOffer}
+          <div class="mt-4">
+            <h4 class="text-purple-400 font-bold">Full Amadeus Flight Offer:</h4>
+            <pre class="text-green-300 mt-2 p-2 bg-gray-800 rounded overflow-auto" style="max-height: 300px;">{JSON.stringify(flight.fullOffer, null, 2)}</pre>
+          </div>
+        {/if}
+      </div>
+    {/if}
   </div>
 </div>
 

@@ -1,11 +1,6 @@
 package io.github.fontysvenlo.ais.businesslogic;
 
-import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
-import io.github.fontysvenlo.ais.businesslogic.api.CustomerManager;
-import io.github.fontysvenlo.ais.businesslogic.api.EmployeeManager;
-import io.github.fontysvenlo.ais.businesslogic.api.FlightManager;
-import io.github.fontysvenlo.ais.businesslogic.api.LoginService;
-import io.github.fontysvenlo.ais.businesslogic.api.PriceManager;
+import io.github.fontysvenlo.ais.businesslogic.api.*;
 import io.github.fontysvenlo.ais.persistence.api.Persistence;
 
 /**
@@ -21,15 +16,6 @@ class BusinessLogicImpl implements BusinessLogic {
      */
     BusinessLogicImpl(Persistence persistenceAPI) {
         this.persistenceAPI = persistenceAPI;
-    }
-
-    /**
-     * Get the implementation of the CustomerManager.
-     * @return the implementation of the CustomerManager
-     */
-    @Override
-    public CustomerManager getCustomerManager() {
-        return new CustomerManagerImpl(persistenceAPI.getCustomerRepository());
     }
 
     @Override
@@ -50,5 +36,10 @@ class BusinessLogicImpl implements BusinessLogic {
     @Override  
     public LoginService getLoginService() {
         return new LoginServiceImpl(persistenceAPI.getUserRepository());
+    }
+
+    @Override
+    public BookingManager getBookingManager() {
+        return new BookingManagerImpl(persistenceAPI.getBookingRepository());
     }
 }

@@ -6,7 +6,6 @@ import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
 import io.github.fontysvenlo.ais.datarecords.EmployeeData;
 import io.github.fontysvenlo.ais.datarecords.LoginRequest;
 import io.javalin.Javalin;
-
 import static io.javalin.apibuilder.ApiBuilder.crud;
 import static io.javalin.apibuilder.ApiBuilder.delete;
 import static io.javalin.apibuilder.ApiBuilder.get;
@@ -91,10 +90,9 @@ public class APIServer {
                 });
             });
             config.router.apiBuilder(() -> {
-                crud("customers/{customer-id}", new CustomerResource(businessLogic.getCustomerManager()));
                 crud("employees/{employee-id}", new EmployeeResource(businessLogic.getEmployeeManager()));
+                crud("bookings/{booking-id}", new BookingResource(businessLogic.getBookingManager()));
 
-                // Add flight routes
                 FlightResource flightResource = new FlightResource(
                         businessLogic.getFlightManager(),
                         aviationStackClient,
@@ -123,7 +121,6 @@ public class APIServer {
                     });
                 });
               
-                // Add login endpoint
                 post("login", ctx -> {
                     LoginRequest loginRequest = ctx.bodyAsClass(LoginRequest.class);
                     boolean success = businessLogic.getLoginService().login(loginRequest.email(), loginRequest.password());
@@ -146,8 +143,28 @@ public class APIServer {
                         ctx.status(404).json(Map.of("error", "User not found"));
                     }
                 });
+                
+                // Move the booking path inside the apiBuilder context
+                path("booking", () -> {
+                    get("/", ctx -> {
+                        ctx.status(200).json(Map.of("message", "Booking API is working"));
+                    });
+                    post("/search", ctx -> {
+                        // This endpoint can be used for searching bookings
+                        String customerId = ctx.queryParam("customerId");
+                        if (customerId != null) {
+                            try {
+                                Integer id = Integer.parseInt(customerId);
+                                ctx.json(businessLogic.getBookingManager().getByCustomerId(id));
+                            } catch (NumberFormatException e) {
+                                ctx.status(400).json(Map.of("error", "Invalid customer ID format"));
+                            }
+                        } else {
+                            ctx.json(businessLogic.getBookingManager().list());
+                        }
+                    });
+                });
             });
-
         });
         app.exception(IllegalArgumentException.class, (e, ctx) -> {
             ctx.status(422).json(Map.of("error", e.getMessage()));

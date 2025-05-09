@@ -1,18 +1,9 @@
 package io.github.fontysvenlo.ais.persistence;
 
-import java.time.LocalDate;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
-
-import io.github.fontysvenlo.ais.datarecords.CustomerData;
-import io.github.fontysvenlo.ais.persistence.api.CustomerRepository;
-import io.github.fontysvenlo.ais.persistence.api.Persistence;
 
 /**
  * This example test is testing the persistency layer including a test database
@@ -58,22 +49,5 @@ public class PersistenceIntegrationTest {
 
     @BeforeEach
     void setUp() {
-    }
-
-    @Test
-    void testAddingAndRetrievingCustomers() {
-        // Arrange
-        Persistence persistenceAPI = PersistenceFactory.getInstance(config);
-        CustomerRepository CustomerRepository = persistenceAPI.getCustomerRepository();
-
-        // Act
-        CustomerRepository.add(new CustomerData(0, "John", "Doe", LocalDate.of(2025, 1, 1)));
-        List<CustomerData> customers = CustomerRepository.getAll();
-
-        // Assert
-        // Note: this assumes that the database was empty before the test.
-        // The intention of the test is to make sure that if we store a customer, we can retrieve it.
-        assertThat(customers).hasSize(1);
-        assertThat(customers.get(0).firstName()).isEqualTo("John");
     }
 }

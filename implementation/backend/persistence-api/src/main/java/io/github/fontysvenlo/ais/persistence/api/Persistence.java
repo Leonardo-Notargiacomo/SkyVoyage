@@ -14,9 +14,6 @@ public interface Persistence {
      * @return CustomerRepository object that knows how to store and
      * retrieve customers.
      */
-    default CustomerRepository getCustomerRepository() {
-        return null;
-    }
 
     EmployeeRepository getEmployeeRepository();
 
@@ -25,6 +22,8 @@ public interface Persistence {
     PriceRepository getPriceRepository();
 
     UserRepository getUserRepository();
+
+    BookingRepository getBookingRepository();
 
 
     // This interface can be extended with other repositories that need to be made
