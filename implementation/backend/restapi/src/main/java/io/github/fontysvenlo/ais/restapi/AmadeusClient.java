@@ -352,11 +352,9 @@ public class AmadeusClient {
                         LocalDateTime localDt = LocalDateTime.parse(departureTimeStr);
                         ZoneOffset offset = ZoneOffset.systemDefault().getRules().getOffset(localDt);
                         departureDateTime = localDt.atOffset(offset);
-                        logger.info("Parsed local date: {} as offset date: {}", departureTimeStr, departureDateTime);
                     } catch (Exception localDateException) {
                         // If that fails, try as OffsetDateTime
                         departureDateTime = OffsetDateTime.parse(departureTimeStr);
-                        logger.info("Parsed offset date directly: {}", departureDateTime);
                     }
                 } catch (Exception e) {
                     logger.warn("Could not parse departure date: {} with error: {}", departureTimeStr, e.getMessage());
@@ -416,7 +414,6 @@ public class AmadeusClient {
      */
     public void setPriceManager(PriceManager priceManager) {
         this.priceManager = priceManager;
-        logger.info("PriceManager set for AmadeusClient");
     }
     
     /**
@@ -426,7 +423,6 @@ public class AmadeusClient {
      */
     public void setDiscountManager(DiscountManager discountManager) {
         this.discountManager = discountManager;
-        logger.info("DiscountManager set for AmadeusClient");
     }
 
     /**
@@ -438,13 +434,11 @@ public class AmadeusClient {
      */
     private int flightPrice(int duration, OffsetDateTime departureTime) {
         if (priceManager == null) {
-            logger.warn("PriceManager is not set, using default price");
             return (duration * 15 * 10) / 100; // Default price formula
         }
         
         // Calculate base price
         int basePrice = (duration * 15 * priceManager.getPrice()) / 100;
-        logger.info("Base price calculated: {}", basePrice);
         
         // Apply discount if available
         double finalPrice = calculateDiscountedPrice(basePrice, departureTime);
@@ -471,15 +465,11 @@ public class AmadeusClient {
      */
     private double calculateDiscountedPrice(double basePrice, OffsetDateTime departureDate) {
         try {
-            logger.info("Calculating discounted price for base price: {}", basePrice);
-            
             if (discountManager == null) {
-                logger.warn("DiscountManager is not set, returning base price");
                 return basePrice;
             }
             
             if (departureDate == null) {
-                logger.warn("Departure date is not available, returning base price");
                 return basePrice;
             }
             
@@ -487,31 +477,19 @@ public class AmadeusClient {
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime departure = departureDate.toLocalDateTime();
             long daysUntilDeparture = ChronoUnit.DAYS.between(now, departure);
-            logger.info("Days until departure: {}", daysUntilDeparture);
             
             // Get all discounts
             List<DiscountData> allDiscounts = discountManager.getAllDiscounts();
-            logger.info("Found {} discounts", allDiscounts.size());
             
             // Find the best applicable discount
             double bestDiscount = 0.0;
             for (DiscountData discount : allDiscounts) {
-                logger.info("Checking discount: {}, type: {}, days: {}, amount: {}%", 
-                    discount.name(), discount.type(), discount.days(), discount.amount());
-                
                 // Check if discount is applicable based on days before flight
                 if (daysUntilDeparture <= discount.days()) {
-                    logger.info("Discount is applicable (days until departure: {} <= discount days: {})", 
-                        daysUntilDeparture, discount.days());
-                    
                     // Take the highest discount
                     if (discount.amount() > bestDiscount) {
                         bestDiscount = discount.amount();
-                        logger.info("New best discount: {}%", bestDiscount);
                     }
-                } else {
-                    logger.info("Discount not applicable (days until departure: {} > discount days: {})", 
-                        daysUntilDeparture, discount.days());
                 }
             }
             
@@ -519,15 +497,11 @@ public class AmadeusClient {
             if (bestDiscount > 0) {
                 double discountAmount = basePrice * (bestDiscount / 100.0);
                 double finalPrice = basePrice - discountAmount;
-                logger.info("Applied discount of {}% ({}), final price: {}", 
-                    bestDiscount, discountAmount, finalPrice);
                 return finalPrice;
             } else {
-                logger.info("No applicable discounts found, returning base price");
                 return basePrice;
             }
         } catch (Exception e) {
-            logger.error("Error calculating discounted price", e);
             return basePrice;
         }
     }
