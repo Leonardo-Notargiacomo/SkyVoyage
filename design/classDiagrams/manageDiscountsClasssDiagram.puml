@@ -1,0 +1,68 @@
+@startuml
+!theme blueprint
+
+skinparam linetype ortho
+left to right direction
+
+skinparam shadowing false
+skinparam packageStyle rectangle
+
+' Increase spacing around packages
+skinparam nodesep 50
+skinparam ranksep 120
+skinparam packageMargin 20
+
+title Class Diagram for managing discounts
+
+package "API Layer" {
+    class DiscountResource {
+        - discountManager: DiscountManager
+        + create(context: Context): void
+    }
+}
+
+package "Business Logic Layer" {
+    interface DiscountManager {
+        + addDiscount(discountData: DiscountData): void
+        + validateDiscount(discountData: DiscountData): Boolean
+    }
+
+    class DiscountManagerImpl {
+        - discountRepository: DiscountRepository
+        + addDiscount(discountData: DiscountData): void
+        + validateDiscount(discountData: DiscountData): Boolean
+    }
+}
+
+package "Persistence Layer" {
+    interface DiscountRepository {
+        + add(discountData: DiscountData): DiscountData
+    }
+
+    class DiscountRepositoryImpl {
+        - dataSource: DataSource
+        - discountTableName: String
+        + add(discount: DiscountData): DiscountData
+        - mapResultSetToDiscount(rs: ResultSet): DiscountData
+    }
+}
+
+package "Data Model" {
+    class DiscountData <<record>> {
+        + id: Integer
+        + name: String
+        + amount: Double
+        + type: String
+        + employeeID: Integer
+        + days: Integer
+    }
+}
+
+DiscountResource --> DiscountManager : uses
+DiscountManager <|.. DiscountManagerImpl : implements
+DiscountManagerImpl --> DiscountRepository : uses
+DiscountRepository <|.. DiscountRepositoryImpl : implements
+DiscountResource ..> DiscountData : creates/uses
+DiscountManager ..> DiscountData : uses
+DiscountRepository ..> DiscountData : uses
+@enduml
