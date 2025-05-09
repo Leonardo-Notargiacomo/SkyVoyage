@@ -487,75 +487,193 @@ This document outlines the test cases for the project. Each test case describes 
 
 **Name**: testConfigureEarlyBirdDiscount
 
-**Precondition**: Sales Manager is logged into the system and is on the sales manager section.
+**Precondition**: DiscountManager is initialized with a repository.
 
 **Scenario**:
-
-1. Sales Manager selects the option to configure a new discount.
-2. System displays the discount type selection options.
-3. Actor selects "Early Bird Discount" type.
-4. System displays the early bird discount form.
-5. Actor enters the required information:
-   - Booking window: "30 days before departure"
-   - Discount percentage: "10%"
-6. System validates the information:
-   - Checks if percentage is within valid range (0-100%)
-   - Verifies booking window is a positive number
-7. Sales Manager submits the form.
-8. System creates the new early bird discount.
-9. Test checks if the discount was set successfully by querying the database for the new discount record.
-10. Actor receives a confirmation message: "Early bird discount (15% for bookings 30 days before departure) has been set successfully."
-
+1. Sales manager creates an Early Bird Discount with the following parameters:
+   - ID: 1
+   - Name: "Early Bird Discount"
+   - Amount: 10.0%
+   - Type: "early_bird"
+   - Days: 30
+2. Sales manager submits the discount configuration.
+3. System stores the discount in the repository.
+4. Sales manager retrieves the discount by its ID.
 
 **Result**:
-
-- Actor successfully configures a new early bird discount.
+- The system successfully stores the early bird discount.
+- The retrieved discount matches the submitted configuration with:
+  - Name: "Early Bird Discount"
+  - Amount: 10.0%
+  - Type: "early_bird"
+  - Days: 30
+- System returns a 201 (Created) status code.
 
 ---
 
 **Name**: testConfigureLastMinuteDiscount
 
-**Precondition**: Sales Manager is logged into the system and is on the sales manager section.
+**Precondition**: DiscountManager is initialized with a repository.
 
 **Scenario**:
-
-1. Sales Manager selects the option to configure a new discount.
-2. System displays the discount type selection options.
-3. Actor selects "Last-Minute Discount" type.
-4. System displays the last-minute bird discount form.
-5. Actor enters the required information:
-   - Booking window: "3 days before departure"
-   - Discount percentage: "20%"
-6. System validates the information
-7. Sales Manager submits the form.
-8. System creates the new last-minute discount.
-9. Test checks if the discount was set successfully.
-10. Actor receives a confirmation message: "Last-minute discount (20% for bookings within 3 days of departure) has been configured successfully."
+1. Sales manager creates a Last-Minute Discount with the following parameters:
+   - ID: 2
+   - Name: "Last-Minute Discount"
+   - Amount: 20.0%
+   - Type: "last_minute"
+   - Days: 3
+2. Sales manager submits the discount configuration.
+3. System stores the discount in the repository.
+4. Sales manager retrieves the discount by its ID.
 
 **Result**:
-
-- Actor successfully configures a new last-minute discount.
+- The system successfully stores the last-minute discount.
+- The retrieved discount matches the submitted configuration with:
+  - Name: "Last-Minute Discount"
+  - Amount: 20.0%
+  - Type: "last_minute"
+  - Days: 3
+- System returns a 201 (Created) status code.
 
 ---
 
-**Name**: testConfigureDiscountInvalidPercentage   
+**Name**: testValidateDiscountWithInvalidPercentage
 
-**Precondition**: Sales Manager is logged into the system and is on the sales manager section.
+**Precondition**: DiscountManager is initialized.
 
 **Scenario**:
-
-1. Sales Manager selects the option to configure a new discount.
-2. System displays the discount type selection options.
-3. Actor selects "Early Bird Discount" type.
-4. System displays the early bird discount form.
-5. Actor enters the required information:
-   - Booking window: "14 days before departure"
-   - Discount percentage: "120%"
-6. Test checks if the system displays the error message: "Invalid discount percentage. Please enter a value between 0 and 100."
+1. Sales manager attempts to validate two invalid discounts:
+   - A discount with negative percentage (-10.0%)
+   - A discount with percentage over 100% (110.0%)
+2. System performs validation on both discounts.
 
 **Result**:
+- System correctly identifies both discounts as invalid.
+- Validation returns false for both discounts.
+- System returns a 400 (Bad Request) status code.
 
-- System displays the error message: "Invalid discount percentage. Please enter a value between 0 and 100."
+---
+
+**Name**: testValidateDiscountWithValidInput
+
+**Precondition**: DiscountManager is initialized.
+
+**Scenario**:
+1. Sales manager attempts to validate a discount with valid parameters:
+   - Amount: 50.0%
+   - Days: 10
+2. System performs validation on the discount.
+
+**Result**:
+- System identifies the discount as valid.
+- Validation returns true.
+- System returns a 200 (OK) status code.
+
+---
+
+**Name**: testValidateDiscountWithInvalidDays
+
+**Precondition**: DiscountManager is initialized.
+
+**Scenario**:
+1. Sales manager attempts to validate two invalid discounts:
+   - A discount with zero days
+   - A discount with negative days (-5)
+2. System performs validation on both discounts.
+
+**Result**:
+- System correctly identifies both discounts as invalid.
+- Validation returns false for both discounts.
+- System returns a 400 (Bad Request) status code.
+
+---
+
+**Name**: testAddDiscountThrowsExceptionForInvalidInput
+
+**Precondition**: DiscountManager is initialized.
+
+**Scenario**:
+1. Sales manager attempts to add a discount with invalid parameters:
+   - Amount: 110.0% (exceeds maximum allowed)
+2. Sales manager submits the discount.
+
+**Result**:
+- System rejects the discount and throws an IllegalArgumentException.
+- Error message indicates invalid discount percentage.
+- No discount is added to the repository.
+- System returns a 400 (Bad Request) status code.
+
+---
+
+**Name**: testGetAllDiscounts
+
+**Precondition**: DiscountManager is initialized and repository contains multiple discounts.
+
+**Scenario**:
+1. Sales manager requests to view all available discounts.
+2. System queries the repository for all discounts.
+
+**Result**:
+- System returns a list of all discounts.
+- List contains the correct number of discounts (2).
+- Discounts have the correct names: "Discount 1" and "Discount 2".
+- System returns a 200 (OK) status code.
+
+---
+
+**Name**: testGetDiscountsByType
+
+**Precondition**: DiscountManager is initialized and repository contains discounts of different types.
+
+**Scenario**:
+1. Sales manager requests to view all discounts of type "early_bird".
+2. System queries the repository for discounts of the specified type.
+
+**Result**:
+- System returns only discounts of type "early_bird".
+- List contains the correct number of discounts (2).
+- Discounts have the correct names: "Early Bird 1" and "Early Bird 2".
+- System returns a 200 (OK) status code.
+
+---
+
+**Name**: testUpdateDiscount
+
+**Precondition**: DiscountManager is initialized and repository contains an existing discount.
+
+**Scenario**:
+1. Sales manager retrieves an existing discount with ID 1.
+2. Sales manager updates the discount with new parameters:
+   - Name: "Updated Discount" (changed from "Original Discount")
+   - Amount: 15.0% (changed from 10.0%)
+   - Days: 7 (changed from 5)
+3. Sales manager submits the updated discount.
+4. System updates the discount in the repository.
+5. Sales manager retrieves the discount by its ID.
+
+**Result**:
+- System successfully updates the discount.
+- Retrieved discount matches the updated parameters:
+  - Name: "Updated Discount"
+  - Amount: 15.0%
+  - Days: 7
+- System returns a 200 (OK) status code.
+
+---
+
+**Name**: testDeleteDiscount
+
+**Precondition**: DiscountManager is initialized and repository contains an existing discount with ID 1.
+
+**Scenario**:
+1. Sales manager requests to delete the discount with ID 1.
+2. System deletes the discount from the repository.
+3. Sales manager attempts to retrieve the deleted discount by its ID.
+
+**Result**:
+- System successfully deletes the discount.
+- When attempting to retrieve the deleted discount, system returns an empty result.
+- System returns a 204 (No Content) status code.
 
 ---
 
