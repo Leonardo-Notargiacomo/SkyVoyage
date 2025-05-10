@@ -24,12 +24,18 @@ public class TicketRepositoryImpl implements TicketRepository {
         this.db = DBProvider.getDataSource(config);
     }
 
+    /*
+     * Gives back all the ticket IDs from the booking
+     */
     @Override
     public TicketData getTicketID(String id) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getTicketID'");
     }
 
+    /*
+     * Gives back all the ticket data from the ticket
+     */
     @Override
     public TicketData getTicketData(String id) {
         // TODO Auto-generated method stub

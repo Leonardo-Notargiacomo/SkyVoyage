@@ -21,6 +21,13 @@ public class TicketManagerImpl implements TicketManager {
         this.ticketRepository = ticketRepository;
     }
 
+    /**
+     * Retrieves ticket data as a list of lists. Each inner list has 20 indexes,
+     * which can contain empty strings or null values.
+     *
+     * @param id the identifier for the ticket data
+     * @return an ArrayList of ArrayLists, each with 20 indexes
+     */
     @Override
     public ArrayList<ArrayList<String>> getTicketData(String id) {
         // TODO Auto-generated method stub
