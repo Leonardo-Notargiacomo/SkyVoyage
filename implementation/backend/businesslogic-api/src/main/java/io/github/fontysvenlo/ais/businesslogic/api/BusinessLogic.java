@@ -33,4 +33,6 @@ public interface BusinessLogic {
     PriceManager getPriceManager();
 
     LoginService getLoginService();
+
+    TicketManager getTicketManager();
 }
