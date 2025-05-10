@@ -8,7 +8,7 @@ import io.github.fontysvenlo.ais.persistence.api.TicketRepository;
 import io.github.fontysvenlo.ais.datarecords.TicketData;
 
 public class TicketManagerImpl implements TicketManager {
-    
+
     private static final Logger logger = Logger.getLogger(EmployeeManagerImpl.class.getName());
     private final TicketRepository ticketRepository;
 
@@ -21,16 +21,48 @@ public class TicketManagerImpl implements TicketManager {
         this.ticketRepository = ticketRepository;
     }
 
-    /**
-     * Retrieves ticket data as a list of lists. Each inner list has 20 indexes,
-     * which can contain empty strings or null values.
-     *
-     * @param id the identifier for the ticket data
-     * @return an ArrayList of ArrayLists, each with 20 indexes
-     */
     @Override
-    public ArrayList<ArrayList<String>> getTicketData(String id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getTicketData'");
+public ArrayList<ArrayList<String>> getTicketData(String id) {
+    ArrayList<ArrayList<String>> ticketDataList = new ArrayList<>();
+
+    try {
+        ArrayList<String> ticketIDs = new ArrayList<>(ticketRepository.getTicketID(id)); 
+
+        for (String ticketID : ticketIDs) {
+            TicketData data = getTicketData(ticketID); // your other method returning a TicketData record
+
+            if (data != null) {
+                ArrayList<String> singleTicket = new ArrayList<>();
+                singleTicket.add(data.flightNumber());
+                singleTicket.add(data.departureAirport());
+                singleTicket.add(data.departureTerminal());
+                singleTicket.add(data.departureGate());
+                singleTicket.add(data.departureTime());
+                singleTicket.add(String.valueOf(data.departureDelay()));
+                singleTicket.add(data.arrivalAirport());
+                singleTicket.add(data.arrivalTerminal());
+                singleTicket.add(data.arrivalGate());
+                singleTicket.add(data.arrivalTime());
+                singleTicket.add(String.valueOf(data.arrivalDelay()));
+                singleTicket.add(String.valueOf(data.hasSeat()));
+                singleTicket.add(data.firstName());
+                singleTicket.add(data.lastName());
+                singleTicket.add(data.email());
+                singleTicket.add(data.phoneNumber());
+                singleTicket.add(data.country());
+                singleTicket.add(data.city());
+                singleTicket.add(data.streetName());
+                singleTicket.add(data.houseNumber());
+
+                ticketDataList.add(singleTicket);
+            }
+        }
+
+    } catch (Exception e) {
+        LOGGER.log(Level.SEVERE, "Error retrieving ticket data list for booking ID: " + id, e);
     }
+
+    return ticketDataList;
+}
+
 }
