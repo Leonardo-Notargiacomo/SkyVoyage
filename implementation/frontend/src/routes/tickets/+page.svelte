@@ -5,10 +5,10 @@
         ["Value 2.1", "Value 2.2", "Value 2.3", "Value 2.4", "Value 2.5", "Value 2.6", "Value 2.7", "Value 2.8", "Value 2.9", "Value 2.10"],
         ["Value 3.1", "Value 3.2", "Value 3.3", "Value 3.4", "Value 3.5", "Value 3.6", "Value 3.7", "Value 3.8", "Value 3.9", "Value 3.10"]
     ]; // Placeholder for external data
-    let boxNames = ["Flight Number", "Departure airport", "Departure terminal", "Departure gate", "Departure time", "Departure delay", "Arrival airport", "Arrival terminal", "Arrival gate", "Arrival time", "Arrival delay", "First name", "Last name", "e-mail", "Phone number", "Country", "City", "Streetname", "House number"]; 
+    let boxNames = ["Flight Number", "Departure airport", "Departure terminal", "Departure gate", "Departure time", "Departure delay", "Arrival airport", "Arrival terminal", "Arrival gate", "Arrival time", "Arrival delay", "Has a Seat", "First name", "Last name", "e-mail", "Phone number", "Country", "City", "Streetname", "House number"]; 
     let type1Name = "Flight information";
     let type2Name = "Personal information";
-    let type1Count = 11; // Number of variables in Type 1
+    let type1Count = 12; // Number of variables in Type 1
 </script>
 
 <style>
