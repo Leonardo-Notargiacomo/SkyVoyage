@@ -39,9 +39,23 @@
         error = null;
 
         try {
+            // Get employeeID from cookie
+            const getCookie = (name) => {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(";").shift();
+                return null;
+            };
+            
+            const employeeID = getCookie('employeeID');
+            const discountData = {
+                ...newDiscount,
+                employeeID: employeeID ? parseInt(employeeID) : null
+            };
+            
             await api.fetchAPI("/discounts", {
                 method: 'POST',
-                body: JSON.stringify(newDiscount)
+                body: JSON.stringify(discountData)
             });
             
             await fetchDiscounts();
@@ -77,9 +91,10 @@
         error = null;
 
         try {
+
             await api.fetchAPI(`/discounts/${discount.id}`, {
                 method: 'PUT',
-                body: JSON.stringify(discount)
+                body: JSON.stringify(newDiscount)
             });
             
             await fetchDiscounts();
