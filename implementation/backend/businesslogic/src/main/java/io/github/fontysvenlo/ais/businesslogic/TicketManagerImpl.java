@@ -1,9 +1,11 @@
 package io.github.fontysvenlo.ais.businesslogic;
 
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import io.github.fontysvenlo.ais.businesslogic.api.TicketManager;
 import io.github.fontysvenlo.ais.persistence.api.TicketRepository;
+import io.github.fontysvenlo.ais.datarecords.TicketData;
 
 public class TicketManagerImpl implements TicketManager {
     
@@ -17,5 +19,11 @@ public class TicketManagerImpl implements TicketManager {
      */
     public TicketManagerImpl(TicketRepository ticketRepository) {
         this.ticketRepository = ticketRepository;
+    }
+
+    @Override
+    public ArrayList<ArrayList<String>> getTicketData(String id) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getTicketData'");
     }
 }
