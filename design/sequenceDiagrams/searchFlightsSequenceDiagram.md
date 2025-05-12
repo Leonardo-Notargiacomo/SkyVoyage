@@ -10,7 +10,7 @@ sequenceDiagram
     participant SearchFlightClient as SearchFlightClient
     participant PriceManager as PriceManager
     participant DiscountManager as DiscountManager
-    participant SearchFlightAPI as Amadeus API
+    participant SearchFlightAPI as SearchFlightAPI
     
     User ->> WebClient: Search for flights<br>(origin, destination, dates)
     WebClient ->> FlightResource: GET /flights/search?originLocationCode=AMS&<br>destinationLocationCode=JFK&departureDate=2023-06-15
@@ -93,7 +93,7 @@ This diagram illustrates the complete flow for searching flights:
 4. The SearchFlightClient:
    - Ensures it has a valid authentication token
    - Builds a query string from the parameters
-   - Calls the Amadeus API to search for flight offers
+   - Calls the SearchFlightAPI to search for flight offers
    - Processes the response to extract relevant information
    - For each flight, calculates prices based on duration using the PriceManager
    - Applies discounts if applicable using the DiscountManager
@@ -101,4 +101,4 @@ This diagram illustrates the complete flow for searching flights:
 5. The FlightResource returns the search results to the Web Client
 6. The Web Client displays the results to the User
 
-The diagram shows how the system integrates with the external Amadeus API while applying internal pricing and discount rules to the search results. 
+The diagram shows how the system integrates with the external SearchFlightAPI while applying internal pricing and discount rules to the search results. 
