@@ -1,16 +1,16 @@
 **# Flight Search - Sequence Diagram**
 
-The following sequence diagram illustrates the process of searching for flights using the AmadeusClient.
+The following sequence diagram illustrates the process of searching for flights using the SearchFlightClient.
 
 ```mermaid
 sequenceDiagram
     actor User
     participant WebClient as Web Client
     participant FlightResource as FlightResource
-    participant AmadeusClient as AmadeusClient
+    participant SearchFlightClient as SearchFlightClient
     participant PriceManager as PriceManager
     participant DiscountManager as DiscountManager
-    participant AmadeusAPI as Amadeus API
+    participant SearchFlightAPI as Amadeus API
     
     User ->> WebClient: Search for flights<br>(origin, destination, dates)
     WebClient ->> FlightResource: GET /flights/search?originLocationCode=AMS&<br>destinationLocationCode=JFK&departureDate=2023-06-15
@@ -20,61 +20,61 @@ sequenceDiagram
     
     FlightResource ->> FlightResource: Create params Map<br>(origin, destination, dates, adults, etc.)
     
-    FlightResource ->> AmadeusClient: searchFlightOffersWithParams(params)
-    activate AmadeusClient
+    FlightResource ->> SearchFlightClient: searchFlightOffersWithParams(params)
+    activate SearchFlightClient
     
-    AmadeusClient ->> AmadeusClient: ensureValidToken()
-    activate AmadeusClient
+    SearchFlightClient ->> SearchFlightClient: ensureValidToken()
+    activate SearchFlightClient
     
     alt Token expired or missing
-        AmadeusClient ->> AmadeusAPI: POST /security/oauth2/token
-        activate AmadeusAPI
-        AmadeusAPI -->> AmadeusClient: Access token
-        deactivate AmadeusAPI
-        AmadeusClient ->> AmadeusClient: Store token and expiry
+        SearchFlightClient ->> SearchFlightAPI: POST /security/oauth2/token
+        activate SearchFlightAPI
+        SearchFlightAPI -->> SearchFlightClient: Access token
+        deactivate SearchFlightAPI
+        SearchFlightClient ->> SearchFlightClient: Store token and expiry
     end
     
-    deactivate AmadeusClient
+    deactivate SearchFlightClient
     
-    AmadeusClient ->> AmadeusClient: Build query string from params
+    SearchFlightClient ->> SearchFlightClient: Build query string from params
     
-    AmadeusClient ->> AmadeusAPI: GET /shopping/flight-offers?{queryString}
-    activate AmadeusAPI
+    SearchFlightClient ->> SearchFlightAPI: GET /shopping/flight-offers?{queryString}
+    activate SearchFlightAPI
     
-    AmadeusAPI -->> AmadeusClient: Raw flight offers JSON response
-    deactivate AmadeusAPI
+    SearchFlightAPI -->> SearchFlightClient: Raw flight offers JSON response
+    deactivate SearchFlightAPI
     
-    AmadeusClient ->> AmadeusClient: processAmadeusResponse()
-    activate AmadeusClient
+    SearchFlightClient ->> SearchFlightClient: processAmadeusResponse()
+    activate SearchFlightClient
     
     loop For each flight offer
-        AmadeusClient ->> AmadeusClient: Process itineraries (outbound/return)
+        SearchFlightClient ->> SearchFlightClient: Process itineraries (outbound/return)
         
         loop For each itinerary
-            AmadeusClient ->> AmadeusClient: Extract flights, durations
+            SearchFlightClient ->> SearchFlightClient: Extract flights, durations
             
-            AmadeusClient ->> PriceManager: getPrice()
+            SearchFlightClient ->> PriceManager: getPrice()
             activate PriceManager
-            PriceManager -->> AmadeusClient: Return current price per km
+            PriceManager -->> SearchFlightClient: Return current price per km
             deactivate PriceManager
             
-            Note over AmadeusClient: Calculate base price:<br>duration * 15 * price / 100
+            Note over SearchFlightClient: Calculate base price:<br>duration * 15 * price / 100
             
             opt If departure date available
-                AmadeusClient ->> DiscountManager: getAllDiscounts()
+                SearchFlightClient ->> DiscountManager: getAllDiscounts()
                 activate DiscountManager
-                DiscountManager -->> AmadeusClient: Available discounts
+                DiscountManager -->> SearchFlightClient: Available discounts
                 deactivate DiscountManager
                 
-                AmadeusClient ->> AmadeusClient: calculateDiscountedPrice()<br>Find best applicable discount<br>based on days until departure
+                SearchFlightClient ->> SearchFlightClient: calculateDiscountedPrice()<br>Find best applicable discount<br>based on days until departure
             end
         end
     end
     
-    deactivate AmadeusClient
+    deactivate SearchFlightClient
     
-    AmadeusClient -->> FlightResource: Return processed flight offers
-    deactivate AmadeusClient
+    SearchFlightClient -->> FlightResource: Return processed flight offers
+    deactivate SearchFlightClient
     
     FlightResource -->> WebClient: Return 200 OK with flight offers JSON
     deactivate FlightResource
@@ -89,8 +89,8 @@ This diagram illustrates the complete flow for searching flights:
 3. The FlightResource controller:
    - Extracts and validates the required parameters
    - Creates a parameter map for the search
-   - Calls the AmadeusClient to perform the search
-4. The AmadeusClient:
+   - Calls the SearchFlightClient to perform the search
+4. The SearchFlightClient:
    - Ensures it has a valid authentication token
    - Builds a query string from the parameters
    - Calls the Amadeus API to search for flight offers
