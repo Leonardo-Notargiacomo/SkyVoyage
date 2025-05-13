@@ -199,13 +199,28 @@
                     <span class="flex-1 ms-3 whitespace-nowrap">Customers</span>
                 </a>
             </li> -->
-
+        {#if type !== "Sales Employee"}
             <li>
                 <a href="/kpiDashboard" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                       width="20"
+                       height="20"
+                       viewBox="0 0 24 24"
+                       fill="none"
+                       stroke="currentColor"
+                       stroke-width="2"
+                       stroke-linecap="round"
+                       stroke-linejoin="round"
+                       class="feather feather-bar-chart"
+                  >
+                    <line x1="12" y1="20" x2="12" y2="10"></line>
+                    <line x1="18" y1="20" x2="18" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="16"></line>
+                  </svg>
                     <span class="flex-1 ms-3 whitespace-nowrap">KPI Dashboard</span>
                 </a>
             </li>
+        {/if}
       </ul>
       <div
         class="mt-auto pt-4 space-y-2 font-medium border-t border-gray-200 dark:border-gray-700"
