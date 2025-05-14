@@ -26,7 +26,6 @@ public class FlightStatsRepositoryImpl implements FlightStatsRepository {
            String topDestination = "";
            double totalKilometers = 0;
 
-            // Example queries — customize based on your schema
             try (PreparedStatement ps = conn.prepareStatement("SELECT SUM(tariff) FROM public.ticket");
                  ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) totalRevenue = rs.getLong(1);
@@ -37,9 +36,9 @@ public class FlightStatsRepositoryImpl implements FlightStatsRepository {
                 if (rs.next()) topDestination = rs.getString("arrival_airport");
             }
 
-            try (PreparedStatement ps = conn.prepareStatement("SELECT SUM(duration) FROM public.flight");
+            try (PreparedStatement ps = conn.prepareStatement("SELECT SUM(duration)* 800 FROM public.flight");
                  ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) totalKilometers = rs.getLong(1);
+                if (rs.next()) totalKilometers= rs.getLong(1);
             }
 
             return new FlightStats(totalRevenue, topDestination, totalKilometers);

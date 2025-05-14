@@ -233,11 +233,8 @@
     <!-- Statistics summary -->
     <div class="stats-summary">
         <h3 class="summary-title">Performance Insights</h3>
-        <p class="summary-text">
-            Our company has generated a total revenue of <strong>{formatNumber(totalRevenue)}€</strong>,
-            with <strong>{mostBookedDestination}</strong> being the most popular destination among our customers.
-            The total distance traveled is <strong>{formatNumber(totalKilometers)} Km</strong>,
-            which demonstrates our significant operational reach.
-        </p>
+        <p class="summary-text">Our company has generated a total revenue of <strong>{formatNumber(totalRevenue)}€</strong></p>
+        <p class="summary-text"><strong>{mostBookedDestination}</strong> being the most popular destination among our customers.</p>
+        <p class="summary-text"> The total distance traveled is <strong>{formatNumber(totalKilometers)} Km</strong></p>
     </div>
 </div>
