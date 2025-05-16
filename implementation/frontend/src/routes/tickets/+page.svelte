@@ -2,12 +2,15 @@
   import { onMount, onDestroy } from 'svelte';
   import { api } from "$lib/api";
   import { goto } from "$app/navigation";
-  
+
+  // Remove $state usage, use normal Svelte reactivity
+  let tickets = [];
+
   onMount(() => {
     if (typeof window !== "undefined") {
       window.addEventListener("keydown", handleKeyEvent);
     }
-    load();
+    load('1'); // Pass the ID here
   });
 
   onDestroy(() => {
@@ -16,8 +19,10 @@
     }
   });
 
-  const load = async () => {
-    const fetchedTickets = await api.all("/tickets");
+  // Accept an id parameter and use it in the API call
+  const load = async (id) => {
+    const fetchedTickets = await api.list(`/tickets/`);
+    tickets = fetchedTickets ? (Array.isArray(fetchedTickets) ? fetchedTickets : [fetchedTickets]) : [];
   };
 
   const handleKeyEvent = (e) => {
@@ -89,32 +94,36 @@
   }
 </style>
 
-{#each Array(totalContainers).fill(0).map((_, i) => i) as containerIndex}
-  <div class="container-wrapper">
-    <h2 class="container-title">Ticket {containerIndex + 1}</h2>
-    <div class="grid-container">
-      <div class="grid-item" style="grid-column: span 4; text-align: center; font-weight: bold;">
-        {type1Name}
-      </div>
-      {#each boxNames.slice(0, type1Count) as boxName, index}
-        <div class="grid-item">
-          <div class="name-label">{boxName}</div>
-          <div class="variable-display">
-            {variables[containerIndex]?.[index] || "Undisclosed"}
-          </div>
+{#if tickets.length === 0}
+  <div>Loading tickets...</div>
+{:else}
+  {#each tickets as ticket, containerIndex}
+    <div class="container-wrapper">
+      <h2 class="container-title">Ticket {containerIndex + 1}</h2>
+      <div class="grid-container">
+        <div class="grid-item" style="grid-column: span 4; text-align: center; font-weight: bold;">
+          {ticket.type1Name}
         </div>
-      {/each}
-      <div class="grid-item" style="grid-column: span 4; text-align: center; font-weight: bold;">
-        {type2Name}
-      </div>
-      {#each boxNames.slice(type1Count) as boxName, index}
-        <div class="grid-item">
-          <div class="name-label">{boxName}</div>
-          <div class="variable-display">
-            {variables[containerIndex]?.[index + type1Count] || "Undisclosed"}
+        {#each ticket.boxNames.slice(0, ticket.type1Count) as boxName, index}
+          <div class="grid-item">
+            <div class="name-label">{boxName}</div>
+            <div class="variable-display">
+              {ticket.variables?.[index] || "Undisclosed"}
+            </div>
           </div>
+        {/each}
+        <div class="grid-item" style="grid-column: span 4; text-align: center; font-weight: bold;">
+          {ticket.type2Name}
         </div>
-      {/each}
+        {#each ticket.boxNames.slice(ticket.type1Count) as boxName, index}
+          <div class="grid-item">
+            <div class="name-label">{boxName}</div>
+            <div class="variable-display">
+              {ticket.variables?.[index + ticket.type1Count] || "Undisclosed"}
+            </div>
+          </div>
+        {/each}
+      </div>
     </div>
-  </div>
-{/each}
+  {/each}
+{/if}
