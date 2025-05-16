@@ -1,7 +1,9 @@
 package io.github.fontysvenlo.ais.businesslogic.api;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import io.github.fontysvenlo.ais.datarecords.EmployeeData;
 import io.github.fontysvenlo.ais.datarecords.TicketData;
 
 public interface TicketManager {
@@ -13,6 +15,6 @@ public interface TicketManager {
      * @param id the identifier for the ticket data
      * @return an ArrayList of ArrayLists, each with 20 indexes
      */
-    public ArrayList<ArrayList<String>> getTicketData(String id);
+    public List<TicketData> list();
     
 }
