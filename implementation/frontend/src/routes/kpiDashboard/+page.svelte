@@ -1,5 +1,7 @@
 <script>
     import {onMount} from "svelte";
+    import {api} from "$lib/api.js";
+
     let totalRevenue;
     let mostBookedDestination;
     let totalKilometers;
@@ -13,8 +15,8 @@
     }
 
     onMount(async () => {
-        const res = await fetch("http://localhost:8080/api/v1/kpi");
-        const data = await res.json();
+        const data = await api.fetchAPI("kpi")
+        console.log("KPI data:",data);
 
         totalRevenue = data.totalRevenue;
         mostBookedDestination = data.topDestination;
