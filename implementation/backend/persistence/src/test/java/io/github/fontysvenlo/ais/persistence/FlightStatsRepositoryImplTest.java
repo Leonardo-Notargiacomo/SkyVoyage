@@ -102,7 +102,7 @@ public class FlightStatsRepositoryImplTest {
         // Arrange: Mock the DataSource and Connection
         DBConfig mockConfig = mock(DBConfig.class);
         DataSource mockDataSource = mock(DataSource.class);
-        when(mockDataSource.getConnection()).thenThrow(new SQLException("Datenbankfehler"));
+        when(mockDataSource.getConnection()).thenThrow(new SQLException("Database Error"));
 
 
         FlightStatsRepositoryImpl repository = new FlightStatsRepositoryImpl(mockConfig) {
@@ -113,7 +113,7 @@ public class FlightStatsRepositoryImplTest {
         };
 
         // Act & Assert
-        assertThatThrownBy(() -> repository.getStatsForFlight())
+        assertThatThrownBy(repository::getStatsForFlight)
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Error fetching stats");
     }
