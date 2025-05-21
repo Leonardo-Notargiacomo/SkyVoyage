@@ -2,6 +2,7 @@ package io.github.fontysvenlo.ais.businesslogic;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -11,7 +12,7 @@ import io.github.fontysvenlo.ais.datarecords.TicketData;
 
 public class TicketManagerImpl implements TicketManager {
 
-    private static final Logger logger = Logger.getLogger(EmployeeManagerImpl.class.getName());
+    private static final Logger logger = Logger.getLogger(TicketManagerImpl.class.getName());
     private final TicketRepository ticketRepository;
 
     /**
@@ -21,6 +22,7 @@ public class TicketManagerImpl implements TicketManager {
      */
     public TicketManagerImpl(TicketRepository ticketRepository) {
         this.ticketRepository = ticketRepository;
+        logger.log(Level.INFO, "TicketManagerImpl initialized");
     }
 
     /**
@@ -30,7 +32,8 @@ public class TicketManagerImpl implements TicketManager {
      * @return a list of ticket data
      */
     @Override
-    public List<TicketData> GetFromBooking(String id) {
+    public Optional<List<TicketData>> getFromBooking(String id) {
+        logger.log(Level.FINE, "Retrieving tickets for booking {0}", id);
         return ticketRepository.getAll(id);
     }
 

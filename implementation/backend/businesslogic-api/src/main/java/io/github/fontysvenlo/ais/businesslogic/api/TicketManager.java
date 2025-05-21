@@ -2,6 +2,7 @@ package io.github.fontysvenlo.ais.businesslogic.api;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import io.github.fontysvenlo.ais.datarecords.TicketData;
 
@@ -13,6 +14,6 @@ public interface TicketManager {
      * @param id the booking ID
      * @return a list of TicketData objects
      */
-    public List<TicketData> GetFromBooking(String id);
+    public Optional<List<TicketData>> getFromBooking(String id);
     
 }
