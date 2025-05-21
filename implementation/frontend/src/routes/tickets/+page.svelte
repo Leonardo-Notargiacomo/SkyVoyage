@@ -11,7 +11,7 @@
 
   const load = async () => {
     try {
-      const fetchedTickets = await api.all("/tickets");
+      const fetchedTickets = await api.GetFromBooking("/tickets");
       // Sort tickets by ID (smallest first)
       tickets = fetchedTickets.sort((a, b) => {
         return parseInt(a.id) - parseInt(b.id);

@@ -23,9 +23,15 @@ public class TicketManagerImpl implements TicketManager {
         this.ticketRepository = ticketRepository;
     }
 
+    /**
+     * Retrieves ticket data from a single booking.
+     * 
+     * @param id the booking ID
+     * @return a list of ticket data
+     */
     @Override
-    public List<TicketData> list() {
-        return ticketRepository.getAll();
+    public List<TicketData> GetFromBooking(String id) {
+        return ticketRepository.getAll(id);
     }
 
 }

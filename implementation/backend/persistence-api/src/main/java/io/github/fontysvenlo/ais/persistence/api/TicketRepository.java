@@ -5,5 +5,5 @@ import java.util.List;
 import io.github.fontysvenlo.ais.datarecords.TicketData;
 
 public interface TicketRepository {
-    List<TicketData> getAll();
+    List<TicketData> getAll(String id);
 }
