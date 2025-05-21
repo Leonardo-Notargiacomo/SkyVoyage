@@ -5,13 +5,16 @@
   let tickets = $state([]);
   let errorMessage = $state("");
 
+  // For now, bookingID is hardcoded
+  let bookingID = 1;
+
   onMount(() => {
     load();
   });
 
   const load = async () => {
     try {
-      const fetchedTickets = await api.GetFromBooking("/tickets");
+      const fetchedTickets = await api.GetFromBooking(`/tickets?bookingID=${bookingID}`);
       // Sort tickets by ID (smallest first)
       tickets = fetchedTickets.sort((a, b) => {
         return parseInt(a.id) - parseInt(b.id);

@@ -1,9 +1,9 @@
 package io.github.fontysvenlo.ais.persistence.api;
 
-import java.util.List;
-
 import io.github.fontysvenlo.ais.datarecords.TicketData;
+import java.util.List;
+import java.util.Optional;
 
 public interface TicketRepository {
-    List<TicketData> getAll(String id);
+    Optional<List<TicketData>> getAll(String id);
 }
