@@ -11,32 +11,46 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class TicketResource implements CrudHandler {
+class TicketResource implements CrudHandler {
     private static final Logger logger = LoggerFactory.getLogger(TicketResource.class);
     private final TicketManager ticketManager;
 
-    public TicketResource(TicketManager ticketManager) {
+    TicketResource(TicketManager ticketManager) {
         this.ticketManager = ticketManager;
     }
 
     @Override
-    public void getOne(Context ctx, String id) {
+    public void getOne(Context context, String id) {
         try {
             Optional<List<TicketData>> tickets = ticketManager.getFromBooking(id);
             if (tickets.isPresent()) {
-                ctx.json(tickets.get());
+                context.status(200);
+                context.json(tickets.get());
             } else {
-                ctx.status(404).json(Map.of("error", "No tickets found for booking " + id));
+                context.status(404);
+                context.json(Map.of("error", "No tickets found for booking " + id));
             }
         } catch (Exception e) {
             logger.error("Error retrieving tickets for booking " + id, e);
-            ctx.status(500).json(Map.of("error", "Internal server error"));
+            context.status(500);
+            context.json(Map.of("error", "Internal server error"));
         }
     }
 
-    // Required by CrudHandler but not used
-    @Override public void getAll(Context ctx) { ctx.status(405); }
-    @Override public void create(Context ctx) { ctx.status(405); }
-    @Override public void update(Context ctx, String id) { ctx.status(405); }
-    @Override public void delete(Context ctx, String id) { ctx.status(405); }
+    /*
+     * The following methods are required by the CrudHandler to exist and be
+     * implemented, but since they are not used, they return a 405 Method Not
+     * Allowed status.
+     */
+    @Override
+    public void getAll(Context context) {context.status(405);}
+
+    @Override
+    public void create(Context context) {context.status(405);}
+
+    @Override
+    public void update(Context context, String id) {context.status(405);}
+
+    @Override
+    public void delete(Context context, String id) {context.status(405);}
 }

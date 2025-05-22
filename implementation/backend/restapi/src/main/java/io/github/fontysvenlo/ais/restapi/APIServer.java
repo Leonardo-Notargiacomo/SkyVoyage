@@ -93,6 +93,7 @@ public class APIServer {
             config.router.apiBuilder(() -> {
                 crud("customers/{customer-id}", new CustomerResource(businessLogic.getCustomerManager()));
                 crud("employees/{employee-id}", new EmployeeResource(businessLogic.getEmployeeManager()));
+                crud("tickets/{ticket-id}", new TicketResource(businessLogic.getTicketManager()));
 
                 // Add flight routes
                 FlightResource flightResource = new FlightResource(
