@@ -9,17 +9,16 @@
   let bookingID = 1;
 
   onMount(() => {
-    load();
+    load(bookingID);
   });
 
-  const load = async () => {
+  const load = async (bookingID) => {
     try {
-      const fetchedTickets = await api.GetFromBooking(`/tickets?bookingID=${bookingID}`);
+      const fetchedTickets = await api.getOne(`/tickets/${bookingID}`);
       // Sort tickets by ID (smallest first)
-      tickets = fetchedTickets.sort((a, b) => {
-        return parseInt(a.id) - parseInt(b.id);
-      });
+      tickets = fetchedTickets.sort((a, b) => parseInt(a.id) - parseInt(b.id));
     } catch (error) {
+      console.error("API Error:", error); // Added this for debugging
       errorMessage = "Failed to load tickets. Please try again.";
     }
   };

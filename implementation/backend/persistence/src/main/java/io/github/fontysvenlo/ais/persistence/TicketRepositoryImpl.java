@@ -31,13 +31,7 @@ public class TicketRepositoryImpl implements TicketRepository {
             return Optional.empty();
         }
 
-        int bookingId;
-        try {
-            bookingId = Integer.parseInt(id);
-        } catch (NumberFormatException e) {
-            LOGGER.log(Level.WARNING, "Invalid booking ID format: {0}", id);
-            return Optional.empty();
-        }
+        String bookingId = id;
 
         List<TicketData> result = new ArrayList<>();
 
@@ -58,7 +52,7 @@ public class TicketRepositoryImpl implements TicketRepository {
         }
     }
 
-    private PreparedStatement prepareTicketQuery(Connection connection, int bookingId) throws SQLException {
+    private PreparedStatement prepareTicketQuery(Connection connection, String bookingId) throws SQLException {
         PreparedStatement stmt = connection.prepareStatement(
             "SELECT f.ID AS flightNumber, " +
             "f.Departure_Airport AS departureAirport, " +
@@ -87,7 +81,7 @@ public class TicketRepositoryImpl implements TicketRepository {
             "JOIN Address a ON c.AddressID = a.ID " +
             "WHERE bf.BookingID = ?");
         
-        stmt.setInt(1, bookingId);
+        stmt.setString(1, bookingId);
         return stmt;
     }
 
