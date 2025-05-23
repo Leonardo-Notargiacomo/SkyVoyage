@@ -33,8 +33,12 @@ public class TicketManagerImpl implements TicketManager {
      */
     @Override
     public Optional<List<TicketData>> getFromBooking(String id) {
-        logger.log(Level.FINE, "Retrieving tickets for booking {0}", id);
-        return ticketRepository.getAll(id);
+        // Add debug logging
+        logger.log(Level.INFO, "Retrieving tickets for booking {0}", id);
+        Optional<List<TicketData>> tickets = ticketRepository.getAll(id);
+        logger.log(Level.INFO, "Retrieved {0} tickets", 
+            tickets.map(list -> list.size()).orElse(0));
+        return tickets;
     }
 
 }
