@@ -1,17 +1,17 @@
 package io.github.fontysvenlo.ais.persistence;
 
-import io.github.fontysvenlo.ais.datarecords.DiscountData;
-import io.github.fontysvenlo.ais.persistence.api.DiscountRepository;
-
-import javax.sql.DataSource;
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+
+import javax.sql.DataSource;
+
+import io.github.fontysvenlo.ais.datarecords.DiscountData;
+import io.github.fontysvenlo.ais.persistence.api.DiscountRepository;
 
 public class DiscountRepositoryImpl implements DiscountRepository {
     private final DataSource dataSource;
@@ -20,46 +20,6 @@ public class DiscountRepositoryImpl implements DiscountRepository {
 
     public DiscountRepositoryImpl(DBConfig config) {
         this.dataSource = DBProvider.getDataSource(config);        
-        // Run a diagnostic check to see what tables exist
-        try (Connection conn = dataSource.getConnection()) {
-            DatabaseMetaData metaData = conn.getMetaData();
-            try (ResultSet rs = metaData.getTables(null, null, "%", new String[]{"TABLE"})) {
-                boolean discountTableFound = false;
-                
-                while (rs.next()) {
-                    String tableName = rs.getString("TABLE_NAME");
-                    String schema = rs.getString("TABLE_SCHEM");
-                    
-                    // If this is the discount table, try a simple SELECT
-                    if (tableName.equalsIgnoreCase("discount")) {
-                        discountTableFound = true;
-                        discountTableName = schema + "." + tableName;
-                        
-                        try (ResultSet countRs = conn.createStatement().executeQuery(
-                                "SELECT COUNT(*) FROM " + discountTableName)) {
-                            if (countRs.next()) {
-                                int count = countRs.getInt(1);
-                            }
-                        } catch (SQLException e) {
-                            LOGGER.warning("Could not count rows in " + discountTableName + ": " + e.getMessage());
-                        }
-                    }
-                }
-                
-                if (!discountTableFound) {
-                    LOGGER.warning("No discount table found in the database!");
-                    // Let's check if there's a capitalized Discount table
-                    try (ResultSet rs2 = metaData.getTables(null, null, "Discount", new String[]{"TABLE"})) {
-                        if (rs2.next()) {
-                            String schema = rs2.getString("TABLE_SCHEM");
-                            discountTableName = schema + ".\"Discount\"";
-                        }
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            LOGGER.warning("Error during diagnostic check: " + e.getMessage());
-        }
     }
 
     private DiscountData mapResultSetToDiscount(ResultSet rs) throws SQLException {
