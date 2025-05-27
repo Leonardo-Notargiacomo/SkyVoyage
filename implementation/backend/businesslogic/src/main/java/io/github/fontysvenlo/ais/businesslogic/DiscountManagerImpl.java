@@ -32,31 +32,12 @@ public class DiscountManagerImpl implements DiscountManager {
     }
 
     @Override
-    public void updateDiscount(DiscountData discountData) {
-        if (!validateDiscount(discountData)) {
-            throw new IllegalArgumentException("Invalid discount percentage. Please enter a value between 0 and 100.");
-        }
-        discountRepository.update(discountData);
-    }
-
-    @Override
     public void deleteDiscount(Integer id) {
         discountRepository.delete(id);
     }
 
     public List<DiscountData> getAllDiscounts() {
         return discountRepository.getAll();
-    }
-
-    @Override
-    public List<DiscountData> getDiscountsByType(String type) {
-        return discountRepository.getByType(type);
-    }
-
-    @Override
-    public Optional<DiscountData> getDiscountById(Integer id) {
-        DiscountData discount = discountRepository.getOne(id);
-        return Optional.ofNullable(discount);
     }
 
     @Override

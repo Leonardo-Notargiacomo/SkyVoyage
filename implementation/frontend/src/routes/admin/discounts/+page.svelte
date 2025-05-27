@@ -84,28 +84,6 @@
             console.error("Error deleting discount:", err);
         }
     }
-
-    async function updateDiscount(discount) {
-        isSubmitting = true;
-        successMessage = null;
-        error = null;
-
-        try {
-
-            await api.fetchAPI(`/discounts/${discount.id}`, {
-                method: 'PUT',
-                body: JSON.stringify(newDiscount)
-            });
-            
-            await fetchDiscounts();
-            successMessage = "Discount updated successfully!";
-        } catch (err) {
-            error = err.message || "Failed to update discount";
-            console.error("Error updating discount:", err);
-        } finally {
-            isSubmitting = false;
-        }
-    }
 </script>
 
 <div class="min-h-screen">
