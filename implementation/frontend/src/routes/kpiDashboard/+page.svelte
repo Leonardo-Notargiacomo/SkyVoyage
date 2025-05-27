@@ -5,6 +5,7 @@
     let totalRevenue;
     let mostBookedDestination;
     let totalKilometers;
+    let errorMessage = "";
 
     // Format numbers with a dot as thousands separator
     function formatNumber(num) {
@@ -15,12 +16,20 @@
     }
 
     onMount(async () => {
-        const data = await api.fetchAPI("kpi")
-        console.log("KPI data:",data);
+        try {
+            const data = await api.fetchAPI("kpi");
+            console.log("KPI data:", data);
 
-        totalRevenue = data.totalRevenue;
-        mostBookedDestination = data.topDestination;
-        totalKilometers = data.totalKilometer;
+            if (!data || data.totalRevenue == null || data.topDestination == null || data.totalKilometer == null) {
+                errorMessage = "Failed to load KPI data. Please try again later.";
+                return;
+            }
+            totalRevenue = data.totalRevenue;
+            mostBookedDestination = data.topDestination;
+            totalKilometers = data.totalKilometer;
+        } catch (e) {
+            errorMessage = "Failed to load KPI data. Please try again later.";
+        }
     });
 
     // Define icons for each card
@@ -180,7 +189,11 @@
         color: #4b5563;
     }
 </style>
-
+{#if errorMessage}
+    <div style="color: #dc2626; text-align: center; margin-bottom: 1.5rem; font-weight: 600;">
+        {errorMessage}
+    </div>
+{/if}
 <div class="dashboard">
     <h1 class="title">KPI Dashboard</h1>
 
