@@ -5,11 +5,9 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -23,7 +21,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.github.fontysvenlo.ais.businesslogic.api.DiscountManager;
 import io.github.fontysvenlo.ais.businesslogic.api.PriceManager;
-import io.github.fontysvenlo.ais.datarecords.DiscountData;
 import io.github.fontysvenlo.ais.datarecords.FlightData;
 
 /**
@@ -70,54 +67,6 @@ public class AviationStackClient {
     }
 
     /**
-     * Calculates the discounted price based on days until departure and available discounts.
-     *
-     * @param basePrice The base price before discounts
-     * @param departureDate The departure date
-     * @return The final price after applying any applicable discounts
-     */
-    private double calculateDiscountedPrice(double basePrice, OffsetDateTime departureDate) {
-        try {
-        
-            if (discountManager == null) {
-                return basePrice;
-            }
-            
-            // Calculate days until departure
-            LocalDateTime now = LocalDateTime.now();
-            LocalDateTime departure = departureDate.toLocalDateTime();
-            long daysUntilDeparture = ChronoUnit.DAYS.between(now, departure);
-            
-            // Get all discounts
-            List<DiscountData> allDiscounts = discountManager.getAllDiscounts();
-            
-            // Find the best applicable discount
-            double bestDiscount = 0.0;
-            for (DiscountData discount : allDiscounts) {
-                
-                if (daysUntilDeparture <= discount.days()) {                    
-                    // Take the highest discount
-                    if (discount.amount() > bestDiscount) {
-                        bestDiscount = discount.amount();
-
-                    }
-                } 
-            }
-            
-            // Apply discount if found
-            if (bestDiscount > 0) {
-                double discountAmount = basePrice * (bestDiscount / 100.0);
-                double finalPrice = basePrice - discountAmount;
-                return finalPrice;
-            } else {
-                return basePrice;
-            }
-        } catch (Exception e) {
-            return basePrice;
-        }
-    }
-
-    /**
      * Calculate a flight price based on duration.
      * 
      * @param duration The duration in minutes
@@ -132,11 +81,13 @@ public class AviationStackClient {
         // Calculate base price
         int basePrice = priceManager.calculateBasePrice(duration);
 
-        // Apply discount if available
-        double finalPrice = calculateDiscountedPrice(basePrice, departure);
+        // Apply discount if available and departure time is provided
+        if (departure != null && discountManager != null) {
+            double discountedPrice = discountManager.calculateDiscountedPrice(basePrice, departure);
+            return (int) Math.floor(discountedPrice);
+        }
         
-        // Return the final price as an integer (rounding down)
-        return (int) Math.floor(finalPrice);
+        return basePrice;
     }
 
     /**

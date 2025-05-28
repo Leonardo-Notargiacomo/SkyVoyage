@@ -10,7 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -27,7 +26,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.github.fontysvenlo.ais.businesslogic.api.DiscountManager;
 import io.github.fontysvenlo.ais.businesslogic.api.PriceManager;
-import io.github.fontysvenlo.ais.datarecords.DiscountData;
 
 public class AmadeusClient {
 
@@ -438,12 +436,14 @@ public class AmadeusClient {
         
         // Calculate base price
         int basePrice = priceManager.calculateBasePrice(duration);
+
+        // Apply discount if available and departure time is provided
+        if (departureTime != null && discountManager != null) {
+            double discountedPrice = discountManager.calculateDiscountedPrice(basePrice, departureTime);
+            return (int) Math.floor(discountedPrice);
+        }
         
-        // Apply discount if available
-        double finalPrice = calculateDiscountedPrice(basePrice, departureTime);
-        
-        // Return the final price as an integer (rounding down)
-        return (int) Math.floor(finalPrice);
+        return basePrice;
     }
     
     /**
@@ -453,56 +453,6 @@ public class AmadeusClient {
         // Use current time plus 1 week as default departure time if not provided
         OffsetDateTime defaultDeparture = OffsetDateTime.now().plusWeeks(1);
         return flightPrice(duration, defaultDeparture);
-    }
-    
-    /**
-     * Calculates the discounted price based on days until departure and available discounts.
-     *
-     * @param basePrice The base price before discounts
-     * @param departureDate The departure date
-     * @return The final price after applying any applicable discounts
-     */
-    private double calculateDiscountedPrice(double basePrice, OffsetDateTime departureDate) {
-        try {
-            if (discountManager == null) {
-                return basePrice;
-            }
-            
-            if (departureDate == null) {
-                return basePrice;
-            }
-            
-            // Calculate days until departure
-            LocalDateTime now = LocalDateTime.now();
-            LocalDateTime departure = departureDate.toLocalDateTime();
-            long daysUntilDeparture = ChronoUnit.DAYS.between(now, departure);
-            
-            // Get all discounts
-            List<DiscountData> allDiscounts = discountManager.getAllDiscounts();
-            
-            // Find the best applicable discount
-            double bestDiscount = 0.0;
-            for (DiscountData discount : allDiscounts) {
-                // Check if discount is applicable based on days before flight
-                if (daysUntilDeparture <= discount.days()) {
-                    // Take the highest discount
-                    if (discount.amount() > bestDiscount) {
-                        bestDiscount = discount.amount();
-                    }
-                }
-            }
-            
-            // Apply discount if found
-            if (bestDiscount > 0) {
-                double discountAmount = basePrice * (bestDiscount / 100.0);
-                double finalPrice = basePrice - discountAmount;
-                return finalPrice;
-            } else {
-                return basePrice;
-            }
-        } catch (Exception e) {
-            return basePrice;
-        }
     }
 
     /**
