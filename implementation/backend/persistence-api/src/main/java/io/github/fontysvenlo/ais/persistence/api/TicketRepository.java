@@ -5,6 +5,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TicketRepository {
-    List<String> getTicketIDsFromBooking(String id);
-    TicketData getTicketById(String id);
+    List<Integer> getTicketIDsFromBooking(String id);
+    TicketData getTicketById(Integer id);
 }

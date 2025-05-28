@@ -31,10 +31,26 @@ public class TicketRepositoryImpl implements TicketRepository {
      * @return a list of ticket IDs
      */
     @Override
-    public List<String> getTicketIDsFromBooking(String id) {
+    public List<Integer> getTicketIDsFromBooking(String id) {
+        String bookingId = id;
+        List<Integer> ticketIDs = new ArrayList<>();
+        String query = " SELECT t.ID " +
+                       " FROM Ticket t " +
+                       " WHERE t.FlightID IN ( " +
+                            " SELECT bf.FlightID " +
+                            " FROM BookingFlight bf " +
+                            " WHERE bf.BookingID = ? )";
 
-
-        return null;
+        try (PreparedStatement statement = db.getConnection().prepareStatement(query)) {
+            statement.setString(1, bookingId);
+            ResultSet rs = statement.executeQuery();
+            while (rs.next()) {
+                ticketIDs.add(rs.getInt("t.ID"));
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error retrieving ticket IDs: ", e);
+        }
+        return ticketIDs;
     }
 
     /**
@@ -44,7 +60,7 @@ public class TicketRepositoryImpl implements TicketRepository {
      * @return the TicketData object if found, otherwise null
      */
     @Override
-    public TicketData getTicketById(String id) {
+    public TicketData getTicketById(Integer id) {
 
 
         return null;

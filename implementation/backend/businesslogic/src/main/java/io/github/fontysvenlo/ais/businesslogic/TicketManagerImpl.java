@@ -34,7 +34,7 @@ public class TicketManagerImpl implements TicketManager {
     @Override
     public List<TicketData> getTicketData(String id) {
         String bookingId = id;
-        List<String> ticketIDs = new ArrayList<>();
+        List<Integer> ticketIDs = new ArrayList<>();
         List<TicketData> ticketDataList = new ArrayList<>();
         TicketData ticketData;
         try {
@@ -43,7 +43,7 @@ public class TicketManagerImpl implements TicketManager {
                 logger.log(Level.WARNING, "No tickets found for booking ID: " + bookingId);
                 return ticketDataList; // Return empty list if no tickets found
             }
-            for (String ticketID : ticketIDs) {
+            for (Integer ticketID : ticketIDs) {
                 try {
                     ticketData = ticketRepository.getTicketById(ticketID);
                     ticketDataList.add(ticketData);
