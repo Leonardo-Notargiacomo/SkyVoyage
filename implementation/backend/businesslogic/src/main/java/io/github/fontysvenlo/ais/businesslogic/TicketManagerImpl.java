@@ -26,19 +26,34 @@ public class TicketManagerImpl implements TicketManager {
     }
 
     /**
-     * Retrieves ticket data from a single booking.
-     * 
+     * Retrieves ticket IDs from a single booking.
+     *
      * @param id the booking ID
-     * @return a list of ticket data
+     * @return a list of ticket IDs
      */
     @Override
-    public Optional<List<TicketData>> getFromBooking(String id) {
-        // Add debug logging
-        logger.log(Level.INFO, "Retrieving tickets for booking {0}", id);
-        Optional<List<TicketData>> tickets = ticketRepository.getAll(id);
-        logger.log(Level.INFO, "Retrieved {0} tickets", 
-            tickets.map(list -> list.size()).orElse(0));
-        return tickets;
+    public List<TicketData> getTicketData(String id) {
+        String bookingId = id;
+        List<String> ticketIDs = new ArrayList<>();
+        List<TicketData> ticketDataList = new ArrayList<>();
+        TicketData ticketData;
+        try {
+            ticketIDs = ticketRepository.getTicketIDsFromBooking(bookingId);
+            if (ticketIDs.size() == 0) {
+                logger.log(Level.WARNING, "No tickets found for booking ID: " + bookingId);
+                return ticketDataList; // Return empty list if no tickets found
+            }
+            for (String ticketID : ticketIDs) {
+                try {
+                    ticketData = ticketRepository.getTicketById(ticketID);
+                    ticketDataList.add(ticketData);
+                } catch (Exception e) {
+                    // TODO: handle exception
+                }
+            }
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+        return ticketDataList;
     }
-
 }

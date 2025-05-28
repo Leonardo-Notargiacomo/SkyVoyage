@@ -8,11 +8,11 @@ import io.github.fontysvenlo.ais.datarecords.TicketData;
 public interface TicketManager {
 
     /**
-     * List all tickets for a specific booking
+     * List ticket IDs for a specific booking
      * 
      * @param id the booking ID
-     * @return a list of TicketData objects
+     * @return a list of ticket IDs
      */
-    public Optional<List<TicketData>> getFromBooking(String id);
-    
+    public List<TicketData> getTicketData(String id);
+
 }
