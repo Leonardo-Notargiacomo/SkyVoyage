@@ -38,7 +38,7 @@ public class TicketRepositoryImpl implements TicketRepository {
                        " FROM Ticket t " +
                        " WHERE t.FlightID IN ( " +
                             " SELECT bf.FlightID " +
-                            " FROM BookingFlight bf " +
+                            " FROM Booking_Flight bf " +
                             " WHERE bf.BookingID = ? )";
 
         try (PreparedStatement statement = db.getConnection().prepareStatement(query)) {
