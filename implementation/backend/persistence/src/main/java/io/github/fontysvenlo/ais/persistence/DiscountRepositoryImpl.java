@@ -70,7 +70,7 @@ public class DiscountRepositoryImpl implements DiscountRepository {
 
             // Handle null employeeID
             if (discount.employeeID() == null) {
-                stmt.setNull(4, java.sql.Types.INTEGER);
+                throw new IllegalArgumentException("Employee ID cannot be null when adding a discount.");
             }
             
             stmt.setString(1, discount.name());
