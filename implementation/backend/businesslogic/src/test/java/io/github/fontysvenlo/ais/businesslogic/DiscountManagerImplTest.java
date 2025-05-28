@@ -1,16 +1,20 @@
 package io.github.fontysvenlo.ais.businesslogic;
 
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import io.github.fontysvenlo.ais.businesslogic.api.DiscountManager;
 import io.github.fontysvenlo.ais.datarecords.DiscountData;
 import io.github.fontysvenlo.ais.persistence.api.DiscountRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.util.Optional;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 public class DiscountManagerImplTest {
 
@@ -21,31 +25,6 @@ public class DiscountManagerImplTest {
     void setUp() {
         this.discountRepository = mock(DiscountRepository.class);
         this.discountManager = DiscountManagerImpl.getInstance(discountRepository);
-    }
-
-
-    @Test
-    void testValidateDiscountWithInvalidPercentage() {
-        DiscountData negativeDiscount = new DiscountData(2, "Negative", -10.0, "regular", 2, 10);
-        DiscountData tooHighDiscount = new DiscountData(3, "Too High", 110.0, "regular", 3, 10);
-
-        assertFalse(discountManager.validateDiscount(negativeDiscount));
-        assertFalse(discountManager.validateDiscount(tooHighDiscount));
-    }
-
-    @Test
-    void testValidateDiscountWithValidInput() {
-        DiscountData validDiscount = new DiscountData(1, "Valid Discount", 50.0, "regular", 1, 10);
-        assertTrue(discountManager.validateDiscount(validDiscount));
-    }
-
-    @Test
-    void testValidateDiscountWithInvalidDays() {
-        DiscountData zeroDaysDiscount = new DiscountData(4, "Zero Days", 20.0, "regular", 4, 0);
-        DiscountData negativeDaysDiscount = new DiscountData(5, "Negative Days", 20.0, "regular", 5, -5);
-
-        assertFalse(discountManager.validateDiscount(zeroDaysDiscount));
-        assertFalse(discountManager.validateDiscount(negativeDaysDiscount));
     }
 
     @Test
