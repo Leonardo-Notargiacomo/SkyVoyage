@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.sql.DataSource;
 
@@ -15,7 +14,6 @@ import io.github.fontysvenlo.ais.persistence.api.DiscountRepository;
 
 public class DiscountRepositoryImpl implements DiscountRepository {
     private final DataSource dataSource;
-    private static final Logger LOGGER = Logger.getLogger(DiscountRepositoryImpl.class.getName());
     private String discountTableName = "public.discount"; // Default table name
 
     public DiscountRepositoryImpl(DBConfig config) {
@@ -54,7 +52,6 @@ public class DiscountRepositoryImpl implements DiscountRepository {
                 count++;
             }
         } catch (SQLException e) {
-            LOGGER.severe("Error getting all discounts: " + e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Error getting all discounts", e);
         }
@@ -64,37 +61,31 @@ public class DiscountRepositoryImpl implements DiscountRepository {
 
     @Override
     public DiscountData add(DiscountData discount) {
-        LOGGER.info("Adding discount: " + discount);
         
         String query = "INSERT INTO " + discountTableName + 
             " (name, amount, type, employeeid, days) VALUES (?, ?, ?, ?, ?) RETURNING *";
-        LOGGER.info("Executing query: " + query);
         
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            // Handle null employeeID
+            if (discount.employeeID() == null) {
+                stmt.setNull(4, java.sql.Types.INTEGER);
+            }
             
             stmt.setString(1, discount.name());
             stmt.setDouble(2, discount.amount());
             stmt.setString(3, discount.type());
-            
-            // Handle null employeeID
-            if (discount.employeeID() == null) {
-                stmt.setNull(4, java.sql.Types.INTEGER);
-            } else {
-                stmt.setInt(4, discount.employeeID());
-            }
-            
+            stmt.setInt(4, discount.employeeID());
             stmt.setInt(5, discount.days());
             
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     DiscountData added = mapResultSetToDiscount(rs);
-                    LOGGER.info("Added discount successfully: " + added);
                     return added;
                 }
             }
         } catch (SQLException e) {
-            LOGGER.severe("Error adding discount: " + e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Error adding discount", e);
         }
@@ -129,7 +120,6 @@ public class DiscountRepositoryImpl implements DiscountRepository {
                 }
             }
         } catch (SQLException e) {
-            LOGGER.severe("Error updating discount: " + e.getMessage());
             throw new RuntimeException("Error updating discount", e);
         }
         return null;
@@ -150,7 +140,6 @@ public class DiscountRepositoryImpl implements DiscountRepository {
                 }
             }
         } catch (SQLException e) {
-            LOGGER.severe("Error deleting discount: " + e.getMessage());
             throw new RuntimeException("Error deleting discount", e);
         }
         return null;
@@ -172,7 +161,6 @@ public class DiscountRepositoryImpl implements DiscountRepository {
                 }
             }
         } catch (SQLException e) {
-            LOGGER.severe("Error getting discounts by type: " + e.getMessage());
             throw new RuntimeException("Error getting discounts by type", e);
         }
         return discounts;
@@ -193,7 +181,6 @@ public class DiscountRepositoryImpl implements DiscountRepository {
                 }
             }
         } catch (SQLException e) {
-            LOGGER.severe("Error getting discount by id: " + e.getMessage());
             throw new RuntimeException("Error getting discount by id", e);
         }
         return null;
