@@ -21,20 +21,8 @@ class TicketResource implements CrudHandler {
 
     @Override
     public void getOne(Context context, String id) {
-        try {
-            Optional<List<TicketData>> tickets = ticketManager.getFromBooking(id);
-            if (tickets.isPresent()) {
-                context.status(200);
-                context.json(tickets.get());
-            } else {
-                context.status(404);
-                context.json(Map.of("error", "No tickets found for booking " + id));
-            }
-        } catch (Exception e) {
-            logger.error("Error retrieving tickets for booking " + id, e);
-            context.status(500);
-            context.json(Map.of("error", "Internal server error"));
-        }
+        
+        
     }
 
     /*
