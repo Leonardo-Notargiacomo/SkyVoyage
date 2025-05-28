@@ -24,9 +24,13 @@ public class DiscountManagerImpl implements DiscountManager {
 
     @Override
     public void addDiscount(DiscountData discountData) {
-        if (!validateDiscount(discountData)) {
+
+        Validator validator = new Validator();
+
+        if (!(validator.isValidDiscount(discountData))) {
             throw new IllegalArgumentException("Invalid discount percentage. Please enter a value between 0 and 100.");
         }
+
         discountRepository.add(discountData);
     }
 
@@ -37,9 +41,5 @@ public class DiscountManagerImpl implements DiscountManager {
 
     public List<DiscountData> getAllDiscounts() {
         return discountRepository.getAll();
-    }
-
-    private Boolean validateDiscount(DiscountData discountData) {
-        return discountData.amount() >= 0 && discountData.amount() <= 100 && discountData.days() > 0;
     }
 }
