@@ -1,13 +1,11 @@
 package io.github.fontysvenlo.ais.businesslogic;
 
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Logger;
+
 import io.github.fontysvenlo.ais.businesslogic.api.PriceManager;
 import io.github.fontysvenlo.ais.datarecords.PricePerKmData;
 import io.github.fontysvenlo.ais.persistence.api.PriceRepository;
-
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Logger;
-import javax.naming.Context;
-import java.util.Map;
 
 public class PriceManagerImpl implements PriceManager {
 
@@ -42,6 +40,16 @@ public class PriceManagerImpl implements PriceManager {
             logger.warning("Error retrieving price: " + e.getMessage());
             return defaultPrice; // Default value if there's an exception
         }
+    }
+
+    @Override
+    public int calculateBasePrice(int duration) {
+        return (duration * 15 * getPrice()) / 100;
+    }
+
+    @Override
+    public int getDefaultPrice(int duration) {
+        return (defaultPrice * duration * 15) / 100;
     }
 
     @Override

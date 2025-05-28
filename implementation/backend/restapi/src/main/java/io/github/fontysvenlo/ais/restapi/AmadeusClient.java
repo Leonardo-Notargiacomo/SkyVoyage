@@ -28,7 +28,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.fontysvenlo.ais.businesslogic.api.DiscountManager;
 import io.github.fontysvenlo.ais.businesslogic.api.PriceManager;
 import io.github.fontysvenlo.ais.datarecords.DiscountData;
-import io.github.fontysvenlo.ais.datarecords.PricePerKmData;
 
 public class AmadeusClient {
 
@@ -434,11 +433,11 @@ public class AmadeusClient {
      */
     private int flightPrice(int duration, OffsetDateTime departureTime) {
         if (priceManager == null) {
-            return (duration * 15 * 10) / 100; // Default price formula
+            throw new IllegalStateException("PriceManager is not set");
         }
         
         // Calculate base price
-        int basePrice = (duration * 15 * priceManager.getPrice()) / 100;
+        int basePrice = priceManager.calculateBasePrice(duration);
         
         // Apply discount if available
         double finalPrice = calculateDiscountedPrice(basePrice, departureTime);

@@ -126,12 +126,11 @@ public class AviationStackClient {
      */
     private int flightPrice(int duration, OffsetDateTime departure) {
         if (priceManager == null) {
-            logger.warn("PriceManager is not set, using default price");
-            return (duration * 15 * 10) / 100; // Default price formula
+            throw new IllegalStateException("PriceManager is not set");
         }
         
         // Calculate base price
-        int basePrice = (duration * 15 * priceManager.getPrice()) / 100;
+        int basePrice = priceManager.calculateBasePrice(duration);
 
         // Apply discount if available
         double finalPrice = calculateDiscountedPrice(basePrice, departure);
