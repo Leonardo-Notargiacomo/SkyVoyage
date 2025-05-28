@@ -71,21 +71,20 @@ public class PriceResource implements CrudHandler {
             logger.error("Error getting price: {}", e.getMessage());
             context.status(500).json(Map.of("error", "Could not retrieve price"));
         }
-    }    @Override
+    }
+
+    @Override
     public void getOne(@NotNull Context context, @NotNull String s) {
-        // Not supported for price resource
-        context.status(405).json(Map.of("error", "Individual price retrieval not supported"));
+        context.status(405).json(Map.of("error", "Method not allowed"));
     }
 
     @Override
     public void update(@NotNull Context context, @NotNull String id) {
-        // Not supported - use create endpoint to update price
-        context.status(405).json(Map.of("error", "Use POST to update price"));
+        context.status(405).json(Map.of("error", "Method not allowed"));
     }
 
     @Override
     public void delete(@NotNull Context context, @NotNull String id) {
-        // Not supported for price resource
-        context.status(405).json(Map.of("error", "Price deletion not supported"));
+        context.status(405).json(Map.of("error", "Method not allowed"));
     }
 }
