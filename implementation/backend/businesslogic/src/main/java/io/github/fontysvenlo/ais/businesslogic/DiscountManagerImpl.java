@@ -1,11 +1,10 @@
 package io.github.fontysvenlo.ais.businesslogic;
 
+import java.util.List;
+
 import io.github.fontysvenlo.ais.businesslogic.api.DiscountManager;
 import io.github.fontysvenlo.ais.datarecords.DiscountData;
 import io.github.fontysvenlo.ais.persistence.api.DiscountRepository;
-
-import java.util.List;
-import java.util.Optional;
 
 public class DiscountManagerImpl implements DiscountManager {
 
@@ -40,8 +39,7 @@ public class DiscountManagerImpl implements DiscountManager {
         return discountRepository.getAll();
     }
 
-    @Override
-    public Boolean validateDiscount(DiscountData discountData) {
+    private Boolean validateDiscount(DiscountData discountData) {
         return discountData.amount() >= 0 && discountData.amount() <= 100 && discountData.days() > 0;
     }
 }
