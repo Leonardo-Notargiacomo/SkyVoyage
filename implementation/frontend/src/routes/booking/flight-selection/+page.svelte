@@ -379,19 +379,22 @@
 
   // When selecting a return flight
   function selectReturnFlight(flight) {
-    console.log("⚠️ Selecting return flight:", flight);
+    // Log what we're doing
+    console.log("Setting return flight:", flight);
     
-    // Import the proper function, might need to update imports at the top:
-    // import { bookingStore, setReturnFlight } from "$lib/stores/bookingStore";
+    // Update the store directly with the new return flight
+    bookingStore.update(store => {
+      // Add the returnFlight property to the store
+      return {
+        ...store,
+        returnFlight: flight
+      };
+    });
     
-    // Use the dedicated function that ensures proper storing
-    setReturnFlight(flight);
+    console.log("Return flight set:", flight);
     
-    // Log to verify it was stored properly
-    console.log("Return flight stored in booking:", $bookingStore.returnFlight);
-    console.log("Is round trip:", $bookingStore.isRoundTrip);
-    
-    // Continue with existing code
+    // Continue to next page or whatever you need to do
+    // ...existing code...
   }
 
   // Add a debug button to help test round trips

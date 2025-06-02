@@ -145,33 +145,67 @@
     };
   }
 
+  // Add this debugging function without changing the store structure
+  function debugBookingState() {
+    // Safe check for booking and return flight
+    console.log("Current booking data:", booking);
+    console.log("Has returnFlight property:", booking.hasOwnProperty('returnFlight'));
+    if (booking.returnFlight) {
+      console.log("Return flight data:", booking.returnFlight);
+    }
+  }
+
   async function confirmBooking() {
     try {
-      // Debug the booking store first
-      debugBookingStore();
-      
       // Extract flight details for proper database storage
       const flightData = extractFlightDataForStorage(booking.flight);
       
-      // Log all booking properties first to debug
-      console.log("Full booking store object:", booking);
-      console.log("All keys in booking:", Object.keys(booking));
-
-      // More reliable check for return flight presence
-      const hasReturnFlight = booking.returnFlight && 
-                          typeof booking.returnFlight === 'object' && 
-                          Object.keys(booking.returnFlight).length > 0;
-    
-      console.log("Has return flight:", hasReturnFlight);
-      console.log("Return flight object:", booking.returnFlight);
-    
+      // Debug log to check what's in the store
+      console.log("Current booking store data:", booking);
+      
+      // Check if we have fullOffer with return flight 
       let returnFlightData = null;
-    
-      if (hasReturnFlight) {
-        returnFlightData = extractFlightDataForStorage(booking.returnFlight);
-        console.log("Processed return flight data:", returnFlightData);
+      let hasReturnFlight = false;
+      
+      // IMPORTANT: Check for return flight inside fullOffer
+      if (booking.flight && booking.flight.fullOffer && booking.flight.fullOffer.trips) {
+        const returnTrip = booking.flight.fullOffer.trips.find(trip => trip.type === "return");
+        
+        if (returnTrip && returnTrip.flights && returnTrip.flights.length > 0) {
+          console.log("Found return trip in fullOffer:", returnTrip);
+          hasReturnFlight = true;
+          
+          // Create proper return flight object from the trip data
+          const returnFlightRaw = returnTrip.flights[0];
+          const returnFlight = {
+            id: returnFlightRaw.id,
+            airline: returnFlightRaw.carrierCode,
+            price: returnTrip.price,
+            status: "Scheduled",
+            duration: parseDurationToMinutes(returnFlightRaw.duration),
+            departure: {
+              iata: returnFlightRaw.departure.iata,
+              airport: returnFlightRaw.departure.iata,  // Using IATA as airport name
+              scheduled: returnFlightRaw.departure.scheduled,
+              delay: 0,
+              terminal: returnFlightRaw.departure.terminal,
+              gate: returnFlightRaw.departure.gate
+            },
+            arrival: {
+              iata: returnFlightRaw.arrival.iata,
+              airport: returnFlightRaw.arrival.iata,  // Using IATA as airport name
+              scheduled: returnFlightRaw.arrival.scheduled,
+              delay: 0,
+              terminal: returnFlightRaw.arrival.terminal,
+              gate: returnFlightRaw.arrival.gate
+            }
+          };
+          
+          console.log("Created return flight object:", returnFlight);
+          returnFlightData = extractFlightDataForStorage(returnFlight);
+        }
       }
-    
+      
       // Build the booking data object with proper structure for backend
       const bookingData = {
         flightId: `${booking.flight.departure.iata}-${booking.flight.arrival.iata}`,
@@ -186,37 +220,42 @@
         customers: booking.customers || []
       };
       
-      // Always include outbound flight
+      // Always include outbound flight data with correct ID
       bookingData.outboundFlight = flightData.mainFlight;
       
-      // Initialize arrays
+      // Create mainFlights array with the outbound flight
       bookingData.mainFlights = [flightData.mainFlight];
-      bookingData.connectionFlights = flightData.connectionFlights || [];
+      
+      // Explicitly include connection flights
+      if (flightData.connectionFlights && flightData.connectionFlights.length > 0) {
+        bookingData.connectionFlights = flightData.connectionFlights;
+      } else {
+        bookingData.connectionFlights = [];
+      }
       
       // Add return flight if present
       if (hasReturnFlight && returnFlightData) {
+        // Add the return flight to request
         bookingData.returnFlight = returnFlightData.mainFlight;
         
-        // Make sure to add to mainFlights array
+        // Add return flight to mainFlights array
         bookingData.mainFlights.push(returnFlightData.mainFlight);
         
-        console.log("Added return flight to request:", returnFlightData.mainFlight);
+        console.log("Added return flight to mainFlights:", returnFlightData.mainFlight);
         
-        // Add any connection flights from return journey
+        // Include return flight connections
         if (returnFlightData.connectionFlights && returnFlightData.connectionFlights.length > 0) {
-          bookingData.connectionFlights = [
-            ...bookingData.connectionFlights,
-            ...returnFlightData.connectionFlights
-          ];
+          if (!bookingData.connectionFlights) bookingData.connectionFlights = [];
+          bookingData.connectionFlights = [...bookingData.connectionFlights, ...returnFlightData.connectionFlights];
         }
       }
       
       // For compatibility
       bookingData.flight = flightData.mainFlight;
       
-      console.log("Final booking request:", bookingData);
-      console.log("Contains return flight:", bookingData.returnFlight !== undefined);
-      console.log("Main flights count:", bookingData.mainFlights.length);
+      console.log("Sending booking with flight data:", bookingData);
+      console.log("Number of main flights:", bookingData.mainFlights.length);
+      console.log("Has return flight:", hasReturnFlight);
       
       // Use the API helper instead of direct fetch
       const result = await api.create("bookings", JSON.stringify(bookingData));
@@ -233,23 +272,57 @@
     }
   }
 
+  // Update the reserve booking function with similar changes
   async function reserveBooking() {
     try {
       // Extract flight details for proper database storage
       const flightData = extractFlightDataForStorage(booking.flight);
       
-      // Check if we have a return flight
-      const hasReturnFlight = booking.returnFlight && Object.keys(booking.returnFlight).length > 0;
+      // Check if we have fullOffer with return flight 
       let returnFlightData = null;
+      let hasReturnFlight = false;
       
-      if (hasReturnFlight) {
-        returnFlightData = extractFlightDataForStorage(booking.returnFlight);
-        console.log("Return flight detected:", returnFlightData);
+      // Check for return flight inside fullOffer
+      if (booking.flight && booking.flight.fullOffer && booking.flight.fullOffer.trips) {
+        const returnTrip = booking.flight.fullOffer.trips.find(trip => trip.type === "return");
+        
+        if (returnTrip && returnTrip.flights && returnTrip.flights.length > 0) {
+          console.log("Found return trip in fullOffer for reservation:", returnTrip);
+          hasReturnFlight = true;
+          
+          // Create proper return flight object from the trip data
+          const returnFlightRaw = returnTrip.flights[0];
+          const returnFlight = {
+            id: returnFlightRaw.id,
+            airline: returnFlightRaw.carrierCode,
+            price: returnTrip.price,
+            status: "Scheduled",
+            duration: parseDurationToMinutes(returnFlightRaw.duration),
+            departure: {
+              iata: returnFlightRaw.departure.iata,
+              airport: returnFlightRaw.departure.iata,
+              scheduled: returnFlightRaw.departure.scheduled,
+              delay: 0,
+              terminal: returnFlightRaw.departure.terminal,
+              gate: returnFlightRaw.departure.gate
+            },
+            arrival: {
+              iata: returnFlightRaw.arrival.iata,
+              airport: returnFlightRaw.arrival.iata,
+              scheduled: returnFlightRaw.arrival.scheduled,
+              delay: 0,
+              terminal: returnFlightRaw.arrival.terminal,
+              gate: returnFlightRaw.arrival.gate
+            }
+          };
+          
+          returnFlightData = extractFlightDataForStorage(returnFlight);
+        }
       }
       
       // Build the booking data object
       const bookingData = {
-        flightId: booking.flight.flightId || booking.flight.id || booking.flight.fullOffer?.trips?.[0]?.flights?.[0]?.id || `${booking.flight.departure.iata}-${booking.flight.arrival.iata}`,
+        flightId: `${booking.flight.departure.iata}-${booking.flight.arrival.iata}`,
         airline: booking.flight.airline,
         price: booking.flight.price,
         adultPassengers: booking.AdultPassengers || 1,
@@ -258,12 +331,27 @@
         discount: booking.discount || 0,
         discountReason: booking.discountReason || "",
         status: "RESERVED",
-        customers: booking.customers || [],
-        flight: flightData.mainFlight,
-        connectionFlights: flightData.connectionFlights
+        customers: booking.customers || []
       };
 
-      console.log("Sending booking with flight data:", bookingData);
+      // Always include flight data
+      bookingData.flight = flightData.mainFlight;
+      bookingData.mainFlights = [flightData.mainFlight];
+      bookingData.connectionFlights = flightData.connectionFlights || [];
+
+      // Add return flight if present
+      if (hasReturnFlight && returnFlightData) {
+        bookingData.returnFlight = returnFlightData.mainFlight;
+        bookingData.mainFlights.push(returnFlightData.mainFlight);
+        
+        // Include return flight connections if any
+        if (returnFlightData.connectionFlights && returnFlightData.connectionFlights.length > 0) {
+          if (!bookingData.connectionFlights) bookingData.connectionFlights = [];
+          bookingData.connectionFlights = [...bookingData.connectionFlights, ...returnFlightData.connectionFlights];
+        }
+      }
+
+      console.log("Sending booking data for reservation:", bookingData);
       
       // Use the API helper instead of direct fetch
       const result = await api.create("bookings", JSON.stringify(bookingData));
