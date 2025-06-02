@@ -64,10 +64,32 @@ package "persistence-api" {
 package "persistence" {
   class PriceRepositoryImpl {
     - db: DataSource
-    - pricePerKmData: PricePerKmData
+    - logger: Logger
     + PriceRepositoryImpl(config: DBConfig)
     + get(): int
     + change(newPrice: PricePerKmData): void
+  }
+
+  class DBConfig {
+    + namespace: String
+    + host: String
+    + port: int
+    + name: String
+    + schema: String
+    + username: String
+    + password: String
+  }
+
+  class DBProvider {
+    + {static} getDataSource(config: DBConfig): DataSource
+  }
+}
+
+package "database" {
+  class PricePerKm {
+    + id: Integer
+    + price: Integer
+    + lastUpdated: Timestamp
   }
 }
 
@@ -82,7 +104,9 @@ PriceResource --> PriceManager : uses
 PriceManagerImpl ..|> PriceManager : implements
 PriceManagerImpl --> PriceRepository : uses
 PriceRepositoryImpl ..|> PriceRepository : implements
-PriceRepositoryImpl --> PricePerKmData : stores
+PriceRepositoryImpl --> DBConfig : uses
+PriceRepositoryImpl --> DBProvider : uses
+PriceRepositoryImpl --> PricePerKm : stores
 AmadeusClient --> PriceManager : uses
 PriceManager ..> PricePerKmData : uses as parameter
 PriceRepository ..> PricePerKmData : uses as parameter
@@ -101,6 +125,11 @@ end note
 note right of PricePerKmData
   Java record that holds
   price per km in cents
+end note
+
+note right of PricePerKm
+  Database table that stores
+  price history with timestamps
 end note
 
 @enduml
