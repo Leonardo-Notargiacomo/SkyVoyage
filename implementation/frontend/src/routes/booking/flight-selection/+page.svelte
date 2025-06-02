@@ -147,33 +147,24 @@
 
   async function confirmBooking() {
     try {
-      // Debug the booking store first
-      debugBookingStore();
-      
       // Extract flight details for proper database storage
       const flightData = extractFlightDataForStorage(booking.flight);
       
-      // Log all booking properties first to debug
-      console.log("Full booking store object:", booking);
-      console.log("All keys in booking:", Object.keys(booking));
-
-      // More reliable check for return flight presence
-      const hasReturnFlight = booking.returnFlight && 
-                          typeof booking.returnFlight === 'object' && 
-                          Object.keys(booking.returnFlight).length > 0;
-    
-      console.log("Has return flight:", hasReturnFlight);
-      console.log("Return flight object:", booking.returnFlight);
-    
+      // Debug log to check what's in the store
+      console.log("Current booking store data:", booking);
+      
+      // Check if we have a return flight - use multiple ways to detect it
+      const hasReturnFlight = booking.returnFlight && Object.keys(booking.returnFlight).length > 0;
       let returnFlightData = null;
-    
+      
       if (hasReturnFlight) {
         returnFlightData = extractFlightDataForStorage(booking.returnFlight);
-        console.log("Processed return flight data:", returnFlightData);
+        console.log("Return flight detected:", returnFlightData.mainFlight);
       }
-    
+      
       // Build the booking data object with proper structure for backend
       const bookingData = {
+        // Always use the IATA-based ID format
         flightId: `${booking.flight.departure.iata}-${booking.flight.arrival.iata}`,
         airline: booking.flight.airline,
         price: booking.flight.price,
@@ -186,37 +177,39 @@
         customers: booking.customers || []
       };
       
-      // Always include outbound flight
+      // Always include outbound flight data with correct ID
       bookingData.outboundFlight = flightData.mainFlight;
       
-      // Initialize arrays
-      bookingData.mainFlights = [flightData.mainFlight];
-      bookingData.connectionFlights = flightData.connectionFlights || [];
+      // Explicitly include connection flights
+      if (flightData.connectionFlights && flightData.connectionFlights.length > 0) {
+        bookingData.connectionFlights = flightData.connectionFlights;
+      } else {
+        bookingData.connectionFlights = [];
+      }
       
-      // Add return flight if present
-      if (hasReturnFlight && returnFlightData) {
+      // Add return flight if present with correct ID
+      if (hasReturnFlight) {
         bookingData.returnFlight = returnFlightData.mainFlight;
         
-        // Make sure to add to mainFlights array
-        bookingData.mainFlights.push(returnFlightData.mainFlight);
-        
-        console.log("Added return flight to request:", returnFlightData.mainFlight);
-        
-        // Add any connection flights from return journey
+        // Include return flight connections
         if (returnFlightData.connectionFlights && returnFlightData.connectionFlights.length > 0) {
-          bookingData.connectionFlights = [
-            ...bookingData.connectionFlights,
-            ...returnFlightData.connectionFlights
-          ];
+          if (!bookingData.connectionFlights) bookingData.connectionFlights = [];
+          bookingData.connectionFlights = [...bookingData.connectionFlights, ...returnFlightData.connectionFlights];
         }
       }
       
-      // For compatibility
+      // For clarity in the API
       bookingData.flight = flightData.mainFlight;
       
-      console.log("Final booking request:", bookingData);
-      console.log("Contains return flight:", bookingData.returnFlight !== undefined);
-      console.log("Main flights count:", bookingData.mainFlights.length);
+      // Create explicit mainFlights array for the backend
+      bookingData.mainFlights = [flightData.mainFlight];
+      if (hasReturnFlight) {
+        bookingData.mainFlights.push(returnFlightData.mainFlight);
+      }
+
+      console.log("Sending booking with flight data:", bookingData);
+      console.log("Number of main flights:", bookingData.mainFlights.length);
+      console.log("Has return flight:", hasReturnFlight);
       
       // Use the API helper instead of direct fetch
       const result = await api.create("bookings", JSON.stringify(bookingData));
@@ -384,24 +377,84 @@
     });
   }
 
-  // After the existing imports, add this debugging function
-  function debugBookingStore() {
-    // This will show all properties in the console
-    console.log("FULL BOOKING STORE DUMP:", JSON.stringify($bookingStore, null, 2));
+  // When selecting a return flight
+  function selectReturnFlight(flight) {
+    console.log("⚠️ Selecting return flight:", flight);
     
-    // Check specifically for returnFlight
-    if ($bookingStore.returnFlight) {
-      console.log("Return flight exists and has keys:", Object.keys($bookingStore.returnFlight));
-    } else {
-      console.error("NO RETURN FLIGHT IN STORE!");
-    }
+    // Import the proper function, might need to update imports at the top:
+    // import { bookingStore, setReturnFlight } from "$lib/stores/bookingStore";
+    
+    // Use the dedicated function that ensures proper storing
+    setReturnFlight(flight);
+    
+    // Log to verify it was stored properly
+    console.log("Return flight stored in booking:", $bookingStore.returnFlight);
+    console.log("Is round trip:", $bookingStore.isRoundTrip);
+    
+    // Continue with existing code
   }
 
-  // Call this at component initialization
-  $: {
-    if (booking) {
-      debugBookingStore();
-    }
+  // Add a debug button to help test round trips
+  function createTestRoundTrip() {
+    // Create a dummy round trip data
+    const dummyOutbound = {
+      departure: {
+        iata: "LHR",
+        airport: "London Heathrow",
+        terminal: "5",
+        gate: "A1",
+        scheduled: "2023-12-15T10:00:00",
+        delay: 0
+      },
+      arrival: {
+        iata: "JFK",
+        airport: "John F. Kennedy International",
+        terminal: "4",
+        gate: "B22",
+        scheduled: "2023-12-15T18:00:00",
+        delay: 0
+      },
+      airline: "BA",
+      price: 500,
+      duration: 480,
+      status: "SCHEDULED",
+      fullOffer: {} // Add dummy full offer if needed
+    };
+    
+    const dummyReturn = {
+      departure: {
+        iata: "JFK",
+        airport: "John F. Kennedy International",
+        terminal: "4",
+        gate: "B22",
+        scheduled: "2023-12-20T20:00:00",
+        delay: 0
+      },
+      arrival: {
+        iata: "LHR",
+        airport: "London Heathrow",
+        terminal: "5",
+        gate: "A1",
+        scheduled: "2023-12-21T08:00:00",
+        delay: 0
+      },
+      airline: "BA",
+      price: 500,
+      duration: 480,
+      status: "SCHEDULED",
+      fullOffer: {} // Add dummy full offer if needed
+    };
+    
+    // Set the round trip in the booking store
+    bookingStore.set({
+      ...$bookingStore,
+      flight: dummyOutbound,
+      returnFlight: dummyReturn,
+      isRoundTrip: true
+    });
+    
+    // Log the result
+    console.log("Test round trip created:", $bookingStore);
   }
 </script>
 
@@ -668,7 +721,7 @@
                 <div class="flex items-center mb-3">
                   <div class="bg-blue-100 p-1.5 rounded-full mr-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
                   </div>
                   <h3 class="font-medium text-gray-800">Adults ({booking.AdultPassengers})</h3>
@@ -956,5 +1009,23 @@
 
   .card {
     transition: all 0.3s ease;
+  }
+
+  .debug-btn {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background: #333;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    opacity: 0.7;
+    z-index: 1000;
+  }
+
+  .debug-btn:hover {
+    opacity: 1;
   }
 </style>

@@ -1,6 +1,7 @@
 package io.github.fontysvenlo.ais.businesslogic.api;
 
 import java.util.List;
+import java.util.Map;
 
 import io.github.fontysvenlo.ais.datarecords.BookingData;
 
@@ -15,6 +16,14 @@ public interface BookingManager {
      * @return The added booking data
      */
     BookingData add(BookingData bookingData);
+    
+    /**
+     * Adds a booking using a simple map structure instead of complex records.
+     * 
+     * @param bookingMap Map containing booking data
+     * @return Map containing the result
+     */
+    Map<String, Object> addSimple(Map<String, Object> bookingMap);
     
     /**
      * Gets all bookings.

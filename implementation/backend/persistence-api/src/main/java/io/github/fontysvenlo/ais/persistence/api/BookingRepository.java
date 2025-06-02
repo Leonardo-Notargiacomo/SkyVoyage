@@ -1,6 +1,7 @@
 package io.github.fontysvenlo.ais.persistence.api;
 
 import java.util.List;
+import java.util.Map;
 
 import io.github.fontysvenlo.ais.datarecords.BookingData;
 
@@ -15,6 +16,14 @@ public interface BookingRepository {
      * @return the added booking with generated ID
      */
     BookingData add(BookingData bookingData);
+    
+    /**
+     * Adds a booking using a simple map structure.
+     * 
+     * @param bookingMap the booking data as a map
+     * @return a map containing the created booking details
+     */
+    Map<String, Object> addSimple(Map<String, Object> bookingMap);
     
     /**
      * Lists all bookings.

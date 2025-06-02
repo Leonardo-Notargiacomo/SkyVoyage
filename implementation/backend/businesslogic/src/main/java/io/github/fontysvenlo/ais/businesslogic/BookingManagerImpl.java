@@ -1,6 +1,7 @@
 package io.github.fontysvenlo.ais.businesslogic;
 
 import java.util.List;
+import java.util.Map;
 
 import io.github.fontysvenlo.ais.businesslogic.api.BookingManager;
 import io.github.fontysvenlo.ais.datarecords.BookingData;
@@ -25,6 +26,11 @@ public class BookingManagerImpl implements BookingManager {
     @Override
     public BookingData add(BookingData bookingData) {
         return bookingRepository.add(bookingData);
+    }
+    
+    @Override
+    public Map<String, Object> addSimple(Map<String, Object> bookingMap) {
+        return bookingRepository.addSimple(bookingMap);
     }
     
     @Override

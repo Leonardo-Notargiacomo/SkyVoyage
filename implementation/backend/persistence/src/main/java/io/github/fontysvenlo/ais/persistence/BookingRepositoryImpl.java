@@ -8,7 +8,9 @@ import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -869,6 +871,513 @@ class BookingRepositoryImpl implements BookingRepository {
 
                 return customers;
             }
+        }
+    }
+
+    @Override
+    public Map<String, Object> addSimple(Map<String, Object> bookingMap) {
+        Connection connection = null;
+        try {
+            connection = db.getConnection();
+            connection.setAutoCommit(false);  // Start transaction
+
+            // Extract basic booking info
+            String flightId = getSafeString(bookingMap, "flightId");
+            String airline = getSafeString(bookingMap, "airline");
+            int adultPassengers = getSafeInt(bookingMap, "adultPassengers", 1);
+            int infantPassengers = getSafeInt(bookingMap, "infantPassengers", 0);
+            
+            LOGGER.info("Processing booking for: " + flightId + ", airline: " + airline);
+            
+            // Process all flight information: outbound, return and connections
+            List<String> flightIdsToLink = new ArrayList<>();
+            
+            // 1. Process mainFlights array (could contain both outbound and return)
+            List<Map<String, Object>> mainFlights = getSafeList(bookingMap, "mainFlights");
+            if (mainFlights != null && !mainFlights.isEmpty()) {
+                LOGGER.info("Processing " + mainFlights.size() + " main flights");
+                for (Map<String, Object> mainFlight : mainFlights) {
+                    String mainFlightId = getSafeString(mainFlight, "id");
+                    if (mainFlightId == null) {
+                        // Try to extract from departure/arrival IATA codes
+                        String depCode = getSafeString(mainFlight, "departureAirportShort");
+                        String arrCode = getSafeString(mainFlight, "arrivalAirportShort");
+                        if (depCode != null && arrCode != null) {
+                            mainFlightId = depCode + "-" + arrCode;
+                            mainFlight.put("id", mainFlightId); // Update map with constructed ID
+                            LOGGER.info("Built flight ID from IATA codes: " + mainFlightId);
+                        }
+                    }
+
+                    // Save the flight if we have a valid ID
+                    if (mainFlightId != null) {
+                        saveFlightMapIfNeeded(connection, mainFlight);
+                        if (!flightIdsToLink.contains(mainFlightId)) {
+                            LOGGER.info("Adding main flight ID to link: " + mainFlightId);
+                            flightIdsToLink.add(mainFlightId);
+                        }
+                    } else {
+                        LOGGER.warning("Skipping main flight with no ID or IATA codes");
+                    }
+                }
+            }
+            
+            // 2. Process outbound/return flights if they're not in mainFlights
+            Map<String, Object> outboundFlight = getSafeMap(bookingMap, "outboundFlight");
+            Map<String, Object> returnFlight = getSafeMap(bookingMap, "returnFlight");
+            
+            if (outboundFlight != null) {
+                saveFlightMapIfNeeded(connection, outboundFlight);
+                String outboundId = getSafeString(outboundFlight, "id");
+                if (outboundId != null && !flightIdsToLink.contains(outboundId)) {
+                    LOGGER.info("Adding outbound flight ID to link: " + outboundId);
+                    flightIdsToLink.add(outboundId);
+                }
+            }
+            
+            if (returnFlight != null) {
+                saveFlightMapIfNeeded(connection, returnFlight);
+                String returnId = getSafeString(returnFlight, "id");
+                if (returnId != null && !flightIdsToLink.contains(returnId)) {
+                    LOGGER.info("Adding return flight ID to link: " + returnId);
+                    flightIdsToLink.add(returnId);
+                }
+            }
+            
+            // 3. Process individual flight if no main/outbound/return flights found
+            if (flightIdsToLink.isEmpty()) {
+                Map<String, Object> singleFlight = getSafeMap(bookingMap, "flight");
+                if (singleFlight != null) {
+                    saveFlightMapIfNeeded(connection, singleFlight);
+                    String singleFlightId = getSafeString(singleFlight, "id");
+                    if (singleFlightId != null) {
+                        LOGGER.info("Adding single flight ID to link: " + singleFlightId);
+                        flightIdsToLink.add(singleFlightId);
+                    }
+                } else if (flightId != null) {
+                    saveBasicFlightIfNeeded(connection, flightId);
+                    LOGGER.info("Adding flightId to link: " + flightId);
+                    flightIdsToLink.add(flightId);
+                }
+            }
+            
+            // 4. Process connection flights
+            List<Map<String, Object>> connectionFlights = getSafeList(bookingMap, "connectionFlights");
+            if (connectionFlights != null) {
+                LOGGER.info("Processing " + connectionFlights.size() + " connection flights");
+                for (Map<String, Object> connectionFlight : connectionFlights) {
+                    saveFlightMapIfNeeded(connection, connectionFlight);
+                    String connectionId = getSafeString(connectionFlight, "id");
+                    if (connectionId != null && !flightIdsToLink.contains(connectionId)) {
+                        LOGGER.info("Adding connection flight ID to link: " + connectionId);
+                        flightIdsToLink.add(connectionId);
+                    }
+                }
+            }
+            
+            if (flightIdsToLink.isEmpty()) {
+                throw new SQLException("No valid flights found in booking data");
+            }
+            
+            // 5. Create booking record
+            int bookingId = createBooking(connection);
+            LOGGER.info("Created booking with ID: " + bookingId);
+            
+            // 6. Link ALL flights to booking
+            for (String id : flightIdsToLink) {
+                linkBookingToFlight(connection, bookingId, id);
+            }
+            
+            // 7. Process customers with tickets for all flights - outbound, return, connections
+            List<Map<String, Object>> customers = getSafeList(bookingMap, "customers");
+            if (customers != null) {
+                for (Map<String, Object> customer : customers) {
+                    int customerId = saveCustomerMap(connection, customer);
+                    
+                    // Create tickets for ALL flights - outbound, return, connections
+                    for (String id : flightIdsToLink) {
+                        createTicket(connection, customerId, id);
+                    }
+                }
+            }
+
+            connection.commit();  // Commit transaction
+            
+            // Return a map with booking details
+            Map<String, Object> result = new HashMap<>();
+            result.put("id", bookingId);
+            result.put("allFlightIds", flightIdsToLink);
+            result.put("airline", airline);
+            result.put("status", getSafeString(bookingMap, "status", "CONFIRMED"));
+            result.put("adultPassengers", adultPassengers);
+            result.put("infantPassengers", infantPassengers);
+            
+            return result;
+            
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error adding booking to the database", e);
+            if (connection != null) {
+                try {
+                    connection.rollback();  // Rollback transaction on error
+                } catch (SQLException ex) {
+                    LOGGER.log(Level.SEVERE, "Error rolling back transaction", ex);
+                }
+            }
+            throw new RuntimeException("Failed to add booking", e);
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.setAutoCommit(true);
+                    connection.close();
+                } catch (SQLException e) {
+                    LOGGER.log(Level.SEVERE, "Error closing connection", e);
+                }
+            }
+        }
+    }
+    
+    private void saveFlightMapIfNeeded(Connection connection, Map<String, Object> flightMap) throws SQLException {
+        String flightId = getSafeString(flightMap, "id");
+        if (flightId == null) {
+            // Try to build ID from departure/arrival if missing
+            String depCode = getSafeString(flightMap, "departureAirportShort");
+            String arrCode = getSafeString(flightMap, "arrivalAirportShort");
+            if (depCode != null && arrCode != null) {
+                flightId = depCode + "-" + arrCode;
+                LOGGER.info("Built flight ID from IATA codes: " + flightId);
+                // Update the map with the ID for consistency
+                flightMap.put("id", flightId);
+            } else {
+                LOGGER.warning("Flight map missing ID and cannot build from IATA codes, skipping");
+                return;
+            }
+        }
+        
+        // Check if flight exists
+        if (flightExists(connection, flightId)) {
+            LOGGER.info("Flight " + flightId + " already exists, skipping");
+            return;
+        }
+        
+        // Parse data for flight creation
+        String departureAirport = getSafeString(flightMap, "departureAirport");
+        String departureAirportShort = getSafeString(flightMap, "departureAirportShort");
+        // If we have the short code but no full name, create a generic one
+        if (departureAirport == null && departureAirportShort != null) {
+            departureAirport = "Airport " + departureAirportShort;
+        }
+        
+        String departureTerminal = getSafeString(flightMap, "departureTerminal");
+        String departureGate = getSafeString(flightMap, "departureGate");
+        String departureScheduledTimeStr = getSafeString(flightMap, "departureScheduledTime");
+        java.sql.Timestamp departureTime = parseTimestamp(departureScheduledTimeStr);
+        
+        String arrivalAirport = getSafeString(flightMap, "arrivalAirport");
+        String arrivalAirportShort = getSafeString(flightMap, "arrivalAirportShort");
+        // If we have the short code but no full name, create a generic one
+        if (arrivalAirport == null && arrivalAirportShort != null) {
+            arrivalAirport = "Airport " + arrivalAirportShort;
+        }
+        
+        String arrivalTerminal = getSafeString(flightMap, "arrivalTerminal");
+        String arrivalGate = getSafeString(flightMap, "arrivalGate");
+        String arrivalScheduledTimeStr = getSafeString(flightMap, "arrivalScheduledTime");
+        java.sql.Timestamp arrivalTime = parseTimestamp(arrivalScheduledTimeStr);
+        
+        Integer duration = getSafeInt(flightMap, "duration", 180); // Default 3 hour duration
+        
+        // Log all the data we're inserting
+        LOGGER.info("Inserting flight record with ID: " + flightId);
+        LOGGER.info("  Departure: " + departureAirport + " (" + departureAirportShort + ")");
+        LOGGER.info("  Arrival: " + arrivalAirport + " (" + arrivalAirportShort + ")");
+        
+        // Insert flight
+        insertFlightRecord(connection, flightId, 
+                departureAirport, departureAirportShort, departureTerminal, departureGate, departureTime,
+                arrivalAirport, arrivalAirportShort, arrivalTerminal, arrivalGate, arrivalTime, duration);
+    }
+    
+    private void saveBasicFlightIfNeeded(Connection connection, String flightId) throws SQLException {
+        if (flightId == null || flightId.isEmpty()) {
+            LOGGER.warning("Empty flight ID provided");
+            return;
+        }
+        
+        if (flightExists(connection, flightId)) {
+            LOGGER.info("Flight " + flightId + " already exists, skipping");
+            return;
+        }
+        
+        // Try to extract airport codes from flight ID (e.g., "JFK-LAX")
+        String departureAirportShort = "UNK";
+        String arrivalAirportShort = "UNK";
+        String[] parts = flightId.split("-");
+        if (parts.length >= 2) {
+            departureAirportShort = parts[0];
+            arrivalAirportShort = parts[1];
+        }
+        
+        String departureAirport = "Airport " + departureAirportShort; 
+        String arrivalAirport = "Airport " + arrivalAirportShort;
+        
+        // Insert basic flight record
+        insertFlightRecord(connection, flightId, 
+                departureAirport, departureAirportShort, null, null, null,
+                arrivalAirport, arrivalAirportShort, null, null, null, 180);
+    }
+    
+    private int saveCustomerMap(Connection connection, Map<String, Object> customerMap) throws SQLException {
+        // Try to get existing ID
+        Integer customerId = getSafeInt(customerMap, "id", null);
+        if (customerId != null && customerExists(connection, customerId)) {
+            // Update customer
+            updateCustomerMap(connection, customerMap);
+            return customerId;
+        }
+        
+        // Create address if needed
+        int addressId = 0;
+        String street = getSafeString(customerMap, "street");
+        String houseNumber = getSafeString(customerMap, "houseNumber");
+        String city = getSafeString(customerMap, "city");
+        String country = getSafeString(customerMap, "country");
+        
+        if (street != null && !street.isEmpty()) {
+            addressId = createAddressSimple(connection, street, houseNumber, city, country);
+        }
+        
+        // Create customer
+        String firstName = getSafeString(customerMap, "firstName");
+        String lastName = getSafeString(customerMap, "lastName");
+        String email = getSafeString(customerMap, "email");
+        String phone = getSafeString(customerMap, "phone");
+        boolean isInfant = getSafeBoolean(customerMap, "isInfant", false);
+        
+        return createCustomerSimple(connection, firstName, lastName, email, phone, addressId, isInfant);
+    }
+    
+    private boolean customerExists(Connection connection, int customerId) throws SQLException {
+        String sql = "SELECT 1 FROM public.customer WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, customerId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+    
+    private void updateCustomerMap(Connection connection, Map<String, Object> customerMap) throws SQLException {
+        Integer customerId = getSafeInt(customerMap, "id", null);
+        if (customerId == null) {
+            return;
+        }
+        
+        // Check for address
+        Integer existingAddressId = getCustomerAddressId(connection, customerId);
+        int addressId = 0;
+        
+        String street = getSafeString(customerMap, "street");
+        String houseNumber = getSafeString(customerMap, "houseNumber");
+        String city = getSafeString(customerMap, "city");
+        String country = getSafeString(customerMap, "country");
+        
+        if (street != null && !street.isEmpty()) {
+            if (existingAddressId != null && existingAddressId > 0) {
+                // Update existing address
+                updateAddressSimple(connection, existingAddressId, street, houseNumber, city, country);
+                addressId = existingAddressId;
+            } else {
+                // Create new address
+                addressId = createAddressSimple(connection, street, houseNumber, city, country);
+            }
+        }
+        
+        // Update customer
+        String firstName = getSafeString(customerMap, "firstName");
+        String lastName = getSafeString(customerMap, "lastName");
+        String email = getSafeString(customerMap, "email");
+        String phone = getSafeString(customerMap, "phone");
+        boolean isInfant = getSafeBoolean(customerMap, "isInfant", false);
+        
+        String sql = "UPDATE public.customer SET firstname = ?, lastname = ?, email = ?, phonenumber = ?, " +
+                "addressid = ?, isinfant = ? WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, firstName);
+            stmt.setString(2, lastName);
+            stmt.setString(3, email);
+            stmt.setString(4, phone);
+            
+            if (addressId > 0) {
+                stmt.setInt(5, addressId);
+            } else {
+                stmt.setNull(5, java.sql.Types.INTEGER);
+            }
+            
+            stmt.setBoolean(6, isInfant);
+            stmt.setInt(7, customerId);
+            stmt.executeUpdate();
+        }
+    }
+    
+    private Integer getCustomerAddressId(Connection connection, int customerId) throws SQLException {
+        String sql = "SELECT addressid FROM public.customer WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, customerId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    int addressId = rs.getInt("addressid");
+                    return rs.wasNull() ? null : addressId;
+                }
+                return null;
+            }
+        }
+    }
+    
+    private int createAddressSimple(Connection connection, String street, String houseNumber, 
+                                   String city, String country) throws SQLException {
+        String sql = "INSERT INTO public.address (street, housenumber, city, country) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, street);
+            stmt.setString(2, houseNumber);
+            stmt.setString(3, city);
+            stmt.setString(4, country);
+            
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Creating address failed, no rows affected.");
+            }
+            
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getInt(1);
+                } else {
+                    throw new SQLException("Creating address failed, no ID obtained.");
+                }
+            }
+        }
+    }
+    
+    private void updateAddressSimple(Connection connection, int addressId, String street, String houseNumber, 
+                                    String city, String country) throws SQLException {
+        String sql = "UPDATE public.address SET street = ?, housenumber = ?, city = ?, country = ? WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, street);
+            stmt.setString(2, houseNumber);
+            stmt.setString(3, city);
+            stmt.setString(4, country);
+            stmt.setInt(5, addressId);
+            stmt.executeUpdate();
+        }
+    }
+    
+    private int createCustomerSimple(Connection connection, String firstName, String lastName,
+                                    String email, String phone, int addressId, boolean isInfant) throws SQLException {
+        String sql = "INSERT INTO public.customer (firstname, lastname, email, phonenumber, addressid, isinfant) " +
+                     "VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, firstName);
+            stmt.setString(2, lastName);
+            stmt.setString(3, email);
+            stmt.setString(4, phone);
+            
+            if (addressId > 0) {
+                stmt.setInt(5, addressId);
+            } else {
+                stmt.setNull(5, java.sql.Types.INTEGER);
+            }
+            
+            stmt.setBoolean(6, isInfant);
+
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Creating customer failed, no rows affected.");
+            }
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getInt(1);
+                } else {
+                    throw new SQLException("Creating customer failed, no ID obtained.");
+                }
+            }
+        }
+    }
+    
+    // Helper methods to safely extract values from maps
+    private String getSafeString(Map<String, Object> map, String key) {
+        return getSafeString(map, key, null);
+    }
+    
+    private String getSafeString(Map<String, Object> map, String key, String defaultValue) {
+        if (map == null || !map.containsKey(key)) return defaultValue;
+        Object value = map.get(key);
+        return value != null ? value.toString() : defaultValue;
+    }
+    
+    private Integer getSafeInt(Map<String, Object> map, String key, Integer defaultValue) {
+        if (map == null || !map.containsKey(key)) return defaultValue;
+        Object value = map.get(key);
+        if (value == null) return defaultValue;
+        
+        try {
+            if (value instanceof Number) {
+                return ((Number)value).intValue();
+            } else {
+                return Integer.parseInt(value.toString());
+            }
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+    
+    private boolean getSafeBoolean(Map<String, Object> map, String key, boolean defaultValue) {
+        if (map == null || !map.containsKey(key)) return defaultValue;
+        Object value = map.get(key);
+        if (value == null) return defaultValue;
+        
+        if (value instanceof Boolean) {
+            return (Boolean)value;
+        } else {
+            String strValue = value.toString().toLowerCase();
+            return "true".equals(strValue) || "yes".equals(strValue) || "1".equals(strValue);
+        }
+    }
+    
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getSafeMap(Map<String, Object> map, String key) {
+        if (map == null || !map.containsKey(key)) return null;
+        Object value = map.get(key);
+        return value instanceof Map ? (Map<String, Object>)value : null;
+    }
+    
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> getSafeList(Map<String, Object> map, String key) {
+        if (map == null || !map.containsKey(key)) return null;
+        Object value = map.get(key);
+        if (!(value instanceof List)) return null;
+        
+        List<Object> list = (List<Object>)value;
+        List<Map<String, Object>> result = new ArrayList<>();
+        
+        for (Object item : list) {
+            if (item instanceof Map) {
+                result.add((Map<String, Object>)item);
+            }
+        }
+        
+        return result;
+    }
+    
+    private java.sql.Timestamp parseTimestamp(String dateTimeStr) {
+        if (dateTimeStr == null || dateTimeStr.isEmpty()) return null;
+        
+        try {
+            // Try to parse as ISO format
+            LocalDateTime dateTime = LocalDateTime.parse(dateTimeStr);
+            return java.sql.Timestamp.valueOf(dateTime);
+        } catch (Exception e) {
+            LOGGER.warning("Failed to parse timestamp: " + dateTimeStr);
+            return null;
         }
     }
 }
