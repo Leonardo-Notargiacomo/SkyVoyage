@@ -1,8 +1,8 @@
 package io.github.fontysvenlo.ais.restapi;
 
-import java.util.Map;
+import java.util.ArrayList;
 import java.util.List;  // Add this import for List
-import java.util.ArrayList;  // Add this import for ArrayList
+import java.util.Map;  // Add this import for ArrayList
 
 import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
 import io.github.fontysvenlo.ais.datarecords.EmployeeData;

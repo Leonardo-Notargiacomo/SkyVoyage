@@ -892,20 +892,23 @@ class BookingRepositoryImpl implements BookingRepository {
             // Process all flight information: outbound, return and connections
             List<String> flightIdsToLink = new ArrayList<>();
             
-            // 1. Process mainFlights array (could contain both outbound and return)
+            // 1. Process mainFlights array (could contain outbound, return, and now also connection flights)
             List<Map<String, Object>> mainFlights = getSafeList(bookingMap, "mainFlights");
             if (mainFlights != null && !mainFlights.isEmpty()) {
                 LOGGER.info("Processing " + mainFlights.size() + " main flights");
                 for (Map<String, Object> mainFlight : mainFlights) {
                     String mainFlightId = getSafeString(mainFlight, "id");
                     if (mainFlightId == null) {
-                        // Try to extract from departure/arrival IATA codes
+                        // Try to extract from departure/arrival IATA codes and flight number
                         String depCode = getSafeString(mainFlight, "departureAirportShort");
                         String arrCode = getSafeString(mainFlight, "arrivalAirportShort");
+                        String flightNumber = getSafeString(mainFlight, "number", "0");
+                        
                         if (depCode != null && arrCode != null) {
-                            mainFlightId = depCode + "-" + arrCode;
+                            // Include flight number in the ID
+                            mainFlightId = flightNumber + "-" + depCode + "-" + arrCode;
                             mainFlight.put("id", mainFlightId); // Update map with constructed ID
-                            LOGGER.info("Built flight ID from IATA codes: " + mainFlightId);
+                            LOGGER.info("Built flight ID with number and IATA codes: " + mainFlightId);
                         }
                     }
 
@@ -994,7 +997,7 @@ class BookingRepositoryImpl implements BookingRepository {
                 for (Map<String, Object> customer : customers) {
                     int customerId = saveCustomerMap(connection, customer);
                     
-                    // Create tickets for ALL flights - outbound, return, connections
+                    // Create tickets for ALL flights - we don't differentiate between main/connection flights now
                     for (String id : flightIdsToLink) {
                         createTicket(connection, customerId, id);
                     }
@@ -1042,9 +1045,12 @@ class BookingRepositoryImpl implements BookingRepository {
             // Try to build ID from departure/arrival if missing
             String depCode = getSafeString(flightMap, "departureAirportShort");
             String arrCode = getSafeString(flightMap, "arrivalAirportShort");
+            String flightNumber = getSafeString(flightMap, "number", "0");
+            
             if (depCode != null && arrCode != null) {
-                flightId = depCode + "-" + arrCode;
-                LOGGER.info("Built flight ID from IATA codes: " + flightId);
+                // Create ID with format number-depIATA-arrIATA
+                flightId = flightNumber + "-" + depCode + "-" + arrCode;
+                LOGGER.info("Built flight ID with number and IATA codes: " + flightId);
                 // Update the map with the ID for consistency
                 flightMap.put("id", flightId);
             } else {
@@ -1108,11 +1114,19 @@ class BookingRepositoryImpl implements BookingRepository {
             return;
         }
         
-        // Try to extract airport codes from flight ID (e.g., "JFK-LAX")
+        // Try to extract airport codes and flight number from flight ID (e.g., "26-JFK-LAX")
         String departureAirportShort = "UNK";
         String arrivalAirportShort = "UNK";
+        String flightNumber = "0";
+        
         String[] parts = flightId.split("-");
-        if (parts.length >= 2) {
+        if (parts.length >= 3) {
+            // New format: number-dep-arr
+            flightNumber = parts[0];
+            departureAirportShort = parts[1];
+            arrivalAirportShort = parts[2];
+        } else if (parts.length >= 2) {
+            // Legacy format: dep-arr
             departureAirportShort = parts[0];
             arrivalAirportShort = parts[1];
         }
