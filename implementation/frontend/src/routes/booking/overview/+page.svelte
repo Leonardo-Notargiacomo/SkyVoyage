@@ -62,8 +62,90 @@
   const finalPrice = () =>
           (booking.flight.price * booking.passengers - discountedAmount()).toFixed(2);
 
+  // Helper function to extract flight data in the format expected by the backend
+  function extractFlightDataForStorage(flight) {
+    if (!flight) return null;
+
+    // Parse dates to proper ISO format for backend LocalDateTime parsing
+    const parseDate = (dateString) => {
+      if (!dateString) return null;
+      try {
+        // Ensure proper ISO format for LocalDateTime parsing in Java
+        const date = new Date(dateString);
+        return date.toISOString().replace('Z', '');
+      } catch (e) {
+        console.error("Error parsing date:", e, dateString);
+        return null;
+      }
+    };
+
+    // Create a cleaned flight object with the properties needed by the backend
+    const mainFlightData = {
+      id: flight.flightId || flight.id || `${flight.departure.iata}-${flight.arrival.iata}`,
+      airline: flight.airline,
+      price: parseFloat(flight.price) || 0,
+      departureAirport: flight.departure.airport,
+      departureAirportShort: flight.departure.iata,
+      departureTerminal: flight.departure.terminal,
+      departureGate: flight.departure.gate,
+      departureScheduledTime: parseDate(flight.departure.scheduled),
+      departureDelay: flight.departure.delay || 0,
+      arrivalAirport: flight.arrival.airport,
+      arrivalAirportShort: flight.arrival.iata,
+      arrivalTerminal: flight.arrival.terminal,
+      arrivalGate: flight.arrival.gate,
+      arrivalScheduledTime: parseDate(flight.arrival.scheduled),
+      arrivalDelay: flight.arrival.delay || 0,
+      duration: parseInt(flight.duration) || 0,
+      status: flight.status || "SCHEDULED",
+      isConnection: false
+    };
+
+    // Create connection flight objects
+    const connectionFlights = [];
+    if (flight.fullOffer?.trips && flight.fullOffer.trips.length > 0) {
+      flight.fullOffer.trips.forEach(trip => {
+        if (trip.flights && trip.flights.length > 1) {
+          // Skip the first flight as it's already the main flight
+          for (let i = 1; i < trip.flights.length; i++) {
+            const connectionFlight = trip.flights[i];
+            connectionFlights.push({
+              id: connectionFlight.id || `${connectionFlight.departure.iata}-${connectionFlight.arrival.iata}`,
+              airline: connectionFlight.carrierCode,
+              price: 0, // Usually included in main flight price
+              departureAirport: connectionFlight.departure.airport || `Airport ${connectionFlight.departure.iata}`,
+              departureAirportShort: connectionFlight.departure.iata,
+              departureTerminal: connectionFlight.departure.terminal,
+              departureGate: connectionFlight.departure.gate,
+              departureScheduledTime: parseDate(connectionFlight.departure.scheduled),
+              departureDelay: 0,
+              arrivalAirport: connectionFlight.arrival.airport || `Airport ${connectionFlight.arrival.iata}`,
+              arrivalAirportShort: connectionFlight.arrival.iata,
+              arrivalTerminal: connectionFlight.arrival.terminal,
+              arrivalGate: connectionFlight.arrival.gate,
+              arrivalScheduledTime: parseDate(connectionFlight.arrival.scheduled),
+              arrivalDelay: 0,
+              duration: parseDurationToMinutes(connectionFlight.duration) || 0,
+              status: "SCHEDULED",
+              isConnection: true
+            });
+          }
+        }
+      });
+    }
+
+    // Return both the main flight and connection flights
+    return {
+      mainFlight: mainFlightData,
+      connectionFlights: connectionFlights
+    };
+  }
+
   async function confirmBooking() {
     try {
+      // Extract flight details for proper database storage
+      const flightData = extractFlightDataForStorage(booking.flight);
+      
       // Prepare booking data for backend
       const bookingData = {
         flightId: booking.flight.flightId || booking.flight.id || booking.flight.fullOffer?.trips?.[0]?.flights?.[0]?.id || `${booking.flight.departure.iata}-${booking.flight.arrival.iata}`,
@@ -75,10 +157,12 @@
         discount: booking.discount || 0,
         discountReason: booking.discountReason || "",
         status: "CONFIRMED",
-        customers: booking.customers || []
+        customers: booking.customers || [],
+        flight: flightData.mainFlight,
+        connectionFlights: flightData.connectionFlights
       };
 
-      console.log("Sending booking with flightId:", bookingData.flightId);
+      console.log("Sending booking with flight data:", bookingData);
       
       // Use the API helper instead of direct fetch
       const result = await api.create("bookings", JSON.stringify(bookingData));
@@ -97,6 +181,9 @@
 
   async function reserveBooking() {
     try {
+      // Extract flight details for proper database storage
+      const flightData = extractFlightDataForStorage(booking.flight);
+      
       // Prepare booking data for backend
       const bookingData = {
         flightId: booking.flight.flightId || booking.flight.id || booking.flight.fullOffer?.trips?.[0]?.flights?.[0]?.id || `${booking.flight.departure.iata}-${booking.flight.arrival.iata}`,
@@ -108,10 +195,12 @@
         discount: booking.discount || 0,
         discountReason: booking.discountReason || "",
         status: "RESERVED",
-        customers: booking.customers || []
+        customers: booking.customers || [],
+        flight: flightData.mainFlight,
+        connectionFlights: flightData.connectionFlights
       };
 
-      console.log("Sending booking with flightId:", bookingData.flightId);
+      console.log("Sending booking with flight data:", bookingData);
       
       // Use the API helper instead of direct fetch
       const result = await api.create("bookings", JSON.stringify(bookingData));
@@ -126,6 +215,35 @@
       console.error("Error reserving booking:", error);
       alert("Failed to reserve booking. Please try again.");
     }
+  }
+
+  // Helper function to parse duration strings like PT2H30M to minutes
+  function parseDurationToMinutes(duration) {
+    if (!duration || typeof duration !== 'string') return 0;
+    
+    let minutes = 0;
+    
+    try {
+      if (duration.startsWith('PT')) {
+        const timeStr = duration.substring(2);
+        
+        // Extract hours
+        const hourMatch = timeStr.match(/(\d+)H/);
+        if (hourMatch && hourMatch[1]) {
+          minutes += parseInt(hourMatch[1], 10) * 60;
+        }
+        
+        // Extract minutes
+        const minMatch = timeStr.match(/(\d+)M/);
+        if (minMatch && minMatch[1]) {
+          minutes += parseInt(minMatch[1], 10);
+        }
+      }
+    } catch (e) {
+      console.error("Error parsing duration:", e);
+    }
+    
+    return minutes || 0;
   }
 
   function cancelBooking() {

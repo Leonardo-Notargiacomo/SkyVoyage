@@ -8,7 +8,7 @@ import java.util.List;
  */
 public record BookingData(
     Integer id,
-    String flightId,
+    String flightId,  // ID of the main flight
     String airline,
     double price,
     int adultPassengers,
@@ -19,7 +19,8 @@ public record BookingData(
     LocalDateTime bookedAt,
     String status,
     List<CustomerData> customers,
-    FlightData flight  // Added flight data field for storing detailed flight information
+    FlightData flight,  // Main flight
+    List<FlightData> connectionFlights  // Connection flights
 ) {
     /**
      * Constructor with default ID and booking time.
@@ -35,13 +36,15 @@ public record BookingData(
             int discount,
             String discountReason,
             String status,
-            List<CustomerData> customers) {
+            List<CustomerData> customers,
+            FlightData flight,
+            List<FlightData> connectionFlights) {
         this(null, flightId, airline, price, adultPassengers, infantPassengers, travelClass, 
-             discount, discountReason, LocalDateTime.now(), status, customers, null);
+             discount, discountReason, LocalDateTime.now(), status, customers, flight, connectionFlights);
     }
     
     /**
-     * Constructor with default ID but specified booking time.
+     * Constructor with default ID and booking time but without flight data.
      */
     public BookingData(
             String flightId,
@@ -52,11 +55,31 @@ public record BookingData(
             String travelClass,
             int discount,
             String discountReason,
-            LocalDateTime bookedAt,
             String status,
             List<CustomerData> customers) {
         this(null, flightId, airline, price, adultPassengers, infantPassengers, travelClass, 
-             discount, discountReason, bookedAt, status, customers, null);
+             discount, discountReason, LocalDateTime.now(), status, customers, null, null);
+    }
+    
+    /**
+     * Constructor for backward compatibility with older code
+     */
+    public BookingData(
+            Integer id,
+            String flightId,
+            String airline,
+            double price,
+            int adultPassengers,
+            int infantPassengers,
+            String travelClass,
+            int discount,
+            String discountReason,
+            LocalDateTime bookedAt,
+            String status,
+            List<CustomerData> customers,
+            FlightData flight) {
+        this(id, flightId, airline, price, adultPassengers, infantPassengers, travelClass, 
+             discount, discountReason, bookedAt, status, customers, flight, null);
     }
 
     /**
@@ -76,7 +99,7 @@ public record BookingData(
             String status,
             List<CustomerData> customers) {
         this(id, flightId, airline, price, adultPassengers, infantPassengers, travelClass, 
-             discount, discountReason, bookedAt, status, customers, null);
+             discount, discountReason, bookedAt, status, customers, null, null);
     }
 
     /**
@@ -92,6 +115,6 @@ public record BookingData(
             String travelClass,
             String status) {
         this(id, flightId, airline, price, adultPassengers, infantPassengers, travelClass, 
-             0, "", null, status, null);
+             0, "", null, status, null, null, null);
     }
 }

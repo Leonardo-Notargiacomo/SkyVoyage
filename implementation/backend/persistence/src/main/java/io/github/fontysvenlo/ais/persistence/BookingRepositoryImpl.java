@@ -16,6 +16,7 @@ import javax.sql.DataSource;
 
 import io.github.fontysvenlo.ais.datarecords.BookingData;
 import io.github.fontysvenlo.ais.datarecords.CustomerData;
+import io.github.fontysvenlo.ais.datarecords.FlightData;
 import io.github.fontysvenlo.ais.persistence.api.BookingRepository;
 
 class BookingRepositoryImpl implements BookingRepository {
@@ -35,30 +36,44 @@ class BookingRepositoryImpl implements BookingRepository {
             connection = db.getConnection();
             connection.setAutoCommit(false);  // Start transaction
 
-            // 1. Extract all flight IDs (main flight and connections)
-            List<String> allFlightIds = extractAllFlightIds(bookingData);
+            // 1. Save the main flight if provided
+            if (bookingData.flight() != null) {
+                saveFlightIfNeeded(connection, bookingData.flight());
+            }
             
-            // 2. Save all flights to ensure they exist in the database
-            for (String flightId : allFlightIds) {
-                saveFlightIfNeeded(connection, bookingData, flightId);
+            // 2. Save any connection flights if provided
+            if (bookingData.connectionFlights() != null && !bookingData.connectionFlights().isEmpty()) {
+                for (FlightData connectionFlight : bookingData.connectionFlights()) {
+                    saveFlightIfNeeded(connection, connectionFlight);
+                }
             }
             
             // 3. Create booking record
             int bookingId = createBooking(connection);
             
-            // 4. Link all flights to the booking
-            for (String flightId : allFlightIds) {
-                linkBookingToFlight(connection, bookingId, flightId);
+            // 4. Link the main flight to the booking
+            linkBookingToFlight(connection, bookingId, bookingData.flightId());
+            
+            // 5. Link any connection flights to the booking
+            if (bookingData.connectionFlights() != null) {
+                for (FlightData connectionFlight : bookingData.connectionFlights()) {
+                    linkBookingToFlight(connection, bookingId, connectionFlight.id());
+                }
             }
             
-            // 5. Create tickets for each passenger for each flight
+            // 6. Create tickets for each passenger for each flight
             if (bookingData.customers() != null) {
                 for (CustomerData customer : bookingData.customers()) {
                     Integer customerId = saveOrUpdateCustomer(connection, customer);
                     
-                    // Create a ticket for each flight segment for this customer
-                    for (String flightId : allFlightIds) {
-                        createTicket(connection, customerId, flightId);
+                    // Main flight ticket
+                    createTicket(connection, customerId, bookingData.flightId());
+                    
+                    // Connection flight tickets
+                    if (bookingData.connectionFlights() != null) {
+                        for (FlightData connectionFlight : bookingData.connectionFlights()) {
+                            createTicket(connection, customerId, connectionFlight.id());
+                        }
                     }
                 }
             }
@@ -68,7 +83,7 @@ class BookingRepositoryImpl implements BookingRepository {
             // Return a rebuilt BookingData object
             return new BookingData(
                     bookingId,
-                    bookingData.flightId(), // Main flight ID
+                    bookingData.flightId(),
                     bookingData.airline(),
                     bookingData.price(),
                     bookingData.adultPassengers(),
@@ -78,7 +93,9 @@ class BookingRepositoryImpl implements BookingRepository {
                     bookingData.discountReason(),
                     LocalDateTime.now(),
                     bookingData.status(),
-                    bookingData.customers()
+                    bookingData.customers(),
+                    bookingData.flight(),
+                    bookingData.connectionFlights()
             );
             
         } catch (SQLException e) {
@@ -104,6 +121,129 @@ class BookingRepositoryImpl implements BookingRepository {
     }
     
     /**
+     * Save flight data to the database if it doesn't already exist.
+     */
+    private void saveFlightIfNeeded(Connection connection, FlightData flightData) throws SQLException {
+        if (flightExists(connection, flightData.id())) {
+            LOGGER.info("Flight " + flightData.id() + " already exists in database.");
+            return;
+        }
+        
+        LOGGER.info("Creating new flight record for ID: " + flightData.id());
+        
+        // Parse flight data and insert to database
+        java.sql.Timestamp departureTime = null;
+        if (flightData.departureScheduledTime() != null) {
+            departureTime = java.sql.Timestamp.valueOf(flightData.departureScheduledTime());
+        }
+        
+        java.sql.Timestamp arrivalTime = null;
+        if (flightData.arrivalScheduledTime() != null) {
+            arrivalTime = java.sql.Timestamp.valueOf(flightData.arrivalScheduledTime());
+        }
+        
+        insertFlightRecord(connection, flightData.id(),
+                flightData.departureAirport(), flightData.departureAirportShort(),
+                flightData.departureTerminal(), flightData.departureGate(), departureTime,
+                flightData.arrivalAirport(), flightData.arrivalAirportShort(),
+                flightData.arrivalTerminal(), flightData.arrivalGate(), arrivalTime,
+                flightData.duration());
+    }
+    
+    /**
+     * Save the main flight using booking data and the FlightData structure
+     */
+    private void saveMainFlight(Connection connection, BookingData bookingData) throws SQLException {
+        String departureAirport = null;
+        String departureAirportShort = null;
+        String departureTerminal = null;
+        String departureGate = null;
+        java.sql.Timestamp departureTime = null;
+        
+        String arrivalAirport = null;
+        String arrivalAirportShort = null;
+        String arrivalTerminal = null;
+        String arrivalGate = null;
+        java.sql.Timestamp arrivalTime = null;
+        
+        Integer duration = null;
+        
+        try {
+            if (bookingData.flight() != null) {
+                // Extract complete flight details from the flight object sent from frontend
+                departureAirport = bookingData.flight().departureAirport();
+                departureAirportShort = bookingData.flight().departureAirportShort();
+                departureTerminal = bookingData.flight().departureTerminal();
+                departureGate = bookingData.flight().departureGate();
+                duration = bookingData.flight().duration();
+                
+                // Handle departure scheduled time
+                if (bookingData.flight().departureScheduledTime() != null) {
+                    // Convert to SQL timestamp regardless of source type
+                    departureTime = java.sql.Timestamp.valueOf(bookingData.flight().departureScheduledTime());
+                }
+                
+                arrivalAirport = bookingData.flight().arrivalAirport();
+                arrivalAirportShort = bookingData.flight().arrivalAirportShort();
+                arrivalTerminal = bookingData.flight().arrivalTerminal();
+                arrivalGate = bookingData.flight().arrivalGate();
+                
+                // Handle arrival scheduled time
+                if (bookingData.flight().arrivalScheduledTime() != null) {
+                    // Convert to SQL timestamp regardless of source type
+                    arrivalTime = java.sql.Timestamp.valueOf(bookingData.flight().arrivalScheduledTime());
+                }
+                
+                // Check for connection flights and save them
+                try {
+                    Object connectionFlights = getValue(bookingData.flight(), "connectionFlights");
+                    if (connectionFlights instanceof List) {
+                        for (Object connectionFlight : (List<?>)connectionFlights) {
+                            saveConnectionFlight(connection, connectionFlight);
+                        }
+                    }
+                } catch (Exception e) {
+                    LOGGER.warning("Error processing connection flights: " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.warning("Error extracting flight details: " + e.getMessage() + ". Using basic information.");
+        }
+        
+        // If we couldn't extract the data, try to parse from flightId (e.g., "JFK-LAX")
+        if (departureAirportShort == null || arrivalAirportShort == null) {
+            String[] parts = bookingData.flightId().split("-");
+            if (parts.length >= 2) {
+                departureAirportShort = parts[0];
+                departureAirport = departureAirport != null ? departureAirport : "Airport " + departureAirportShort;
+                arrivalAirportShort = parts[1];
+                arrivalAirport = arrivalAirport != null ? arrivalAirport : "Airport " + arrivalAirportShort;
+            } else {
+                // Default values if we can't extract
+                departureAirport = "Unknown Departure Airport";
+                departureAirportShort = "UNK";
+                arrivalAirport = "Unknown Arrival Airport";
+                arrivalAirportShort = "UNK";
+            }
+        }
+        
+        // Use a default duration if none provided
+        if (duration == null) {
+            duration = 180; // 3 hours default
+        }
+        
+        LOGGER.info("Saving flight with ID: " + bookingData.flightId() + 
+                    ", from: " + departureAirportShort + 
+                    ", to: " + arrivalAirportShort +
+                    ", duration: " + duration + " minutes");
+        
+        // Insert flight record with all available information
+        insertFlightRecord(connection, bookingData.flightId(), 
+                departureAirport, departureAirportShort, departureTerminal, departureGate, departureTime,
+                arrivalAirport, arrivalAirportShort, arrivalTerminal, arrivalGate, arrivalTime, duration);
+    }
+
+    /**
      * Extract all flight IDs from booking data, including the main flight and any connections
      */
     private List<String> extractAllFlightIds(BookingData bookingData) {
@@ -112,15 +252,18 @@ class BookingRepositoryImpl implements BookingRepository {
         // Add the main flight ID
         flightIds.add(bookingData.flightId());
         
-        // For connection flights, we'll need to get them from the raw booking data
-        // since FlightData doesn't have a fullOffer() method
+        // Look for connection flights in the flight object
         try {
-            // This assumes that the booking data may have a raw JSON structure with connection flights
-            // You may need to adjust this based on how the connection flights are actually stored
-            if (bookingData.flightId() != null) {
-                LOGGER.info("Main flight ID: " + bookingData.flightId());
-                // In a real implementation, you would extract the connection flight IDs
-                // from whatever structure is available in the booking data
+            if (bookingData.flight() != null) {
+                Object connectionFlights = getValue(bookingData.flight(), "connectionFlights");
+                if (connectionFlights instanceof List) {
+                    for (Object connectionFlight : (List<?>)connectionFlights) {
+                        String connectionId = (String)getValue(connectionFlight, "id");
+                        if (connectionId != null && !connectionId.isEmpty()) {
+                            flightIds.add(connectionId);
+                        }
+                    }
+                }
             }
         } catch (Exception e) {
             LOGGER.warning("Error extracting connection flight IDs: " + e.getMessage());
@@ -159,101 +302,6 @@ class BookingRepositoryImpl implements BookingRepository {
                         "Unknown Airport", "UNK", null, null, null,
                         "Unknown Airport", "UNK", null, null, null, 180);
             }
-        }
-    }
-    
-    /**
-     * Save the main flight using booking data and the FlightData structure
-     */
-    private void saveMainFlight(Connection connection, BookingData bookingData) throws SQLException {
-        String departureAirport = null;
-        String departureAirportShort = null;
-        String departureTerminal = null;
-        String departureGate = null;
-        java.sql.Timestamp departureTime = null;
-        
-        String arrivalAirport = null;
-        String arrivalAirportShort = null;
-        String arrivalTerminal = null;
-        String arrivalGate = null;
-        java.sql.Timestamp arrivalTime = null;
-        
-        Integer duration = null;
-        
-        try {
-            if (bookingData.flight() != null) {
-                // Access FlightData fields directly - these fields match the actual FlightData record
-                departureAirport = bookingData.flight().departureAirport();
-                departureAirportShort = bookingData.flight().departureAirportShort();
-                departureTerminal = bookingData.flight().departureTerminal();
-                departureGate = bookingData.flight().departureGate();
-                duration = bookingData.flight().duration();
-                
-                if (bookingData.flight().departureScheduledTime() != null) {
-                    departureTime = java.sql.Timestamp.valueOf(bookingData.flight().departureScheduledTime());
-                }
-                
-                arrivalAirport = bookingData.flight().arrivalAirport();
-                arrivalAirportShort = bookingData.flight().arrivalAirportShort();
-                arrivalTerminal = bookingData.flight().arrivalTerminal();
-                arrivalGate = bookingData.flight().arrivalGate();
-                
-                if (bookingData.flight().arrivalScheduledTime() != null) {
-                    arrivalTime = java.sql.Timestamp.valueOf(bookingData.flight().arrivalScheduledTime());
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.warning("Error extracting flight details: " + e.getMessage() + ". Using basic information.");
-        }
-        
-        // If we couldn't extract the data, try to parse from flightId (e.g., "JFK-LAX")
-        if (departureAirportShort == null || arrivalAirportShort == null) {
-            String[] parts = bookingData.flightId().split("-");
-            if (parts.length >= 2) {
-                departureAirportShort = parts[0];
-                departureAirport = departureAirport != null ? departureAirport : "Airport " + departureAirportShort;
-                arrivalAirportShort = parts[1];
-                arrivalAirport = arrivalAirport != null ? arrivalAirport : "Airport " + arrivalAirportShort;
-            } else {
-                // Default values if we can't extract
-                departureAirport = "Unknown Departure Airport";
-                departureAirportShort = "UNK";
-                arrivalAirport = "Unknown Arrival Airport";
-                arrivalAirportShort = "UNK";
-            }
-        }
-        
-        // Use a default duration if none provided
-        if (duration == null) {
-            duration = 180; // 3 hours default
-        }
-        
-        // Insert flight record with all available information
-        insertFlightRecord(connection, bookingData.flightId(), 
-                departureAirport, departureAirportShort, departureTerminal, departureGate, departureTime,
-                arrivalAirport, arrivalAirportShort, arrivalTerminal, arrivalGate, arrivalTime, duration);
-    }
-    
-    /**
-     * Find and save a specific connection flight by ID
-     * This is simplified since we don't have direct access to connection flight details
-     */
-    private void saveConnectionFlightById(Connection connection, BookingData bookingData, String flightId) {
-        try {
-            // Create a basic record from the flight ID
-            String[] parts = flightId.split("-");
-            if (parts.length >= 2) {
-                insertFlightRecord(connection, flightId, 
-                        "Airport " + parts[0], parts[0], null, null, null,
-                        "Airport " + parts[1], parts[1], null, null, null, 180);
-            } else {
-                // Create a very basic record if we can't extract anything
-                insertFlightRecord(connection, flightId, 
-                        "Unknown Airport", "UNK", null, null, null,
-                        "Unknown Airport", "UNK", null, null, null, 180);
-            }
-        } catch (Exception e) {
-            LOGGER.warning("Error saving connection flight " + flightId + ": " + e.getMessage());
         }
     }
     
