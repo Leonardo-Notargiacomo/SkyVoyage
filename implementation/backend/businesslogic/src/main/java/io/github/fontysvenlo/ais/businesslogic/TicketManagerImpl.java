@@ -46,6 +46,7 @@ public class TicketManagerImpl implements TicketManager {
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Something went wrong retrieving ticket data: ", e);
+            return ticketDataList; // Return empty list if an error decides to exist
         }
         // Get ticket data
         for (Integer ticketID : ticketIDs) {
@@ -54,6 +55,7 @@ public class TicketManagerImpl implements TicketManager {
                 ticketDataList.add(ticketData);
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Something went wrong retrieving ticket data: ", e);
+                return ticketDataList; // Return empty list if an error shows up
             }
         }
         // Speaks for itself
