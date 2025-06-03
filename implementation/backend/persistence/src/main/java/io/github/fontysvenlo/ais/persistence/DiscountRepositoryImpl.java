@@ -20,18 +20,18 @@ public class DiscountRepositoryImpl implements DiscountRepository {
         this.dataSource = DBProvider.getDataSource(config);        
     }
 
-    private DiscountData mapResultSetToDiscount(ResultSet rs) throws SQLException {
+    private DiscountData mapResultSetToDiscount(ResultSet resultSet) throws SQLException {
         // Check if employeeid is NULL in the result set
-        int employeeId = rs.getInt("employeeid");
-        Integer employeeIdObj = rs.wasNull() ? null : employeeId;
+        int employeeId = resultSet.getInt("employeeid");
+        Integer employeeIdObj = resultSet.wasNull() ? null : employeeId;
         
         return new DiscountData(
-            rs.getInt("id"),
-            rs.getString("name"),
-            rs.getDouble("amount"),
-            rs.getString("type"),
+            resultSet.getInt("id"),
+            resultSet.getString("name"),
+            resultSet.getDouble("amount"),
+            resultSet.getString("type"),
             employeeIdObj,
-            rs.getInt("days")
+            resultSet.getInt("days")
         );
     }
 
@@ -43,11 +43,11 @@ public class DiscountRepositoryImpl implements DiscountRepository {
         
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query);
-             ResultSet rs = stmt.executeQuery()) {
+             ResultSet resultSet = stmt.executeQuery()) {
             
             int count = 0;
-            while (rs.next()) {
-                DiscountData discount = mapResultSetToDiscount(rs);
+            while (resultSet.next()) {
+                DiscountData discount = mapResultSetToDiscount(resultSet);
                 discounts.add(discount);
                 count++;
             }
@@ -79,9 +79,9 @@ public class DiscountRepositoryImpl implements DiscountRepository {
             stmt.setInt(4, discount.employeeID());
             stmt.setInt(5, discount.days());
             
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    DiscountData added = mapResultSetToDiscount(rs);
+            try (ResultSet resultSet = stmt.executeQuery()) {
+                if (resultSet.next()) {
+                    DiscountData added = mapResultSetToDiscount(resultSet);
                     return added;
                 }
             }
@@ -114,9 +114,9 @@ public class DiscountRepositoryImpl implements DiscountRepository {
             stmt.setInt(5, discount.days());
             stmt.setInt(6, discount.id());
             
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return mapResultSetToDiscount(rs);
+            try (ResultSet resultSet = stmt.executeQuery()) {
+                if (resultSet.next()) {
+                    return mapResultSetToDiscount(resultSet);
                 }
             }
         } catch (SQLException e) {
@@ -134,9 +134,9 @@ public class DiscountRepositoryImpl implements DiscountRepository {
             
             stmt.setInt(1, id);
             
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return mapResultSetToDiscount(rs);
+            try (ResultSet resultSet = stmt.executeQuery()) {
+                if (resultSet.next()) {
+                    return mapResultSetToDiscount(resultSet);
                 }
             }
         } catch (SQLException e) {
@@ -155,9 +155,9 @@ public class DiscountRepositoryImpl implements DiscountRepository {
             
             stmt.setString(1, type);
             
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    discounts.add(mapResultSetToDiscount(rs));
+            try (ResultSet resultSet = stmt.executeQuery()) {
+                while (resultSet.next()) {
+                    discounts.add(mapResultSetToDiscount(resultSet));
                 }
             }
         } catch (SQLException e) {
@@ -175,9 +175,9 @@ public class DiscountRepositoryImpl implements DiscountRepository {
             
             stmt.setInt(1, id);
             
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return mapResultSetToDiscount(rs);
+            try (ResultSet resultSet = stmt.executeQuery()) {
+                if (resultSet.next()) {
+                    return mapResultSetToDiscount(resultSet);
                 }
             }
         } catch (SQLException e) {

@@ -16,9 +16,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -29,7 +26,6 @@ import io.github.fontysvenlo.ais.businesslogic.api.PriceManager;
 
 public class AmadeusClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(AmadeusClient.class);
     private static final String BASE_URL = "https://test.api.amadeus.com/v2";
     private static final String AUTH_URL = "https://test.api.amadeus.com/v1/security/oauth2/token";
 
@@ -48,7 +44,6 @@ public class AmadeusClient {
         this.clientSecret = clientSecret;
         this.objectMapper = new ObjectMapper();
         this.httpClient = createHttpClient();
-        logger.info("AmadeusClient initialized with client ID: {}", clientId);
     }
     
     // Added for testability - allows mocking the HttpClient in tests
@@ -335,27 +330,17 @@ public class AmadeusClient {
         // Process segments (individual flights in this trip)
         List<Map<String, Object>> flights = new ArrayList<>();
         int totalFlightMinutes = 0; // Track actual flight time only
-        
+
         // Extract departure date from first segment for discount calculation
         OffsetDateTime departureDateTime = null;
-        
+
         if (itinerary.has("segments") && itinerary.get("segments").size() > 0) {
             JsonNode firstSegment = itinerary.get("segments").get(0);
             if (firstSegment.has("departure") && firstSegment.get("departure").has("at")) {
                 String departureTimeStr = firstSegment.get("departure").get("at").asText();
-                try {
-                    // Try to parse as LocalDateTime first (most common case with Amadeus API)
-                    try {
-                        LocalDateTime localDt = LocalDateTime.parse(departureTimeStr);
-                        ZoneOffset offset = ZoneOffset.systemDefault().getRules().getOffset(localDt);
-                        departureDateTime = localDt.atOffset(offset);
-                    } catch (Exception localDateException) {
-                        // If that fails, try as OffsetDateTime
-                        departureDateTime = OffsetDateTime.parse(departureTimeStr);
-                    }
-                } catch (Exception e) {
-                    logger.warn("Could not parse departure date: {} with error: {}", departureTimeStr, e.getMessage());
-                }
+                LocalDateTime localDt = LocalDateTime.parse(departureTimeStr);
+                ZoneOffset offset = ZoneOffset.systemDefault().getRules().getOffset(localDt);
+                departureDateTime = localDt.atOffset(offset);
             }
         }
         

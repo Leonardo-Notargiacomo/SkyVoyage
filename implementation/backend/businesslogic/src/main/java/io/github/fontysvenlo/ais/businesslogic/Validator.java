@@ -73,7 +73,7 @@ public class Validator implements ValidatorInterface {
         if (discount == null) {
             return false;
         }
-        if (discount.amount() < 0 || discount.amount() > 100) {
+        if (discount.amount() <= 0 || discount.amount() > 100) {
             return false;
         }
         if (discount.days() <= 0) {

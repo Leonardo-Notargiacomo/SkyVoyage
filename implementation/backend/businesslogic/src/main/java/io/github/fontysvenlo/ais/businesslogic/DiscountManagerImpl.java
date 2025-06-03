@@ -48,21 +48,18 @@ public class DiscountManagerImpl implements DiscountManager {
 
     @Override
     public double calculateDiscountedPrice(double basePrice, OffsetDateTime departureDate) {
-        try {
-            if (departureDate == null) {
-                return basePrice;
-            }
 
-            DiscountData bestDiscount = findBestDiscount(departureDate);
+        if (departureDate == null) {
+            throw new NullPointerException("Departure date cannot be null");
+        }
 
-            if (bestDiscount != null) {
-                double discountAmount = basePrice * (bestDiscount.amount() / 100.0);
-                double finalPrice = basePrice - discountAmount;
-                return finalPrice;
-            } else {
-                return basePrice;
-            }
-        } catch (Exception e) {
+        DiscountData bestDiscount = findBestDiscount(departureDate);
+
+        if (bestDiscount != null) {
+            double discountAmount = basePrice * (bestDiscount.amount() / 100.0);
+            double finalPrice = basePrice - discountAmount;
+            return finalPrice;
+        } else {
             return basePrice;
         }
     }
@@ -91,7 +88,6 @@ public class DiscountManagerImpl implements DiscountManager {
         }
 
         return bestDiscount;
-        
-    }
 
+    }
 }
