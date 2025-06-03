@@ -330,21 +330,11 @@ public class AmadeusClient {
         // Process segments (individual flights in this trip)
         List<Map<String, Object>> flights = new ArrayList<>();
         int totalFlightMinutes = 0; // Track actual flight time only
+        OffsetDateTime departureDateTime = null; // Will be set from first segment
 
-        // Extract departure date from first segment for discount calculation
-        OffsetDateTime departureDateTime = null;
-
-        if (itinerary.has("segments") && itinerary.get("segments").size() > 0) {
-            JsonNode firstSegment = itinerary.get("segments").get(0);
-            if (firstSegment.has("departure") && firstSegment.get("departure").has("at")) {
-                String departureTimeStr = firstSegment.get("departure").get("at").asText();
-                LocalDateTime localDt = LocalDateTime.parse(departureTimeStr);
-                ZoneOffset offset = ZoneOffset.systemDefault().getRules().getOffset(localDt);
-                departureDateTime = localDt.atOffset(offset);
-            }
-        }
-        
         if (itinerary.has("segments")) {
+            boolean isFirstSegment = true;
+
             for (JsonNode segment : itinerary.get("segments")) {
                 Map<String, Object> flight = new LinkedHashMap<>();
                 flight.put("id", segment.get("id").asText());
@@ -355,6 +345,15 @@ public class AmadeusClient {
                 // Add the segment duration to our total flight time
                 int segmentDuration = parseDurationToMinutes(segment.get("duration").asText());
                 totalFlightMinutes += segmentDuration;
+
+                // Extract departure date from first segment for discount calculation
+                if (isFirstSegment && segment.has("departure") && segment.get("departure").has("at")) {
+                    String departureTimeStr = segment.get("departure").get("at").asText();
+                    LocalDateTime localDt = LocalDateTime.parse(departureTimeStr);
+                    ZoneOffset offset = ZoneOffset.systemDefault().getRules().getOffset(localDt);
+                    departureDateTime = localDt.atOffset(offset);
+                    isFirstSegment = false;
+                }
 
                 // Process departure first
                 JsonNode departureNode = segment.get("departure");
