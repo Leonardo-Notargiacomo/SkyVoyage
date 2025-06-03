@@ -37,23 +37,26 @@ public class TicketManagerImpl implements TicketManager {
         List<Integer> ticketIDs = new ArrayList<>();
         List<TicketData> ticketDataList = new ArrayList<>();
         TicketData ticketData;
+        // Get ticket IDs
         try {
             ticketIDs = ticketRepository.getTicketIDsFromBooking(bookingId);
             if (ticketIDs.size() == 0) {
                 logger.log(Level.WARNING, "No tickets found for booking ID: " + bookingId);
                 return ticketDataList; // Return empty list if no tickets found
             }
-            for (Integer ticketID : ticketIDs) {
-                try {
-                    ticketData = ticketRepository.getTicketById(ticketID);
-                    ticketDataList.add(ticketData);
-                } catch (Exception e) {
-                    // TODO: handle exception
-                }
-            }
         } catch (Exception e) {
-            // TODO: handle exception
+            logger.log(Level.SEVERE, "Something went wrong retrieving ticket data: ", e);
         }
+        // Get ticket data
+        for (Integer ticketID : ticketIDs) {
+            try {
+                ticketData = ticketRepository.getTicketById(ticketID);
+                ticketDataList.add(ticketData);
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Something went wrong retrieving ticket data: ", e);
+            }
+        }
+        // Speaks for itself
         return ticketDataList;
     }
 }
