@@ -66,10 +66,6 @@ public class DiscountManagerImpl implements DiscountManager {
 
     private DiscountData findBestDiscount(OffsetDateTime departureDate) {
 
-        if (departureDate == null) {
-            return null;
-        }
-
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime departure = departureDate.toLocalDateTime();
         long daysUntilDeparture = ChronoUnit.DAYS.between(now, departure);
