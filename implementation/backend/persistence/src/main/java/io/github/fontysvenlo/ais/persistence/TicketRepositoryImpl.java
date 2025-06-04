@@ -31,8 +31,8 @@ public class TicketRepositoryImpl implements TicketRepository {
      * @return a list of ticket IDs
      */
     @Override
-    public List<Integer> getTicketIDsFromBooking(int id) {
-        int bookingId = id;
+    public List<Integer> getTicketIDsFromBooking(String id) {
+        String bookingId = id;
         List<Integer> ticketIDs = new ArrayList<>();
         // Query setup
         String query = " SELECT t.ID " +
@@ -43,7 +43,7 @@ public class TicketRepositoryImpl implements TicketRepository {
                 " WHERE bf.BookingID = ? )";
         // Query performed
         try (PreparedStatement statement = db.getConnection().prepareStatement(query)) {
-            statement.setInt(1, bookingId);
+            statement.setString(1, bookingId);
             ResultSet rs = statement.executeQuery();
             // Adding IDs to a list
             while (rs.next()) {

@@ -32,8 +32,8 @@ public class TicketManagerImpl implements TicketManager {
      * @return a list of ticket IDs
      */
     @Override
-    public List<TicketData> getTicketData(int id) {
-        int bookingId = id;
+    public List<TicketData> getTicketData(String id) {
+        String bookingId = id;
         List<Integer> ticketIDs = new ArrayList<>();
         List<TicketData> ticketDataList = new ArrayList<>();
         TicketData ticketData;

@@ -21,7 +21,8 @@ class TicketResource implements CrudHandler {
 
     @Override
     public void getOne(Context context, String id) {
-        
+        context.status(200);
+        context.json(ticketManager.getTicketData(id));
         
     }
 

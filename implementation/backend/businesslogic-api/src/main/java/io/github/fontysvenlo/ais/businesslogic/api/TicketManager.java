@@ -13,6 +13,6 @@ public interface TicketManager {
      * @param id the booking ID
      * @return a list of ticket IDs
      */
-    public List<TicketData> getTicketData(int id);
+    public List<TicketData> getTicketData(String id);
 
 }
