@@ -31,23 +31,23 @@ public class TicketRepositoryImpl implements TicketRepository {
      * @return a list of ticket IDs
      */
     @Override
-    public List<Integer> getTicketIDsFromBooking(String id) {
-        String bookingId = id;
+    public List<Integer> getTicketIDsFromBooking(int id) {
+        int bookingId = id;
         List<Integer> ticketIDs = new ArrayList<>();
         // Query setup
-        String query = " SELECT t.ID " +
-                " FROM Ticket t " +
-                " WHERE t.FlightID IN ( " +
-                " SELECT bf.FlightID " +
-                " FROM Booking_Flight bf " +
-                " WHERE bf.BookingID = ? )";
+        String query = " SELECT t.id " +
+                " FROM public.Ticket t " +
+                " WHERE t.flightid IN ( " +
+                " SELECT bf.flightid " +
+                " FROM public.Booking_Flight bf " +
+                " WHERE bf.bookingid = ? )";
         // Query performed
         try (PreparedStatement statement = db.getConnection().prepareStatement(query)) {
-            statement.setString(1, bookingId);
+            statement.setInt(1, bookingId);
             ResultSet rs = statement.executeQuery();
             // Adding IDs to a list
             while (rs.next()) {
-                ticketIDs.add(rs.getInt("t.ID"));
+                ticketIDs.add(rs.getInt("id"));
             }
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error retrieving ticket IDs: ", e);
@@ -67,7 +67,7 @@ public class TicketRepositoryImpl implements TicketRepository {
      * @return the TicketData object if found, otherwise null
      */
     @Override
-    public TicketData getTicketById(Integer id) {
+    public TicketData getTicketById(int id) {
         int ticketId = id;
 
         // The flight data first
@@ -80,10 +80,10 @@ public class TicketRepositoryImpl implements TicketRepository {
                 " f.departure_scheduled_time, " +
                 " f.arrival_airport," +
                 " f.arrival_scheduled_time " +
-                " FROM flight f " +
+                " FROM public.flight f " +
                 " WHERE f.id in ( " +
                 " SELECT t.FlightID " +
-                " FROM ticket t " +
+                " FROM public.ticket t " +
                 " WHERE t.id = ? ) ";
         // Query performed
         try (PreparedStatement statement = db.getConnection().prepareStatement(flightQuery)) {
@@ -91,13 +91,13 @@ public class TicketRepositoryImpl implements TicketRepository {
             ResultSet rs = statement.executeQuery();
             // Adding the flight data to a list
             if (rs.next()) {
-                flightData.add(rs.getString("f.id"));
-                flightData.add(rs.getString("f.departure_airport"));
-                flightData.add(rs.getString("f.departure_terminal"));
-                flightData.add(rs.getString("f.departure_gate"));
-                flightData.add(rs.getString("f.departure_scheduled_time"));
-                flightData.add(rs.getString("f.arrival_airport"));
-                flightData.add(rs.getString("f.arrival_scheduled_time"));
+                flightData.add(rs.getString("id"));
+                flightData.add(rs.getString("departure_airport"));
+                flightData.add(rs.getString("departure_terminal"));
+                flightData.add(rs.getString("departure_gate"));
+                flightData.add(rs.getString("departure_scheduled_time"));
+                flightData.add(rs.getString("arrival_airport"));
+                flightData.add(rs.getString("arrival_scheduled_time"));
             }
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error retrieving flight data: ", e);
@@ -111,10 +111,10 @@ public class TicketRepositoryImpl implements TicketRepository {
         String customerQuery = " SELECT c.firstname, " +
                 " c.lastname, " +
                 " c.isinfant " +
-                " FROM customer c " +
+                " FROM public.customer c " +
                 " WHERE c.id IN ( " +
                 " SELECT t.CustomerID " +
-                " FROM ticket t " +
+                " FROM public.ticket t " +
                 " WHERE t.id = ? ) ";
         // Query performed
         try (PreparedStatement statement = db.getConnection().prepareStatement(customerQuery)) {
@@ -122,9 +122,9 @@ public class TicketRepositoryImpl implements TicketRepository {
             ResultSet rs = statement.executeQuery();
             // Adding the passenger data to variables
             if (rs.next()) {
-                customerFirstname = rs.getString("c.firstname");
-                customerLastname = rs.getString("c.lastname");
-                hasSeat = !rs.getBoolean("c.isinfant");
+                customerFirstname = rs.getString("firstname");
+                customerLastname = rs.getString("lastname");
+                hasSeat = !rs.getBoolean("isinfant");
             }
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error retrieving customer data: ", e);

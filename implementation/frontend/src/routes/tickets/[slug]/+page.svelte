@@ -1,20 +1,18 @@
 <script>
   import { onMount } from "svelte";
   import { api } from "$lib/api";
+  import { page } from "$app/stores";
 
   let tickets = $state([]);
   let errorMessage = $state("");
 
-  // For now, bookingID is hardcoded
-  let bookingID = 1;
-
   onMount(() => {
-    load(bookingID);
+    load();
   });
 
-  const load = async (bookingID) => {
+  const load = async () => {
     try {
-      const fetchedTickets = await api.getOne(`/tickets/${bookingID}`);
+      const fetchedTickets = await api.getOne("tickets", $page.params.slug);
       // Sort tickets by ID (smallest first)
       tickets = fetchedTickets.sort((a, b) => parseInt(a.id) - parseInt(b.id));
     } catch (error) {

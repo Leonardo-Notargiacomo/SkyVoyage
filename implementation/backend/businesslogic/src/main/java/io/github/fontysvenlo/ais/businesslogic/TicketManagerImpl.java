@@ -33,7 +33,7 @@ public class TicketManagerImpl implements TicketManager {
      */
     @Override
     public List<TicketData> getTicketData(String id) {
-        String bookingId = id;
+        int bookingId = Integer.parseInt(id);
         List<Integer> ticketIDs = new ArrayList<>();
         List<TicketData> ticketDataList = new ArrayList<>();
         TicketData ticketData;
@@ -49,7 +49,7 @@ public class TicketManagerImpl implements TicketManager {
             return ticketDataList; // Return empty list if an error decides to exist
         }
         // Get ticket data
-        for (Integer ticketID : ticketIDs) {
+        for (int ticketID : ticketIDs) {
             try {
                 ticketData = ticketRepository.getTicketById(ticketID);
                 ticketDataList.add(ticketData);
