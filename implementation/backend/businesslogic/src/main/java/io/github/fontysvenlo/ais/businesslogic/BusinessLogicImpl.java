@@ -2,6 +2,7 @@ package io.github.fontysvenlo.ais.businesslogic;
 
 import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
 import io.github.fontysvenlo.ais.businesslogic.api.CustomerManager;
+import io.github.fontysvenlo.ais.businesslogic.api.DiscountManager;
 import io.github.fontysvenlo.ais.businesslogic.api.EmployeeManager;
 import io.github.fontysvenlo.ais.businesslogic.api.FlightManager;
 import io.github.fontysvenlo.ais.businesslogic.api.LoginService;
@@ -50,5 +51,10 @@ class BusinessLogicImpl implements BusinessLogic {
     @Override  
     public LoginService getLoginService() {
         return new LoginServiceImpl(persistenceAPI.getUserRepository());
+    }
+    
+    @Override
+    public DiscountManager getDiscountManager() {
+        return DiscountManagerImpl.getInstance(persistenceAPI.getDiscountRepository());
     }
 }

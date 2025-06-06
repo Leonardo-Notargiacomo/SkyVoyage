@@ -36,7 +36,8 @@
       }));
     }
   }
-
+  // Note: Price calculations should be moved to backend
+  // These are kept for backward compatibility but should use API endpoints
   const discountedAmount = () =>
           (booking.flight.price * booking.passengers * booking.discount) / 100;
 

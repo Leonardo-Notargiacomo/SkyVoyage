@@ -1,0 +1,113 @@
+@startuml
+
+skinparam linetype ortho
+left to right direction
+
+skinparam shadowing false
+skinparam packageStyle rectangle
+
+' Increase spacing around packages
+skinparam nodesep 50
+skinparam ranksep 120
+skinparam packageMargin 20
+
+title Backend Class Diagram for Managing Discounts
+
+package "API Layer" {
+    class DiscountResource {
+        - discountManager: DiscountManager
+        + create(context: Context): void
+        + getAll(context: Context): void
+        + getOne(context: Context, id: String): void
+        + update(context: Context, id: String): void
+        + delete(context: Context, id: String): void
+        + getByType(context: Context): void
+    }
+}
+
+package "Business Logic Layer" {
+    interface DiscountManager {
+        + addDiscount(discountData: DiscountData): void
+        + getAllDiscounts(): List<DiscountData>
+        + getDiscountById(id: Integer): Optional<DiscountData>
+        + updateDiscount(discount: DiscountData): void
+        + deleteDiscount(id: Integer): void
+        + getDiscountsByType(type: String): List<DiscountData>
+        + validateDiscount(discountData: DiscountData): Boolean
+    }
+
+    class DiscountManagerImpl {
+        - discountRepository: DiscountRepository
+        + addDiscount(discountData: DiscountData): void
+        + getAllDiscounts(): List<DiscountData>
+        + getDiscountById(id: Integer): Optional<DiscountData>
+        + updateDiscount(discount: DiscountData): void
+        + deleteDiscount(id: Integer): void
+        + getDiscountsByType(type: String): List<DiscountData>
+        - validateDiscount(discountData: DiscountData): Boolean
+    }
+}
+
+package "Persistence Layer" {
+    interface DiscountRepository {
+        + add(discountData: DiscountData): DiscountData
+        + getAll(): List<DiscountData>
+        + getOne(id: Integer): DiscountData
+        + update(discount: DiscountData): DiscountData
+        + delete(id: Integer): DiscountData
+        + getByType(type: String): List<DiscountData>
+    }
+
+    class DiscountRepositoryImpl {
+        - dataSource: DataSource
+        - discountTableName: String
+        + add(discount: DiscountData): DiscountData
+        + getAll(): List<DiscountData>
+        + getOne(id: Integer): DiscountData
+        + update(discount: DiscountData): DiscountData
+        + delete(id: Integer): DiscountData
+        + getByType(type: String): List<DiscountData>
+        - mapResultSetToDiscount(rs: ResultSet): DiscountData
+    }
+}
+
+package "Data Model" {
+    class DiscountData <<record>> {
+        + id: Integer
+        + name: String
+        + amount: Double
+        + type: String
+        + employeeID: Integer
+        + days: Integer
+    }
+}
+
+' Backend relationships
+DiscountResource --> DiscountManager : uses
+DiscountManager <|.. DiscountManagerImpl : implements
+DiscountManagerImpl --> DiscountRepository : uses
+DiscountRepository <|.. DiscountRepositoryImpl : implements
+
+' Data relationships
+DiscountResource ..> DiscountData : creates/uses
+DiscountManager ..> DiscountData : uses
+DiscountRepository ..> DiscountData : uses
+
+note right of DiscountData
+  Represents a discount with:
+  - name: Name of the discount
+  - amount: Percentage discount (0-100)
+  - type: early_bird or last_minute
+  - employeeID: ID of creating employee
+  - days: Days before flight
+end note
+
+note right of DiscountManagerImpl
+  Validates:
+  - Amount between 0-100%
+  - Days > 0
+  - Name not empty
+  - Valid discount type
+end note
+
+@enduml

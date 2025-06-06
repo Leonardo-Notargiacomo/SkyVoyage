@@ -2,6 +2,7 @@ import { PUBLIC_API_BASE } from '$env/static/public';
 
 const fetchAPI = async (resource, options = {}) => {
     const sep = (resource.startsWith("/")) ? '' : '/';
+    
     const response = await fetch(`${PUBLIC_API_BASE}${sep}${resource}`, options);
     if (!response.ok) {
         throw new Error(response.statusText);

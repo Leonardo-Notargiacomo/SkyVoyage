@@ -33,4 +33,11 @@ public interface BusinessLogic {
     PriceManager getPriceManager();
 
     LoginService getLoginService();
+    
+    /**
+     * Get the DiscountManager.
+     *
+     * @return the DiscountManager
+     */
+    DiscountManager getDiscountManager();
 }

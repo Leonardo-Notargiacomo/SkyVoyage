@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import io.github.fontysvenlo.ais.businesslogic.api.DiscountManager;
 import io.github.fontysvenlo.ais.businesslogic.api.PriceManager;
 import io.github.fontysvenlo.ais.datarecords.FlightData;
 
@@ -34,6 +35,7 @@ public class AviationStackClient {
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private PriceManager priceManager;
+    private DiscountManager discountManager;
 
     /**
      * Creates a new AviationStackClient.
@@ -44,8 +46,48 @@ public class AviationStackClient {
         this.apiKey = apiKey;
         this.httpClient = HttpClient.newHttpClient();
         this.objectMapper = new ObjectMapper();
+    }
 
-        logger.info("AviationStackClient initialized with API key: {}", apiKey);
+    /**
+     * Sets the PriceManager for this client.
+     *
+     * @param priceManager The PriceManager to use
+     */
+    public void setPriceManager(PriceManager priceManager) {
+        this.priceManager = priceManager;
+    }
+
+    /**
+     * Sets the DiscountManager for this client.
+     *
+     * @param discountManager The DiscountManager to use
+     */
+    public void setDiscountManager(DiscountManager discountManager) {
+        this.discountManager = discountManager;
+    }
+
+    /**
+     * Calculate a flight price based on duration.
+     * 
+     * @param duration The duration in minutes
+     * @param departure The departure date and time
+     * @return The calculated price
+     */
+    private int flightPrice(int duration, OffsetDateTime departure) {
+        if (priceManager == null) {
+            throw new IllegalStateException("PriceManager is not set");
+        }
+        
+        // Calculate base price
+        int basePrice = priceManager.calculateBasePrice(duration);
+
+        // Apply discount if available and departure time is provided
+        if (departure != null && discountManager != null) {
+            double discountedPrice = discountManager.calculateDiscountedPrice(basePrice, departure);
+            return (int) Math.floor(discountedPrice);
+        }
+        
+        return basePrice;
     }
 
     /**
@@ -267,21 +309,13 @@ public class AviationStackClient {
             formattedFlight.put("duration", Duration);
 
             //add price of flight according to the duration
-            int price = flightPrice(Integer.parseInt(Duration)) / 100;
+            int price = flightPrice(Integer.parseInt(Duration), OffsetDateTime.parse(scheduledDeparture));
             formattedFlight.put("price", price);
 
             formattedFlights.add(formattedFlight);
         }
 
         return formattedFlights;
-    }
-
-    public void setPriceManager(PriceManager priceManager) {
-        this.priceManager = priceManager;
-    }
-
-    private int flightPrice(int duration) {
-        return (duration * 15) * priceManager.getPrice();
     }
 
     /**
@@ -467,7 +501,9 @@ public class AviationStackClient {
         formattedFlight.put("duration", flight.duration().toString());
 
         // Add price of flight according to the duration
-        int price = (flight.duration() * 15 * priceManager.getPrice()) / 100;
+        // Convert LocalDateTime to OffsetDateTime with system default offset
+        OffsetDateTime departureTime = flight.departureScheduledTime().atOffset(java.time.ZoneOffset.systemDefault().getRules().getOffset(flight.departureScheduledTime()));
+        int price = flightPrice(Integer.parseInt(flight.duration().toString()), departureTime);
         formattedFlight.put("price", price);
 
         return formattedFlight;
@@ -509,7 +545,9 @@ public class AviationStackClient {
         result.put("airline", "Unknown Airline"); // Placeholder
 
         // Calculate a price based on duration (similar to AviationStackClient logic)
-        int price = (flight.duration() * 15 * priceManager.getPrice()) / 100;
+        // Convert LocalDateTime to OffsetDateTime with system default offset
+        OffsetDateTime departureTime = flight.departureScheduledTime().atOffset(java.time.ZoneOffset.systemDefault().getRules().getOffset(flight.departureScheduledTime()));
+        int price = flightPrice(Integer.parseInt(flight.duration().toString()), departureTime);
         result.put("price", price);
 
         return result;
