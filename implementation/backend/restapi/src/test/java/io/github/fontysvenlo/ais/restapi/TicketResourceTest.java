@@ -39,4 +39,18 @@ public class TicketResourceTest {
         verify(context).status(200);
         verify(context).json(List.of(ticketData));
     }
+
+    @Test
+    public void testGetTicketDataWithNoTickets() {
+        // Given there is no booking in the system with ID 3
+        String bookingId = "3";
+        when(ticketManager.getTicketData(bookingId)).thenReturn(List.of());
+
+        // When we call the getOne function with the booking ID
+        ticketResource.getOne(context, bookingId);
+
+        // Then we should get the context with a status 404 (Not Found)
+        verify(context).status(200);
+        verify(context).json(List.of());
+    }
 }
