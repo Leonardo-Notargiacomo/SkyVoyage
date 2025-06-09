@@ -13,7 +13,15 @@ skinparam packageMargin 20
 
 title Backend Class Diagram for Managing Discounts
 
-package "API Layer" {
+package "assembler" {
+    class Assembler <<static>> {
+        + {static} start(dbConfig: DBConfig, serverConfig: ServerConfig): void
+        + {static} main(args: String[]): void
+        - {static} readApiKeyFromEnvFile(): String
+    }
+}
+
+package "RESTAPI" {
     class DiscountResource {
         - discountManager: DiscountManager
         + DiscountResource(discountManager: DiscountManager)
@@ -23,15 +31,34 @@ package "API Layer" {
         + calculateApplicableDiscount(context: Context): void
         + applyDiscount(context: Context): void
     }
+
+    class APIServer {
+        - businessLogic: BusinessLogic
+        - apiKey: String
+        + APIServer(businessLogic: BusinessLogic, apiKey: String)
+        + start(config: ServerConfig): void
+    }
 }
 
-package "Business Logic Layer" {    
+package "businessLogicAPI" {
     interface DiscountManager {
         + addDiscount(discountData: DiscountData): DiscountData
         + deleteDiscount(id: Integer): DiscountData
         + getAllDiscounts(): List<DiscountData>
         + calculateDiscountedPrice(basePrice: double, departureDate: OffsetDateTime): double
     }
+    
+    interface ValidatorInterface {
+        + isValidDiscount(discount: DiscountData): boolean
+    }
+
+    interface BusinessLogic {
+        + getDiscountManager(): DiscountManager
+        // Other business logic managers would be here
+    }
+}
+
+package "businessLogic" {
     class DiscountManagerImpl {
         - discountRepository: DiscountRepository
         + DiscountManagerImpl(discountRepository: DiscountRepository)
@@ -41,15 +68,17 @@ package "Business Logic Layer" {
         + calculateDiscountedPrice(basePrice: double, departureDate: OffsetDateTime): double
         - findBestDiscount(departureDate: OffsetDateTime): DiscountData
     }
-    interface ValidatorInterface {
-        + isValidDiscount(discount: DiscountData): boolean
-    }
+    
     class Validator {
         + isValidDiscount(discount: DiscountData): boolean
     }
+
+    class BusinessLogicFactory <<static>> {
+        + {static} getInstance(persistence: Persistence): BusinessLogic
+    }
 }
 
-package "Persistence Layer" {
+package "persistenceAPI" {
     interface DiscountRepository {
         + add(discountData: DiscountData): DiscountData
         + update(discountData: DiscountData): DiscountData
@@ -59,6 +88,13 @@ package "Persistence Layer" {
         + getByType(type: String): List<DiscountData>
     }
 
+    interface Persistence {
+        + getDiscountRepository(): DiscountRepository
+        // Other repositories would be here
+    }
+}
+
+package "persistence" {
     class DiscountRepositoryImpl {
         - dataSource: DataSource
         - discountTableName: String
@@ -71,9 +107,13 @@ package "Persistence Layer" {
         + getByType(type: String): List<DiscountData>
         - mapResultSetToDiscount(rs: ResultSet): DiscountData
     }
+
+    class PersistenceFactory <<static>> {
+        + {static} getInstance(dbConfig: DBConfig): Persistence
+    }
 }
 
-package "Data Model" {
+package "Datarecords" {
     class DiscountData <<record>> {
         + id: Integer
         + name: String
@@ -82,9 +122,26 @@ package "Data Model" {
         + employeeID: Integer
         + days: Integer
     }
+
+    class DBConfig {
+        + fromProperties(properties: Properties, dbName: String): DBConfig
+    }
+
+    class ServerConfig {
+        + fromProperties(properties: Properties): ServerConfig
+    }
 }
 
-' Backend relationships
+' Assembler initialization relationships
+Assembler --> PersistenceFactory : creates
+Assembler --> BusinessLogicFactory : creates
+Assembler --> APIServer : creates
+
+' Layer relationships
+APIServer --> BusinessLogic : uses
+BusinessLogic --> Persistence : uses
+
+' Specific component relationships
 DiscountResource --> DiscountManager : uses
 DiscountManager <|.. DiscountManagerImpl : implements
 DiscountManagerImpl --> DiscountRepository : uses
@@ -143,6 +200,14 @@ note right of DiscountResource
   - applyDiscount: 
     Apply discount to base price
     with departure date
+end note
+
+note left of Assembler
+  Acts as the application entry point:
+  - Initializes all layers
+  - Connects BusinessLogic to Persistence
+  - Starts API server with BusinessLogic
+  - Handles configuration loading
 end note
 
 @enduml
