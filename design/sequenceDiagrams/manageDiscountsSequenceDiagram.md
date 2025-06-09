@@ -26,17 +26,17 @@ sequenceDiagram
     
     Resource->>Manager: addDiscount(discountData)
 
-    Manager->>Manager: Initialize Validator object
-    Manager->>Validator: validateDiscount(discountData)
-    Note over Validator: Validation rules:<br>1. Amount between 0-100%<br>2. Days > 0<br>3. Name not empty
+    Manager->>Manager: Create new Validator()
+    Manager->>Validator: isValidDiscount(discountData)
+    Note over Validator: Validation rules:<br>1. Amount between 0-100%<br>2. Days > 0<br>3. DiscountData not null
 
     alt Discount is invalid
-        Validator-->>Manager: Validation fails
-        Manager-->>Resource: throw IllegalArgumentException
+        Validator-->>Manager: return false
+        Manager-->>Resource: throw IllegalArgumentException("Invalid discount percentage...")
         Resource-->>Server: Exception
         Frontend-->>User: Show validation error
     else Discount is valid
-        Validator-->>Manager: Validation passes
+        Validator-->>Manager: return true
         Manager->>Repo: add(discountData)
 
         Repo->>DB: Execute INSERT query
