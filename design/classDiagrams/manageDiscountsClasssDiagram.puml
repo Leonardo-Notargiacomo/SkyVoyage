@@ -1,7 +1,7 @@
 @startuml
 
 skinparam linetype ortho
-left to right direction
+top to bottom direction
 
 skinparam shadowing false
 skinparam packageStyle rectangle
@@ -25,12 +25,14 @@ package "API Layer" {
     }
 }
 
-package "Business Logic Layer" {    interface DiscountManager {
+package "Business Logic Layer" {    
+    interface DiscountManager {
         + addDiscount(discountData: DiscountData): DiscountData
         + deleteDiscount(id: Integer): DiscountData
         + getAllDiscounts(): List<DiscountData>
         + calculateDiscountedPrice(basePrice: double, departureDate: OffsetDateTime): double
-    }    class DiscountManagerImpl {
+    }
+    class DiscountManagerImpl {
         - discountRepository: DiscountRepository
         + DiscountManagerImpl(discountRepository: DiscountRepository)
         + addDiscount(discountData: DiscountData): DiscountData
@@ -38,24 +40,12 @@ package "Business Logic Layer" {    interface DiscountManager {
         + getAllDiscounts(): List<DiscountData>
         + calculateDiscountedPrice(basePrice: double, departureDate: OffsetDateTime): double
         - findBestDiscount(departureDate: OffsetDateTime): DiscountData
-    }    interface ValidatorInterface {
-        + isValidName(name: String): boolean
-        + isValidEmail(email: String): boolean
-        + isValidPhoneNumber(phoneNumber: String): boolean
-        + isValidPassword(password: String): boolean
-        + isValidType(type: String): boolean
+    }
+    interface ValidatorInterface {
         + isValidDiscount(discount: DiscountData): boolean
-        + isValidAmount(amount: Double): boolean
-        + isValidDays(days: Integer): boolean
-    }class Validator {
-        + isValidName(name: String): boolean
-        + isValidEmail(email: String): boolean
-        + isValidPhoneNumber(phoneNumber: String): boolean
-        + isValidPassword(password: String): boolean
-        + isValidType(type: String): boolean
+    }
+    class Validator {
         + isValidDiscount(discount: DiscountData): boolean
-        + isValidAmount(amount: Double): boolean
-        + isValidDays(days: Integer): boolean
     }
 }
 
