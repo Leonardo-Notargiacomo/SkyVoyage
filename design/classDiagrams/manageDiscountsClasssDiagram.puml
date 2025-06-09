@@ -16,56 +16,68 @@ title Backend Class Diagram for Managing Discounts
 package "API Layer" {
     class DiscountResource {
         - discountManager: DiscountManager
+        + DiscountResource(discountManager: DiscountManager)
         + create(context: Context): void
         + getAll(context: Context): void
-        + getOne(context: Context, id: String): void
-        + update(context: Context, id: String): void
-        + delete(context: Context, id: String): void
-        + getByType(context: Context): void
+        + delete(context: Context): void
+        + calculateApplicableDiscount(context: Context): void
+        + applyDiscount(context: Context): void
     }
 }
 
-package "Business Logic Layer" {
-    interface DiscountManager {
-        + addDiscount(discountData: DiscountData): void
+package "Business Logic Layer" {    interface DiscountManager {
+        + addDiscount(discountData: DiscountData): DiscountData
+        + deleteDiscount(id: Integer): DiscountData
         + getAllDiscounts(): List<DiscountData>
-        + getDiscountById(id: Integer): Optional<DiscountData>
-        + updateDiscount(discount: DiscountData): void
-        + deleteDiscount(id: Integer): void
-        + getDiscountsByType(type: String): List<DiscountData>
-        + validateDiscount(discountData: DiscountData): Boolean
-    }
-
-    class DiscountManagerImpl {
+        + calculateDiscountedPrice(basePrice: double, departureDate: OffsetDateTime): double
+    }    class DiscountManagerImpl {
         - discountRepository: DiscountRepository
-        + addDiscount(discountData: DiscountData): void
+        + DiscountManagerImpl(discountRepository: DiscountRepository)
+        + addDiscount(discountData: DiscountData): DiscountData
+        + deleteDiscount(id: Integer): DiscountData
         + getAllDiscounts(): List<DiscountData>
-        + getDiscountById(id: Integer): Optional<DiscountData>
-        + updateDiscount(discount: DiscountData): void
-        + deleteDiscount(id: Integer): void
-        + getDiscountsByType(type: String): List<DiscountData>
-        - validateDiscount(discountData: DiscountData): Boolean
+        + calculateDiscountedPrice(basePrice: double, departureDate: OffsetDateTime): double
+        - findBestDiscount(departureDate: OffsetDateTime): DiscountData
+    }    interface ValidatorInterface {
+        + isValidName(name: String): boolean
+        + isValidEmail(email: String): boolean
+        + isValidPhoneNumber(phoneNumber: String): boolean
+        + isValidPassword(password: String): boolean
+        + isValidType(type: String): boolean
+        + isValidDiscount(discount: DiscountData): boolean
+        + isValidAmount(amount: Double): boolean
+        + isValidDays(days: Integer): boolean
+    }class Validator {
+        + isValidName(name: String): boolean
+        + isValidEmail(email: String): boolean
+        + isValidPhoneNumber(phoneNumber: String): boolean
+        + isValidPassword(password: String): boolean
+        + isValidType(type: String): boolean
+        + isValidDiscount(discount: DiscountData): boolean
+        + isValidAmount(amount: Double): boolean
+        + isValidDays(days: Integer): boolean
     }
 }
 
 package "Persistence Layer" {
     interface DiscountRepository {
         + add(discountData: DiscountData): DiscountData
-        + getAll(): List<DiscountData>
-        + getOne(id: Integer): DiscountData
-        + update(discount: DiscountData): DiscountData
+        + update(discountData: DiscountData): DiscountData
         + delete(id: Integer): DiscountData
+        + getOne(id: Integer): DiscountData
+        + getAll(): List<DiscountData>
         + getByType(type: String): List<DiscountData>
     }
 
     class DiscountRepositoryImpl {
         - dataSource: DataSource
         - discountTableName: String
+        + DiscountRepositoryImpl(config: DBConfig)
         + add(discount: DiscountData): DiscountData
-        + getAll(): List<DiscountData>
-        + getOne(id: Integer): DiscountData
         + update(discount: DiscountData): DiscountData
         + delete(id: Integer): DiscountData
+        + getOne(id: Integer): DiscountData
+        + getAll(): List<DiscountData>
         + getByType(type: String): List<DiscountData>
         - mapResultSetToDiscount(rs: ResultSet): DiscountData
     }
@@ -87,27 +99,60 @@ DiscountResource --> DiscountManager : uses
 DiscountManager <|.. DiscountManagerImpl : implements
 DiscountManagerImpl --> DiscountRepository : uses
 DiscountRepository <|.. DiscountRepositoryImpl : implements
+ValidatorInterface <|.. Validator : implements
+DiscountManagerImpl ..> Validator : creates/uses
 
 ' Data relationships
 DiscountResource ..> DiscountData : creates/uses
 DiscountManager ..> DiscountData : uses
 DiscountRepository ..> DiscountData : uses
+Validator ..> DiscountData : validates
 
 note right of DiscountData
   Represents a discount with:
+  - id: Unique identifier (auto-generated)
   - name: Name of the discount
   - amount: Percentage discount (0-100)
   - type: early_bird or last_minute
-  - employeeID: ID of creating employee
-  - days: Days before flight
+  - employeeID: ID of creating employee (nullable)
+  - days: Days before flight for eligibility
 end note
 
 note right of DiscountManagerImpl
-  Validates:
-  - Amount between 0-100%
-  - Days > 0
-  - Name not empty
-  - Valid discount type
+  Key responsibilities:
+  - Creates Validator instance for validation
+  - Uses dependency injection (constructor)
+  - Calculates best applicable discount
+  - Validates discount data before persistence
+  
+  Method: calculateDiscountedPrice()
+  - Finds best discount based on departure date
+  - Applies discount percentage to base price
+  - Returns discounted price
+end note
+
+note right of Validator
+  Validates discount data:
+  - Amount: 0 < amount <= 100
+  - Days: days > 0
+  - Type: valid discount type
+  - DiscountData: not null and valid
+  
+  Also validates other entities:
+  - Names, emails, phone numbers
+  - Passwords, user types
+end note
+
+note right of DiscountResource
+  REST API endpoints:
+  - create: Creates new discount
+  - getAll: Retrieves all discounts
+  - delete: Deletes discount by ID from path
+  - calculateApplicableDiscount: 
+    Find best discount for given criteria
+  - applyDiscount: 
+    Apply discount to base price
+    with departure date
 end note
 
 @enduml
