@@ -504,8 +504,8 @@ class BookingRepositoryImpl implements BookingRepository {
         String sql = "SELECT 1 FROM public.flight WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, flightId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next();
+            try (ResultSet results = stmt.executeQuery()) {
+                return results.next();
             }
         }
     }
@@ -578,8 +578,8 @@ class BookingRepositoryImpl implements BookingRepository {
             String checkSql = "SELECT id FROM public.customer WHERE id = ?";
             try (PreparedStatement stmt = connection.prepareStatement(checkSql)) {
                 stmt.setInt(1, customer.id());
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
+                try (ResultSet results = stmt.executeQuery()) {
+                    if (results.next()) {
                         // Customer exists, update it
                         updateCustomer(connection, customer);
                         return customer.id();
@@ -629,9 +629,9 @@ class BookingRepositoryImpl implements BookingRepository {
         String checkAddressSql = "SELECT addressid FROM public.customer WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(checkAddressSql)) {
             stmt.setInt(1, customer.id());
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    Integer existingAddressId = rs.getInt("addressid");
+            try (ResultSet results = stmt.executeQuery()) {
+                if (results.next()) {
+                    Integer existingAddressId = results.getInt("addressid");
                     if (existingAddressId != null && existingAddressId > 0) {
                         // Update existing address
                         updateAddress(connection, existingAddressId, customer);
@@ -690,13 +690,13 @@ class BookingRepositoryImpl implements BookingRepository {
 
         try (Connection connection = db.getConnection();
              PreparedStatement stmt = connection.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+             ResultSet results = stmt.executeQuery()) {
 
             List<BookingData> bookings = new ArrayList<>();
 
-            while (rs.next()) {
-                int bookingId = rs.getInt("id");
-                bookings.add(buildBookingData(connection, bookingId, rs));
+            while (results.next()) {
+                int bookingId = results.getInt("id");
+                bookings.add(buildBookingData(connection, bookingId, results));
             }
 
             return bookings;
@@ -719,9 +719,9 @@ class BookingRepositoryImpl implements BookingRepository {
 
             stmt.setInt(1, id);
 
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return buildBookingData(connection, id, rs);
+            try (ResultSet results = stmt.executeQuery()) {
+                if (results.next()) {
+                    return buildBookingData(connection, id, results);
                 }
             }
         } catch (SQLException e) {
@@ -731,11 +731,11 @@ class BookingRepositoryImpl implements BookingRepository {
         return null;
     }
     
-    private BookingData buildBookingData(Connection connection, int bookingId, ResultSet rs) throws SQLException {
-        String flightId = rs.getString("flightid");
-        boolean isActive = rs.getBoolean("isactive");
-        String departureAirport = rs.getString("departure_airport");
-        String arrivalAirport = rs.getString("arrival_airport");
+    private BookingData buildBookingData(Connection connection, int bookingId, ResultSet results) throws SQLException {
+        String flightId = results.getString("flightid");
+        boolean isActive = results.getBoolean("isactive");
+        String departureAirport = results.getString("departure_airport");
+        String arrivalAirport = results.getString("arrival_airport");
         
         // Get customers/tickets for this booking
         List<CustomerData> customers = getCustomersForBooking(connection, bookingId);
@@ -824,12 +824,12 @@ class BookingRepositoryImpl implements BookingRepository {
 
             stmt.setInt(1, customerId);
 
-            try (ResultSet rs = stmt.executeQuery()) {
+            try (ResultSet results = stmt.executeQuery()) {
                 List<BookingData> bookings = new ArrayList<>();
 
-                while (rs.next()) {
-                    int bookingId = rs.getInt("id");
-                    bookings.add(buildBookingData(connection, bookingId, rs));
+                while (results.next()) {
+                    int bookingId = results.getInt("id");
+                    bookings.add(buildBookingData(connection, bookingId, results));
                 }
 
                 return bookings;
@@ -851,21 +851,21 @@ class BookingRepositoryImpl implements BookingRepository {
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, bookingId);
 
-            try (ResultSet rs = stmt.executeQuery()) {
+            try (ResultSet results = stmt.executeQuery()) {
                 List<CustomerData> customers = new ArrayList<>();
 
-                while (rs.next()) {
+                while (results.next()) {
                     customers.add(new CustomerData(
-                            rs.getInt("id"),
-                            rs.getString("firstname") != null ? rs.getString("firstname") : "",
-                            rs.getString("lastname") != null ? rs.getString("lastname") : "",
-                            rs.getString("email") != null ? rs.getString("email") : "",
-                            rs.getString("phonenumber") != null ? rs.getString("phonenumber") : "",
-                            rs.getString("street") != null ? rs.getString("street") : "",
-                            rs.getString("housenumber") != null ? rs.getString("housenumber") : "",
-                            rs.getString("city") != null ? rs.getString("city") : "",
-                            rs.getString("country") != null ? rs.getString("country") : "",
-                            rs.getBoolean("isinfant")
+                            results.getInt("id"),
+                            results.getString("firstname") != null ? results.getString("firstname") : "",
+                            results.getString("lastname") != null ? results.getString("lastname") : "",
+                            results.getString("email") != null ? results.getString("email") : "",
+                            results.getString("phonenumber") != null ? results.getString("phonenumber") : "",
+                            results.getString("street") != null ? results.getString("street") : "",
+                            results.getString("housenumber") != null ? results.getString("housenumber") : "",
+                            results.getString("city") != null ? results.getString("city") : "",
+                            results.getString("country") != null ? results.getString("country") : "",
+                            results.getBoolean("isinfant")
                     ));
                 }
 
@@ -1174,8 +1174,8 @@ class BookingRepositoryImpl implements BookingRepository {
         String sql = "SELECT 1 FROM public.customer WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, customerId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next();
+            try (ResultSet results = stmt.executeQuery()) {
+                return results.next();
             }
         }
     }
@@ -1237,10 +1237,10 @@ class BookingRepositoryImpl implements BookingRepository {
         String sql = "SELECT addressid FROM public.customer WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, customerId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    int addressId = rs.getInt("addressid");
-                    return rs.wasNull() ? null : addressId;
+            try (ResultSet results = stmt.executeQuery()) {
+                if (results.next()) {
+                    int addressId = results.getInt("addressid");
+                    return results.wasNull() ? null : addressId;
                 }
                 return null;
             }
@@ -1392,6 +1392,53 @@ class BookingRepositoryImpl implements BookingRepository {
         } catch (Exception e) {
             LOGGER.warning("Failed to parse timestamp: " + dateTimeStr);
             return null;
+        }
+    }
+
+    @Override
+    public Map<String, Object> findCustomerByEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return null;
+        }
+        
+        String sql = "SELECT c.*, a.street, a.housenumber, a.city, a.country " +
+                     "FROM public.customer c " +
+                     "LEFT JOIN public.address a ON c.addressid = a.id " +
+                     "WHERE LOWER(c.email) = LOWER(?)";
+        
+        try (Connection connection = db.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            
+            stmt.setString(1, email.trim().toLowerCase());
+            
+            try (ResultSet results = stmt.executeQuery()) {
+                if (results.next()) {
+                    Map<String, Object> customerData = new HashMap<>();
+                    customerData.put("id", results.getInt("id"));
+                    customerData.put("firstName", results.getString("firstname"));
+                    customerData.put("lastName", results.getString("lastname"));
+                    customerData.put("email", results.getString("email"));
+                    customerData.put("phone", results.getString("phonenumber"));
+                    customerData.put("isInfant", results.getBoolean("isinfant"));
+                    
+                    // Add address data if available
+                    if (results.getObject("street") != null) {
+                        customerData.put("street", results.getString("street"));
+                        customerData.put("houseNumber", results.getString("housenumber"));
+                        customerData.put("city", results.getString("city"));
+                        customerData.put("country", results.getString("country"));
+                    }
+                    
+                    LOGGER.info("Found customer with email " + email + ": " + customerData);
+                    return customerData;
+                }
+            }
+            
+            LOGGER.info("No customer found with email: " + email);
+            return null;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error finding customer by email: " + email, e);
+            throw new RuntimeException("Failed to find customer by email", e);
         }
     }
 }

@@ -52,4 +52,9 @@ public class BookingManagerImpl implements BookingManager {
     public List<BookingData> getByCustomerId(Integer customerId) {
         return bookingRepository.getByCustomerId(customerId);
     }
+    
+    @Override
+    public Map<String, Object> findCustomerByEmail(String email) {
+        return bookingRepository.findCustomerByEmail(email);
+    }
 }

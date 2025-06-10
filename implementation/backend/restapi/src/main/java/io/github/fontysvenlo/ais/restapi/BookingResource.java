@@ -218,4 +218,34 @@ public class BookingResource {
             ctx.json(Map.of("error", e.getMessage()));
         }
     }
+
+    /**
+     * Checks if a customer with the given email already exists.
+     *
+     * @param ctx the Javalin context
+     */
+    public void checkCustomerEmail(Context ctx) {
+        try {
+            String email = ctx.queryParam("email");
+
+            if (email == null || email.trim().isEmpty()) {
+                ctx.status(400).json(Map.of("error", "Email parameter is required"));
+                return;
+            }
+
+            Map<String, Object> existingCustomer = bookingManager.findCustomerByEmail(email);
+
+            if (existingCustomer != null) {
+                ctx.status(200).json(Map.of(
+                        "exists", true,
+                        "customer", existingCustomer
+                ));
+            } else {
+                ctx.status(200).json(Map.of("exists", false));
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error checking customer by email", e);
+            ctx.status(500).json(Map.of("error", e.getMessage()));
+        }
+    }
 }

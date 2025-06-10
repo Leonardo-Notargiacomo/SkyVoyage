@@ -147,6 +147,12 @@ public class APIServer {
                 
                 // Directly define the booking creation route
                 path("bookings", () -> {
+
+                    get("/check-customer", ctx -> {
+                        BookingResource resource = new BookingResource(businessLogic.getBookingManager());
+                        resource.checkCustomerEmail(ctx);
+                    });
+
                     post("/", ctx -> {
                         try {
                             // Extract booking details from the request body as a Map

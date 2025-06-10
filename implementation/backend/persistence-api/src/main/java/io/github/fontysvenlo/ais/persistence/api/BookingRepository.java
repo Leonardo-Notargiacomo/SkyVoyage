@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.github.fontysvenlo.ais.datarecords.BookingData;
+import io.github.fontysvenlo.ais.datarecords.CustomerData;
 
 /**
  * Repository interface for bookings.
@@ -47,6 +48,14 @@ public interface BookingRepository {
      * @return the updated booking
      */
     BookingData update(BookingData bookingData);
+    
+    /**
+     * Finds a customer by email.
+     * 
+     * @param email the email to search for
+     * @return a map containing customer data if found, or null if not found
+     */
+    Map<String, Object> findCustomerByEmail(String email);
     
     /**
      * Gets bookings by customer ID.
