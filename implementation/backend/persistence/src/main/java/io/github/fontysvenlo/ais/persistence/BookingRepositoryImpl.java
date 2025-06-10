@@ -578,8 +578,8 @@ class BookingRepositoryImpl implements BookingRepository {
             String checkSql = "SELECT id FROM public.customer WHERE id = ?";
             try (PreparedStatement stmt = connection.prepareStatement(checkSql)) {
                 stmt.setInt(1, customer.id());
-                try (ResultSet results = stmt.executeQuery()) {
-                    if (results.next()) {
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
                         // Customer exists, update it
                         updateCustomer(connection, customer);
                         return customer.id();
@@ -588,8 +588,47 @@ class BookingRepositoryImpl implements BookingRepository {
             }
         }
 
-        // Create an address first if needed
-        int addressId = createAddress(connection, customer);
+        // Try to find existing customer by email
+        String email = customer.email();
+        if (email != null && !email.isEmpty()) {
+            Map<String, Object> existingCustomer = findCustomerByEmail(email);
+            if (existingCustomer != null) {
+                // Use existing customer ID
+                Integer customerId = (Integer) existingCustomer.get("id");
+                customer = new CustomerData(
+                        customerId,
+                        customer.firstName(),
+                        customer.lastName(),
+                        customer.email(),
+                        customer.phone(),
+                        customer.street(),
+                        customer.houseNumber(),
+                        customer.city(),
+                        customer.country(),
+                        customer.isInfant()
+                );
+                updateCustomer(connection, customer);
+                return customerId;
+            }
+        }
+        
+        // Create an address first if needed (or find existing one)
+        int addressId = 0;
+        if (customer.street() != null && !customer.street().isEmpty()) {
+            // Check if address already exists
+            Map<String, Object> existingAddress = findAddressByComponents(
+                customer.street(), customer.houseNumber(), customer.city(), customer.country());
+            
+            if (existingAddress != null) {
+                // Use existing address
+                addressId = (Integer) existingAddress.get("id");
+                LOGGER.info("Reusing existing address ID: " + addressId);
+            } else {
+                // Create new address
+                addressId = createAddress(connection, customer);
+                LOGGER.info("Created new address with ID: " + addressId);
+            }
+        }
         
         // Create a new customer
         String insertSql = "INSERT INTO public.customer (firstname, lastname, email, phonenumber, addressid, isinfant) "
@@ -889,7 +928,7 @@ class BookingRepositoryImpl implements BookingRepository {
             
             LOGGER.info("Processing booking for: " + flightId + ", airline: " + airline);
             
-            // Process all flight information: outbound, return and connections
+            // Process all flight information: outbound, return and now also connection flights
             List<String> flightIdsToLink = new ArrayList<>();
             
             // 1. Process mainFlights array (could contain outbound, return, and now also connection flights)
@@ -1149,7 +1188,21 @@ class BookingRepositoryImpl implements BookingRepository {
             return customerId;
         }
         
-        // Create address if needed
+        // Try to find existing customer by email
+        String email = getSafeString(customerMap, "email");
+        if (email != null && !email.isEmpty()) {
+            Map<String, Object> existingCustomer = findCustomerByEmail(email);
+            if (existingCustomer != null) {
+                // Use existing customer ID
+                customerId = (Integer) existingCustomer.get("id");
+                // Update with new data
+                customerMap.put("id", customerId);
+                updateCustomerMap(connection, customerMap);
+                return customerId;
+            }
+        }
+        
+        // Create address if needed (or find existing one)
         int addressId = 0;
         String street = getSafeString(customerMap, "street");
         String houseNumber = getSafeString(customerMap, "houseNumber");
@@ -1157,19 +1210,28 @@ class BookingRepositoryImpl implements BookingRepository {
         String country = getSafeString(customerMap, "country");
         
         if (street != null && !street.isEmpty()) {
-            addressId = createAddressSimple(connection, street, houseNumber, city, country);
+            // Check if address already exists
+            Map<String, Object> existingAddress = findAddressByComponents(street, houseNumber, city, country);
+            
+            if (existingAddress != null) {
+                // Use existing address
+                addressId = (Integer) existingAddress.get("id");
+                LOGGER.info("Reusing existing address ID: " + addressId);
+            } else {
+                // Create new address
+                addressId = createAddressSimple(connection, street, houseNumber, city, country);
+                LOGGER.info("Created new address with ID: " + addressId);
+            }
         }
         
         // Create customer
         String firstName = getSafeString(customerMap, "firstName");
         String lastName = getSafeString(customerMap, "lastName");
-        String email = getSafeString(customerMap, "email");
-        String phone = getSafeString(customerMap, "phone");
         boolean isInfant = getSafeBoolean(customerMap, "isInfant", false);
         
-        return createCustomerSimple(connection, firstName, lastName, email, phone, addressId, isInfant);
+        return createCustomerSimple(connection, firstName, lastName, email, getSafeString(customerMap, "phone"), addressId, isInfant);
     }
-    
+
     private boolean customerExists(Connection connection, int customerId) throws SQLException {
         String sql = "SELECT 1 FROM public.customer WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -1249,6 +1311,14 @@ class BookingRepositoryImpl implements BookingRepository {
     
     private int createAddressSimple(Connection connection, String street, String houseNumber, 
                                    String city, String country) throws SQLException {
+        // First check if address already exists
+        Map<String, Object> existingAddress = findAddressByComponents(street, houseNumber, city, country);
+        if (existingAddress != null) {
+            return (Integer) existingAddress.get("id");
+        }
+        
+        LOGGER.info("Creating new address record: " + street + " " + houseNumber + ", " + city + ", " + country);
+        
         String sql = "INSERT INTO public.address (street, housenumber, city, country) VALUES (?, ?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, street);
@@ -1263,7 +1333,9 @@ class BookingRepositoryImpl implements BookingRepository {
             
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
-                    return generatedKeys.getInt(1);
+                    int newAddressId = generatedKeys.getInt(1);
+                    LOGGER.info("Created new address with ID: " + newAddressId);
+                    return newAddressId;
                 } else {
                     throw new SQLException("Creating address failed, no ID obtained.");
                 }
@@ -1381,7 +1453,7 @@ class BookingRepositoryImpl implements BookingRepository {
         
         return result;
     }
-    
+
     private java.sql.Timestamp parseTimestamp(String dateTimeStr) {
         if (dateTimeStr == null || dateTimeStr.isEmpty()) return null;
         
@@ -1405,40 +1477,81 @@ class BookingRepositoryImpl implements BookingRepository {
                      "FROM public.customer c " +
                      "LEFT JOIN public.address a ON c.addressid = a.id " +
                      "WHERE LOWER(c.email) = LOWER(?)";
+    
+    try (Connection connection = db.getConnection();
+         PreparedStatement stmt = connection.prepareStatement(sql)) {
         
-        try (Connection connection = db.getConnection();
-             PreparedStatement stmt = connection.prepareStatement(sql)) {
-            
-            stmt.setString(1, email.trim().toLowerCase());
-            
-            try (ResultSet results = stmt.executeQuery()) {
-                if (results.next()) {
-                    Map<String, Object> customerData = new HashMap<>();
-                    customerData.put("id", results.getInt("id"));
-                    customerData.put("firstName", results.getString("firstname"));
-                    customerData.put("lastName", results.getString("lastname"));
-                    customerData.put("email", results.getString("email"));
-                    customerData.put("phone", results.getString("phonenumber"));
-                    customerData.put("isInfant", results.getBoolean("isinfant"));
-                    
-                    // Add address data if available
-                    if (results.getObject("street") != null) {
-                        customerData.put("street", results.getString("street"));
-                        customerData.put("houseNumber", results.getString("housenumber"));
-                        customerData.put("city", results.getString("city"));
-                        customerData.put("country", results.getString("country"));
-                    }
-                    
-                    LOGGER.info("Found customer with email " + email + ": " + customerData);
-                    return customerData;
+        stmt.setString(1, email.trim().toLowerCase());
+        
+        try (ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                Map<String, Object> customerData = new HashMap<>();
+                customerData.put("id", rs.getInt("id"));
+                customerData.put("firstName", rs.getString("firstname"));
+                customerData.put("lastName", rs.getString("lastname"));
+                customerData.put("email", rs.getString("email"));
+                customerData.put("phone", rs.getString("phonenumber"));
+                customerData.put("isInfant", rs.getBoolean("isinfant"));
+                
+                // Add address data if available
+                if (rs.getObject("street") != null) {
+                    customerData.put("street", rs.getString("street"));
+                    customerData.put("houseNumber", rs.getString("housenumber"));
+                    customerData.put("city", rs.getString("city"));
+                    customerData.put("country", rs.getString("country"));
                 }
+                
+                LOGGER.info("Found customer with email " + email + ": " + customerData);
+                return customerData;
             }
-            
-            LOGGER.info("No customer found with email: " + email);
-            return null;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error finding customer by email: " + email, e);
-            throw new RuntimeException("Failed to find customer by email", e);
         }
+        
+        LOGGER.info("No customer found with email: " + email);
+        return null;
+    } catch (SQLException e) {
+        LOGGER.log(Level.SEVERE, "Error finding customer by email: " + email, e);
+        throw new RuntimeException("Failed to find customer by email", e);
     }
+}
+
+private Map<String, Object> findAddressByComponents(String street, String houseNumber, String city, String country) {
+    if (street == null || houseNumber == null || city == null || country == null) {
+        return null;
+    }
+    
+    String sql = "SELECT * FROM public.address " +
+                 "WHERE LOWER(street) = LOWER(?) " +
+                 "AND LOWER(housenumber) = LOWER(?) " +
+                 "AND LOWER(city) = LOWER(?) " +
+                 "AND LOWER(country) = LOWER(?)";
+    
+    try (Connection connection = db.getConnection();
+         PreparedStatement stmt = connection.prepareStatement(sql)) {
+        
+        stmt.setString(1, street.trim().toLowerCase());
+        stmt.setString(2, houseNumber.trim().toLowerCase());
+        stmt.setString(3, city.trim().toLowerCase());
+        stmt.setString(4, country.trim().toLowerCase());
+        
+        try (ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                Map<String, Object> addressData = new HashMap<>();
+                addressData.put("id", rs.getInt("id"));
+                addressData.put("street", rs.getString("street"));
+                addressData.put("houseNumber", rs.getString("housenumber"));
+                addressData.put("city", rs.getString("city"));
+                addressData.put("country", rs.getString("country"));
+                
+                LOGGER.info("Found existing address with ID " + rs.getInt("id") + 
+                           " for " + street + " " + houseNumber + ", " + city + ", " + country);
+                return addressData;
+            }
+        }
+        
+        return null;
+    } catch (SQLException e) {
+        LOGGER.log(Level.SEVERE, "Error finding address", e);
+        throw new RuntimeException("Failed to find address", e);
+    }
+}
 }
