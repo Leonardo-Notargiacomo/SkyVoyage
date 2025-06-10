@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"m":"datarecords_module","l":"io.github.fontysvenlo.ais.datarecords"}];updateSearchResults();

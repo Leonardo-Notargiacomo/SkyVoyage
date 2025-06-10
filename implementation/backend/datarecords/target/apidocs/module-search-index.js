@@ -1,1 +1,0 @@
-moduleSearchIndex = [{"l":"datarecords_module"}];updateSearchResults();
