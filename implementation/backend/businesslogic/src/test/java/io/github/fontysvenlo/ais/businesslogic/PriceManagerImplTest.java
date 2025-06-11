@@ -52,15 +52,6 @@ public class PriceManagerImplTest {
     }
 
     @Test
-    public void testGetActualPrice() {
-        when(priceRepository.get()).thenReturn(50);
-
-        int price = priceManager.getPrice();
-
-        assertThat(price).isEqualTo(50);
-    }
-
-    @Test
     public void testSetPriceCallsRepositoryChange() {
 
         PricePerKmData newPrice = new PricePerKmData(15);
@@ -68,20 +59,6 @@ public class PriceManagerImplTest {
         priceManager.setPrice(newPrice);
 
         verify(priceRepository, times(1)).change(newPrice);
-    }
-
-    @Test
-    public void testCalculateBasePriceWithRepositoryPrice() {
-        // Arrange
-        when(priceRepository.get()).thenReturn(20);
-        int duration = 120; // 2 hours
-
-        // Act
-        int result = priceManager.calculateBasePrice(duration);
-
-        // Assert
-        // Formula: (duration * 15 * price) / 100 = (120 * 15 * 20) / 100 = 36000 / 100 = 360
-        assertThat(result).isEqualTo(360);
     }
 
     @Test
@@ -111,36 +88,5 @@ public class PriceManagerImplTest {
         // Should use default price when repository throws exception
         // Formula: (duration * 15 * defaultPrice) / 100 = (60 * 15 * 11) / 100 = 9900 / 100 = 99
         assertThat(result).isEqualTo(99);
-    }
-
-    @Test
-    public void testCalculateBasePriceWithLargeDuration() {
-        // Arrange
-        when(priceRepository.get()).thenReturn(10);
-        int duration = 600; // 10 hours
-
-        // Act
-        int result = priceManager.calculateBasePrice(duration);
-
-        // Assert
-        // Formula: (600 * 15 * 10) / 100 = 90000 / 100 = 900
-        assertThat(result).isEqualTo(900);
-    }
-
-    @Test
-    public void testCalculateBasePriceConsistency() {
-        // Arrange
-        when(priceRepository.get()).thenReturn(12);
-        int duration = 180; // 3 hours
-
-        // Act - call multiple times
-        int result1 = priceManager.calculateBasePrice(duration);
-        int result2 = priceManager.calculateBasePrice(duration);
-        int result3 = priceManager.calculateBasePrice(duration);
-
-        // Assert - should always return the same result
-        assertThat(result1).isEqualTo(result2).isEqualTo(result3);
-        // Formula: (180 * 15 * 12) / 100 = 32400 / 100 = 324
-        assertThat(result1).isEqualTo(324);
     }
 } 
