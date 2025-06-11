@@ -39,7 +39,11 @@ class PersistenceImpl implements Persistence {
     @Override
     public UserRepository getUserRepository() { return new UserRepositoryImpl(config);
     }
-    
+
+    @Override
+    public FlightStatsRepository getFlightStatsRepository() {
+        return new FlightStatsRepositoryImpl(config);
+  
     @Override
     public DiscountRepository getDiscountRepository() {
         return new DiscountRepositoryImpl(config);

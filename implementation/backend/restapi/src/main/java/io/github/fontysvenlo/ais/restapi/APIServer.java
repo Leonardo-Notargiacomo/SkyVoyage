@@ -162,6 +162,15 @@ public class APIServer {
                         ctx.status(404).json(Map.of("error", "User not found"));
                     }
                 });
+                get("kpi", ctx -> {
+                    var stats = businessLogic.getFlightStatsManager().getStatsForFlight();
+                    System.out.println("Flight stats: " + stats);
+                    if (stats != null) {
+                        ctx.status(200).json(stats);
+                    } else {
+                        ctx.status(404).json(Map.of("error", "Flight stats not found"));
+                    }
+                });
             });
 
         });

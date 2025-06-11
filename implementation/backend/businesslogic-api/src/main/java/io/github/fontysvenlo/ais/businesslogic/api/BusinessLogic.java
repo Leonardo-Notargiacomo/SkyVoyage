@@ -33,6 +33,13 @@ public interface BusinessLogic {
     PriceManager getPriceManager();
 
     LoginService getLoginService();
+
+    /**
+     * Get the FlightStatsManager.
+     *
+     * @return the FlightStatsManager
+     */
+    FlightStatsManager getFlightStatsManager();
     
     /**
      * Get the DiscountManager.

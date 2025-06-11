@@ -26,6 +26,8 @@ public interface Persistence {
 
     UserRepository getUserRepository();
 
+    FlightStatsRepository getFlightStatsRepository();
+
     DiscountRepository getDiscountRepository();
 
     // This interface can be extended with other repositories that need to be made
