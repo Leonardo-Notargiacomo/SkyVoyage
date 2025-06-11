@@ -26,19 +26,19 @@ public class FlightStatsRepositoryImpl implements FlightStatsRepository {
            String topDestination = "";
            double totalKilometers = 0;
 
-            try (PreparedStatement ps = conn.prepareStatement("SELECT SUM(tariff) FROM public.ticket");
-                 ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) totalRevenue = rs.getLong(1);
+            try (var sqlStatement = conn.createStatement();
+                 var result = sqlStatement.executeQuery("SELECT SUM(tariff) FROM public.ticket")) {
+                if (result.next()) totalRevenue = result.getLong(1);
             }
 
-            try (PreparedStatement ps = conn.prepareStatement("SELECT arrival_airport, COUNT(*) as count FROM public.flight GROUP BY arrival_airport ORDER BY count DESC LIMIT 1");
-                 ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) topDestination = rs.getString("arrival_airport");
+            try (var sqlStatement = conn.createStatement();
+                 var result = sqlStatement.executeQuery("SELECT arrival_airport, COUNT(*) as count FROM public.flight GROUP BY arrival_airport ORDER BY count DESC LIMIT 1")) {
+                if (result.next()) topDestination = result.getString("arrival_airport");
             }
 
-            try (PreparedStatement ps = conn.prepareStatement("SELECT SUM(duration)* 800 FROM public.flight");
-                 ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) totalKilometers= rs.getLong(1);
+            try (var sqlStatement = conn.createStatement();
+                 var result = sqlStatement.executeQuery("SELECT SUM(duration)* 800 FROM public.flight")) {
+                if (result.next()) totalKilometers= result.getLong(1);
             }
 
             return new FlightStats(totalRevenue, topDestination, totalKilometers);
