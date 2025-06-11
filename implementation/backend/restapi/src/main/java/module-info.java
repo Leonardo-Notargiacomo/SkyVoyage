@@ -3,6 +3,7 @@
  */
 module restapi_module {
 
+    requires org.slf4j;
     requires io.javalin;
     requires com.fasterxml.jackson.databind;
     requires businesslogic_module;
