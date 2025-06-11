@@ -58,7 +58,7 @@ class BusinessLogicImpl implements BusinessLogic {
     @Override
     public FlightStatsManager getFlightStatsManager() {
         return new FlightStatsManagerImpl(persistenceAPI.getFlightStatsRepository());
-    
+    }
     @Override
     public DiscountManager getDiscountManager() {
         return DiscountManagerImpl.getInstance(persistenceAPI.getDiscountRepository());

@@ -43,9 +43,9 @@ class PersistenceImpl implements Persistence {
     @Override
     public FlightStatsRepository getFlightStatsRepository() {
         return new FlightStatsRepositoryImpl(config);
-  
+    }
     @Override
     public DiscountRepository getDiscountRepository() {
         return new DiscountRepositoryImpl(config);
     }
-}
+    }
