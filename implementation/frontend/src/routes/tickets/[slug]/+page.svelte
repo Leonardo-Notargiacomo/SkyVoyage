@@ -21,66 +21,8 @@
   };
 </script>
 
+<!-- Without this style tag the page will error.  -->
 <style>
-  .container-wrapper {
-    margin-bottom: 20px; 
-    background-color: #85ebf8; 
-    border-radius: 8px;
-    padding: 10px;
-  }
-
-  .grid-container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr); 
-    grid-gap: 10px;
-    width: 95%;
-    margin: auto;
-    border: 2px solid #000;
-    padding: 10px;
-    background-color: #ffffff; 
-    height: auto; 
-  }
-
-  .grid-item {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border: 1px solid #ccc;
-    background-color: #91ff82; 
-    font-size: 1.2rem;
-    height: 100%;
-    text-align: center;
-    border-radius: 4px;
-    padding-bottom: 10px; 
-  }
-
-  .variable-display {
-    width: 90%;
-    height: auto; 
-    text-align: center;
-    font-size: 1rem;
-    background-color: #c94256; 
-    border: 1px solid #ccc;
-    padding: 5px;
-    box-sizing: border-box;
-    border-radius: 4px;
-  }
-
-  .name-label {
-    font-size: 1rem;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #000000; 
-  }
-
-  .container-title {
-    font-size: 1.5rem;
-    text-align: center;
-    margin-bottom: 10px;
-    font-weight: bold;
-    color: #000000; 
-  }
 </style>
 
 <nav class="flex my-4" aria-label="Breadcrumb">
