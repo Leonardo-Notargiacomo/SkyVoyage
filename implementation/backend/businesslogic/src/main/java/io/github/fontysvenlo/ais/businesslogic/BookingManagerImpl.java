@@ -22,12 +22,7 @@ public class BookingManagerImpl implements BookingManager {
     public BookingManagerImpl(BookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
     }
-    
-    @Override
-    public BookingData add(BookingData bookingData) {
-        return bookingRepository.add(bookingData);
-    }
-    
+
     @Override
     public Map<String, Object> addSimple(Map<String, Object> bookingMap) {
         return bookingRepository.addSimple(bookingMap);

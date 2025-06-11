@@ -11,14 +11,6 @@ import io.github.fontysvenlo.ais.datarecords.CustomerData;
  */
 public interface BookingRepository {
     /**
-     * Adds a booking.
-     * 
-     * @param bookingData the booking to add
-     * @return the added booking with generated ID
-     */
-    BookingData add(BookingData bookingData);
-    
-    /**
      * Adds a booking using a simple map structure.
      * 
      * @param bookingMap the booking data as a map

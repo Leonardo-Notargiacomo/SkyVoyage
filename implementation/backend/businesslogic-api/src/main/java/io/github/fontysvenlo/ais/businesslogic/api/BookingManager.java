@@ -9,13 +9,6 @@ import io.github.fontysvenlo.ais.datarecords.BookingData;
  * Interface for managing bookings.
  */
 public interface BookingManager {
-    /**
-     * Adds a booking to the system.
-     * 
-     * @param bookingData The booking data to add
-     * @return The added booking data
-     */
-    BookingData add(BookingData bookingData);
     
     /**
      * Adds a booking using a simple map structure instead of complex records.
