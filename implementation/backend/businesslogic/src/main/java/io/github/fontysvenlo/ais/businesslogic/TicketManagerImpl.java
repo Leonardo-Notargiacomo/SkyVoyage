@@ -58,7 +58,7 @@ public class TicketManagerImpl implements TicketManager {
                 return ticketDataList; // Return empty list if an error shows up
             }
         }
-        // Speaks for itself
+        // Return the list
         return ticketDataList;
     }
 }

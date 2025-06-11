@@ -49,7 +49,7 @@ public class TicketResourceTest {
         // When we call the getOne function with the booking ID
         ticketResource.getOne(context, bookingId);
 
-        // Then we should get the context with a status 404 (Not Found)
+        // Then we should get the context with a status 200 but no ticket data
         verify(context).status(200);
         verify(context).json(List.of());
     }

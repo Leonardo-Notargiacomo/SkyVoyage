@@ -4,15 +4,19 @@ package io.github.fontysvenlo.ais.datarecords;
  * Data record for a ticket.
  * A record is not mutable. Getter methods (e.g. flightNumber(), not getFlightNumber()),
  * hashCode(), equals() and toString() available for free.
- * @param flightNumber the flight number of the flight
- * @param departureAirport the departure airport of the flight
- * @param departureTerminal the departure terminal of the flight
- * @param departureGate the departure gate of the flight
- * @param departureTime the departure time of the flight
- * @param arrivalAirport the arrival airport of the flight
- * @param arrivalTime the arrival time of the flight
- * @param firstName the first name of the passenger
- * @param lastName the last name of the passenger
+ * 
+ * Flight data
+ * @param flightNumber the flight number 
+ * @param departureAirport the departure airport 
+ * @param departureTerminal the departure terminal 
+ * @param departureGate the departure gate 
+ * @param departureTime the departure time 
+ * @param arrivalAirport the arrival airport 
+ * @param arrivalTime the arrival time 
+ * 
+ * Passenger data
+ * @param firstName the first name 
+ * @param lastName the last name 
  * @param hasSeat if the passenger has a seat
  */
 

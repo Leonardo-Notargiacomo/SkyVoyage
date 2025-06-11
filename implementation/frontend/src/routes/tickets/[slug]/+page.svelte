@@ -13,10 +13,9 @@
   const load = async () => {
     try {
       const fetchedTickets = await api.getOne("tickets", $page.params.slug);
-      // Sort tickets by ID (smallest first)
       tickets = fetchedTickets.sort((a, b) => parseInt(a.id) - parseInt(b.id));
     } catch (error) {
-      console.error("API Error:", error); // Added this for debugging
+      console.error("API Error:", error); 
       errorMessage = "Failed to load tickets. Please try again.";
     }
   };
@@ -24,22 +23,22 @@
 
 <style>
   .container-wrapper {
-    margin-bottom: 20px; /* Add gap between containers */
-    background-color: #85ebf8; /* Light blue for containers */
+    margin-bottom: 20px; 
+    background-color: #85ebf8; 
     border-radius: 8px;
     padding: 10px;
   }
 
   .grid-container {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* Change to 4 columns */
+    grid-template-columns: repeat(4, 1fr); 
     grid-gap: 10px;
     width: 95%;
     margin: auto;
     border: 2px solid #000;
     padding: 10px;
-    background-color: #ffffff; /* White background for grid */
-    height: auto; /* Allow container to grow dynamically */
+    background-color: #ffffff; 
+    height: auto; 
   }
 
   .grid-item {
@@ -48,20 +47,20 @@
     justify-content: center;
     align-items: center;
     border: 1px solid #ccc;
-    background-color: #91ff82; /* Distinct yellow for variable fields */
+    background-color: #91ff82; 
     font-size: 1.2rem;
     height: 100%;
     text-align: center;
     border-radius: 4px;
-    padding-bottom: 10px; /* Add padding to prevent touching the bottom */
+    padding-bottom: 10px; 
   }
 
   .variable-display {
     width: 90%;
-    height: auto; /* Adjust height to fit content */
+    height: auto; 
     text-align: center;
     font-size: 1rem;
-    background-color: #c94256; /* Slightly darker red for variable content */
+    background-color: #c94256; 
     border: 1px solid #ccc;
     padding: 5px;
     box-sizing: border-box;
@@ -72,7 +71,7 @@
     font-size: 1rem;
     margin-bottom: 5px;
     font-weight: bold;
-    color: #000000; /* Black for text */
+    color: #000000; 
   }
 
   .container-title {
@@ -80,7 +79,7 @@
     text-align: center;
     margin-bottom: 10px;
     font-weight: bold;
-    color: #000000; /* Black for container titles */
+    color: #000000; 
   }
 </style>
 
