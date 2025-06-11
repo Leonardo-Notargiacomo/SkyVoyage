@@ -163,7 +163,28 @@
                   d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
                 ></path></svg
               >
-              <span class="flex-1 ms-3 whitespace-nowrap">Sales Manager</span>
+              <span class="flex-1 ms-3 whitespace-nowrap">Price Management</span>
+            </a>
+          </li>
+          <li>
+            <a
+              href="/admin/discounts"
+              class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="feather feather-percent"
+                ><line x1="19" y1="5" x2="5" y2="19"></line><circle cx="6.5" cy="6.5" r="2.5"></circle><circle cx="17.5" cy="17.5" r="2.5"></circle></svg
+              >
+              <span class="flex-1 ms-3 whitespace-nowrap">Discount Management</span>
             </a>
           </li>
         {/if}

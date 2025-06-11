@@ -55,14 +55,6 @@ CREATE TABLE Flight (
     Duration INTEGER
 );
 
--- Create Trip table
-CREATE TABLE Trip (
-    ID SERIAL PRIMARY KEY,
-    Name VARCHAR(256),
-    Scheduled_Start TIMESTAMP,
-    Scheduled_End TIMESTAMP
-);
-
 -- Create Booking table
 CREATE TABLE Booking (
     ID SERIAL PRIMARY KEY,
@@ -88,27 +80,19 @@ CREATE TABLE Discount (
     Amount DOUBLE PRECISION,
     Type VARCHAR(256),
     EmployeeID INTEGER,
+    Days INTEGER,
     FOREIGN KEY (EmployeeID) REFERENCES Employee(ID)
 );
 
 -- Create junction tables for many-to-many relationships
 
--- Create Booking_Trip junction table
-CREATE TABLE Booking_Trip (
+-- Create Booking_Flight junction table
+CREATE TABLE Booking_Flight (
     BookingID INTEGER,
-    TripID INTEGER,
-    PRIMARY KEY (BookingID, TripID),
-    FOREIGN KEY (BookingID) REFERENCES Booking(ID),
-    FOREIGN KEY (TripID) REFERENCES Trip(ID)
-);
-
--- Create Flight_Trip junction table
-CREATE TABLE Flight_Trip (
     FlightID VARCHAR(56),
-    TripID INTEGER,
-    PRIMARY KEY (FlightID, TripID),
-    FOREIGN KEY (FlightID) REFERENCES Flight(ID),
-    FOREIGN KEY (TripID) REFERENCES Trip(ID)
+    PRIMARY KEY (BookingID, FlightID),
+    FOREIGN KEY (BookingID) REFERENCES Booking(ID),
+    FOREIGN KEY (FlightID) REFERENCES Flight(ID)
 );
 
 -- Create Discount_Ticket junction table

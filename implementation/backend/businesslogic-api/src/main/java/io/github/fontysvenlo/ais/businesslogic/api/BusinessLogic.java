@@ -40,4 +40,11 @@ public interface BusinessLogic {
      * @return the FlightStatsManager
      */
     FlightStatsManager getFlightStatsManager();
+    
+    /**
+     * Get the DiscountManager.
+     *
+     * @return the DiscountManager
+     */
+    DiscountManager getDiscountManager();
 }
