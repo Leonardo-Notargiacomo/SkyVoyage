@@ -9,14 +9,13 @@ import io.github.fontysvenlo.ais.datarecords.BookingData;
  * Interface for managing bookings.
  */
 public interface BookingManager {
-    
     /**
-     * Adds a booking using a simple map structure instead of complex records.
+     * Adds a booking to the system.
      * 
-     * @param bookingMap Map containing booking data
-     * @return Map containing the result
+     * @param bookingData The booking data to add
+     * @return The added booking data
      */
-    Map<String, Object> addSimple(Map<String, Object> bookingMap);
+    BookingData add(BookingData bookingData);
     
     /**
      * Gets all bookings.
@@ -34,13 +33,13 @@ public interface BookingManager {
     BookingData getOne(Integer id);
     
     /**
-     * Updates a booking.
+     * Gets bookings by customer ID.
      * 
-     * @param bookingData The updated booking data
-     * @return The updated booking data
+     * @param customerId The customer ID
+     * @return List of bookings for the customer
      */
-    BookingData update(BookingData bookingData);
-    
+    List<BookingData> getByCustomerId(Integer customerId);
+
     /**
      * Checks if a customer with the given email already exists.
      * 
@@ -50,10 +49,11 @@ public interface BookingManager {
     Map<String, Object> findCustomerByEmail(String email);
     
     /**
-     * Gets bookings by customer ID.
+     * Adds a booking using a simple map structure instead of complex records.
      * 
      * @param customerId The customer ID
-     * @return List of bookings for the customer
+     * @param bookingMap Map containing booking data
+     * @return Map containing the result
      */
-    List<BookingData> getByCustomerId(Integer customerId);
+    Map<String, Object> addSimple(Map<String, Object> bookingMap);
 }

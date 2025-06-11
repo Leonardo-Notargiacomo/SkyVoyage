@@ -18,7 +18,6 @@ import javax.sql.DataSource;
 
 import io.github.fontysvenlo.ais.datarecords.BookingData;
 import io.github.fontysvenlo.ais.datarecords.CustomerData;
-import io.github.fontysvenlo.ais.datarecords.FlightData;
 import io.github.fontysvenlo.ais.persistence.api.BookingRepository;
 
 class BookingRepositoryImpl implements BookingRepository {
@@ -31,6 +30,235 @@ class BookingRepositoryImpl implements BookingRepository {
         this.db = DBProvider.getDataSource(config);
     }
 
+    @Override
+    public BookingData add(BookingData bookingData) {
+        Connection connection = null;
+        try {
+            connection = db.getConnection();
+            connection.setAutoCommit(false);  // Start transaction
+
+            // 1. Extract all flight IDs (main flight and connections)
+            List<String> allFlightIds = extractAllFlightIds(bookingData);
+            
+            // 2. Save all flights to ensure they exist in the database
+            for (String flightId : allFlightIds) {
+                saveFlightIfNeeded(connection, bookingData, flightId);
+            }
+            
+            // 3. Create booking record
+            int bookingId = createBooking(connection);
+            
+            // 4. Link all flights to the booking
+            for (String flightId : allFlightIds) {
+                linkBookingToFlight(connection, bookingId, flightId);
+            }
+            
+            // 5. Create tickets for each passenger for each flight
+            if (bookingData.customers() != null) {
+                for (CustomerData customer : bookingData.customers()) {
+                    Integer customerId = saveOrUpdateCustomer(connection, customer);
+                    
+                    // Create a ticket for each flight segment for this customer
+                    for (String flightId : allFlightIds) {
+                        createTicket(connection, customerId, flightId);
+                    }
+                }
+            }
+            
+            connection.commit();  // Commit transaction
+            
+            // Return a rebuilt BookingData object
+            return new BookingData(
+                    bookingId,
+                    bookingData.flightId(), // Main flight ID
+                    bookingData.airline(),
+                    bookingData.price(),
+                    bookingData.adultPassengers(),
+                    bookingData.infantPassengers(),
+                    bookingData.travelClass(),
+                    bookingData.discount(),
+                    bookingData.discountReason(),
+                    LocalDateTime.now(),
+                    bookingData.status(),
+                    bookingData.customers()
+            );
+            
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error adding booking to the database", e);
+            if (connection != null) {
+                try {
+                    connection.rollback();  // Rollback transaction on error
+                } catch (SQLException ex) {
+                    LOGGER.log(Level.SEVERE, "Error rolling back transaction", ex);
+                }
+            }
+            throw new RuntimeException("Failed to add booking", e);
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.setAutoCommit(true);
+                    connection.close();
+                } catch (SQLException e) {
+                    LOGGER.log(Level.SEVERE, "Error closing connection", e);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Extract all flight IDs from booking data, including the main flight and any connections
+     */
+    private List<String> extractAllFlightIds(BookingData bookingData) {
+        List<String> flightIds = new ArrayList<>();
+        
+        // Add the main flight ID
+        flightIds.add(bookingData.flightId());
+        
+        // For connection flights, we'll need to get them from the raw booking data
+        // since FlightData doesn't have a fullOffer() method
+        try {
+            // This assumes that the booking data may have a raw JSON structure with connection flights
+            // You may need to adjust this based on how the connection flights are actually stored
+            if (bookingData.flightId() != null) {
+                LOGGER.info("Main flight ID: " + bookingData.flightId());
+                // In a real implementation, you would extract the connection flight IDs
+                // from whatever structure is available in the booking data
+            }
+        } catch (Exception e) {
+            LOGGER.warning("Error extracting connection flight IDs: " + e.getMessage());
+        }
+        
+        LOGGER.info("Extracted flight IDs: " + flightIds);
+        return flightIds;
+    }
+    
+    /**
+     * Save flight data to the database if it doesn't already exist.
+     */
+    private void saveFlightIfNeeded(Connection connection, BookingData bookingData, String flightId) throws SQLException {
+        if (flightExists(connection, flightId)) {
+            LOGGER.info("Flight " + flightId + " already exists in database.");
+            return;
+        }
+        
+        LOGGER.info("Creating new flight record for ID: " + flightId);
+        
+        // For the main flight ID
+        if (flightId.equals(bookingData.flightId())) {
+            // Extract main flight details and save
+            saveMainFlight(connection, bookingData);
+        } else {
+            // This is a connection flight - create a basic record from the ID
+            // since we don't have direct access to connection flight details
+            String[] parts = flightId.split("-");
+            if (parts.length >= 2) {
+                insertFlightRecord(connection, flightId, 
+                        "Airport " + parts[0], parts[0], null, null, null,
+                        "Airport " + parts[1], parts[1], null, null, null, 180);
+            } else {
+                // Create a very basic record if we can't extract anything
+                insertFlightRecord(connection, flightId, 
+                        "Unknown Airport", "UNK", null, null, null,
+                        "Unknown Airport", "UNK", null, null, null, 180);
+            }
+        }
+    }
+    
+    /**
+     * Save the main flight using booking data and the FlightData structure
+     */
+    private void saveMainFlight(Connection connection, BookingData bookingData) throws SQLException {
+        String departureAirport = null;
+        String departureAirportShort = null;
+        String departureTerminal = null;
+        String departureGate = null;
+        java.sql.Timestamp departureTime = null;
+        
+        String arrivalAirport = null;
+        String arrivalAirportShort = null;
+        String arrivalTerminal = null;
+        String arrivalGate = null;
+        java.sql.Timestamp arrivalTime = null;
+        
+        Integer duration = null;
+        
+        try {
+            if (bookingData.flight() != null) {
+                // Access FlightData fields directly - these fields match the actual FlightData record
+                departureAirport = bookingData.flight().departureAirport();
+                departureAirportShort = bookingData.flight().departureAirportShort();
+                departureTerminal = bookingData.flight().departureTerminal();
+                departureGate = bookingData.flight().departureGate();
+                duration = bookingData.flight().duration();
+                
+                if (bookingData.flight().departureScheduledTime() != null) {
+                    departureTime = java.sql.Timestamp.valueOf(bookingData.flight().departureScheduledTime());
+                }
+                
+                arrivalAirport = bookingData.flight().arrivalAirport();
+                arrivalAirportShort = bookingData.flight().arrivalAirportShort();
+                arrivalTerminal = bookingData.flight().arrivalTerminal();
+                arrivalGate = bookingData.flight().arrivalGate();
+                
+                if (bookingData.flight().arrivalScheduledTime() != null) {
+                    arrivalTime = java.sql.Timestamp.valueOf(bookingData.flight().arrivalScheduledTime());
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.warning("Error extracting flight details: " + e.getMessage() + ". Using basic information.");
+        }
+        
+        // If we couldn't extract the data, try to parse from flightId (e.g., "JFK-LAX")
+        if (departureAirportShort == null || arrivalAirportShort == null) {
+            String[] parts = bookingData.flightId().split("-");
+            if (parts.length >= 2) {
+                departureAirportShort = parts[0];
+                departureAirport = departureAirport != null ? departureAirport : "Airport " + departureAirportShort;
+                arrivalAirportShort = parts[1];
+                arrivalAirport = arrivalAirport != null ? arrivalAirport : "Airport " + arrivalAirportShort;
+            } else {
+                // Default values if we can't extract
+                departureAirport = "Unknown Departure Airport";
+                departureAirportShort = "UNK";
+                arrivalAirport = "Unknown Arrival Airport";
+                arrivalAirportShort = "UNK";
+            }
+        }
+        
+        // Use a default duration if none provided
+        if (duration == null) {
+            duration = 180; // 3 hours default
+        }
+        
+        // Insert flight record with all available information
+        insertFlightRecord(connection, bookingData.flightId(), 
+                departureAirport, departureAirportShort, departureTerminal, departureGate, departureTime,
+                arrivalAirport, arrivalAirportShort, arrivalTerminal, arrivalGate, arrivalTime, duration);
+    }
+    
+    /**
+     * Find and save a specific connection flight by ID
+     * This is simplified since we don't have direct access to connection flight details
+     */
+    private void saveConnectionFlightById(Connection connection, BookingData bookingData, String flightId) {
+        try {
+            // Create a basic record from the flight ID
+            String[] parts = flightId.split("-");
+            if (parts.length >= 2) {
+                insertFlightRecord(connection, flightId, 
+                        "Airport " + parts[0], parts[0], null, null, null,
+                        "Airport " + parts[1], parts[1], null, null, null, 180);
+            } else {
+                // Create a very basic record if we can't extract anything
+                insertFlightRecord(connection, flightId, 
+                        "Unknown Airport", "UNK", null, null, null,
+                        "Unknown Airport", "UNK", null, null, null, 180);
+            }
+        } catch (Exception e) {
+            LOGGER.warning("Error saving connection flight " + flightId + ": " + e.getMessage());
+        }
+    }
+    
     /**
      * Insert a flight record with the given details
      */
@@ -39,41 +267,41 @@ class BookingRepositoryImpl implements BookingRepository {
             String departureGate, java.sql.Timestamp departureTime,
             String arrivalAirport, String arrivalAirportShort, String arrivalTerminal,
             String arrivalGate, java.sql.Timestamp arrivalTime, Integer duration) throws SQLException {
-
+        
         String sql = "INSERT INTO public.flight (id, departure_airport, departure_airport_short, " +
                 "departure_terminal, departure_gate, departure_scheduled_time, arrival_airport, " +
                 "arrival_airport_short, arrival_terminal, arrival_gate, arrival_scheduled_time, " +
                 "duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
+        
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, flightId);
             stmt.setString(2, departureAirport);
             stmt.setString(3, departureAirportShort);
-
+            
             // Set nullable fields properly
             if (departureTerminal != null) stmt.setString(4, departureTerminal);
             else stmt.setNull(4, java.sql.Types.VARCHAR);
-
+            
             if (departureGate != null) stmt.setString(5, departureGate);
             else stmt.setNull(5, java.sql.Types.VARCHAR);
-
+            
             if (departureTime != null) stmt.setTimestamp(6, departureTime);
             else stmt.setNull(6, java.sql.Types.TIMESTAMP);
-
+            
             stmt.setString(7, arrivalAirport);
             stmt.setString(8, arrivalAirportShort);
-
+            
             if (arrivalTerminal != null) stmt.setString(9, arrivalTerminal);
             else stmt.setNull(9, java.sql.Types.VARCHAR);
-
+            
             if (arrivalGate != null) stmt.setString(10, arrivalGate);
             else stmt.setNull(10, java.sql.Types.VARCHAR);
-
+            
             if (arrivalTime != null) stmt.setTimestamp(11, arrivalTime);
             else stmt.setNull(11, java.sql.Types.TIMESTAMP);
-
+            
             stmt.setInt(12, duration);
-
+            
             stmt.executeUpdate();
             LOGGER.info("Created flight record for ID: " + flightId);
         }
@@ -89,7 +317,7 @@ class BookingRepositoryImpl implements BookingRepository {
             return null;
         }
     }
-
+    
     // Save a connection flight from the fullOffer data
     private void saveConnectionFlight(Connection connection, Object flightData) {
         try {
@@ -97,19 +325,19 @@ class BookingRepositoryImpl implements BookingRepository {
             String duration = (String) getValue(flightData, "duration");
             String number = (String) getValue(flightData, "number");
             String carrierCode = (String) getValue(flightData, "carrierCode");
-
+            
             // Extract departure info
             Object departure = getValue(flightData, "departure");
             String depIata = departure != null ? (String) getValue(departure, "iata") : null;
             String depTerminal = departure != null ? (String) getValue(departure, "terminal") : null;
             String depScheduled = departure != null ? (String) getValue(departure, "scheduled") : null;
-
+            
             // Extract arrival info
             Object arrival = getValue(flightData, "arrival");
             String arrIata = arrival != null ? (String) getValue(arrival, "iata") : null;
             String arrTerminal = arrival != null ? (String) getValue(arrival, "terminal") : null;
             String arrScheduled = arrival != null ? (String) getValue(arrival, "scheduled") : null;
-
+            
             // Calculate duration in minutes from PT format
             Integer durationMinutes = null;
             if (duration != null && duration.startsWith("PT")) {
@@ -117,7 +345,7 @@ class BookingRepositoryImpl implements BookingRepository {
             } else {
                 durationMinutes = 60; // Default 1 hour
             }
-
+            
             // Insert this flight if it doesn't exist
             if (!flightExists(connection, flightId)) {
                 String sql = "INSERT INTO public.flight (id, departure_airport_short, " +
@@ -128,10 +356,10 @@ class BookingRepositoryImpl implements BookingRepository {
                 try (PreparedStatement stmt = connection.prepareStatement(sql)) {
                     stmt.setString(1, flightId);
                     stmt.setString(2, depIata);
-
+                    
                     if (depTerminal != null) stmt.setString(3, depTerminal);
                     else stmt.setNull(3, java.sql.Types.VARCHAR);
-
+                    
                     if (depScheduled != null) {
                         try {
                             java.time.LocalDateTime depDateTime = java.time.LocalDateTime.parse(
@@ -144,12 +372,12 @@ class BookingRepositoryImpl implements BookingRepository {
                     } else {
                         stmt.setNull(4, java.sql.Types.TIMESTAMP);
                     }
-
+                    
                     stmt.setString(5, arrIata);
-
+                    
                     if (arrTerminal != null) stmt.setString(6, arrTerminal);
                     else stmt.setNull(6, java.sql.Types.VARCHAR);
-
+                    
                     if (arrScheduled != null) {
                         try {
                             java.time.LocalDateTime arrDateTime = java.time.LocalDateTime.parse(
@@ -162,9 +390,9 @@ class BookingRepositoryImpl implements BookingRepository {
                     } else {
                         stmt.setNull(7, java.sql.Types.TIMESTAMP);
                     }
-
+                    
                     stmt.setInt(8, durationMinutes);
-
+                    
                     stmt.executeUpdate();
                     LOGGER.info("Created connection flight record for ID: " + flightId);
                 }
@@ -173,7 +401,7 @@ class BookingRepositoryImpl implements BookingRepository {
             LOGGER.warning("Failed to save connection flight: " + e.getMessage());
         }
     }
-
+    
     // Parse duration like PT3H10M to minutes
     private int parseDurationToMinutes(String duration) {
         int minutes = 0;
@@ -228,8 +456,8 @@ class BookingRepositoryImpl implements BookingRepository {
         String sql = "SELECT 1 FROM public.flight WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, flightId);
-            try (ResultSet results = stmt.executeQuery()) {
-                return results.next();
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
             }
         }
     }
@@ -312,47 +540,8 @@ class BookingRepositoryImpl implements BookingRepository {
             }
         }
 
-        // Try to find existing customer by email
-        String email = customer.email();
-        if (email != null && !email.isEmpty()) {
-            Map<String, Object> existingCustomer = findCustomerByEmail(email);
-            if (existingCustomer != null) {
-                // Use existing customer ID
-                Integer customerId = (Integer) existingCustomer.get("id");
-                customer = new CustomerData(
-                        customerId,
-                        customer.firstName(),
-                        customer.lastName(),
-                        customer.email(),
-                        customer.phone(),
-                        customer.street(),
-                        customer.houseNumber(),
-                        customer.city(),
-                        customer.country(),
-                        customer.isInfant()
-                );
-                updateCustomer(connection, customer);
-                return customerId;
-            }
-        }
-        
-        // Create an address first if needed (or find existing one)
-        int addressId = 0;
-        if (customer.street() != null && !customer.street().isEmpty()) {
-            // Check if address already exists
-            Map<String, Object> existingAddress = findAddressByComponents(
-                customer.street(), customer.houseNumber(), customer.city(), customer.country());
-            
-            if (existingAddress != null) {
-                // Use existing address
-                addressId = (Integer) existingAddress.get("id");
-                LOGGER.info("Reusing existing address ID: " + addressId);
-            } else {
-                // Create new address
-                addressId = createAddress(connection, customer);
-                LOGGER.info("Created new address with ID: " + addressId);
-            }
-        }
+        // Create an address first if needed
+        int addressId = createAddress(connection, customer);
         
         // Create a new customer
         String insertSql = "INSERT INTO public.customer (firstname, lastname, email, phonenumber, addressid, isinfant) "
@@ -392,9 +581,9 @@ class BookingRepositoryImpl implements BookingRepository {
         String checkAddressSql = "SELECT addressid FROM public.customer WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(checkAddressSql)) {
             stmt.setInt(1, customer.id());
-            try (ResultSet results = stmt.executeQuery()) {
-                if (results.next()) {
-                    Integer existingAddressId = results.getInt("addressid");
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Integer existingAddressId = rs.getInt("addressid");
                     if (existingAddressId != null && existingAddressId > 0) {
                         // Update existing address
                         updateAddress(connection, existingAddressId, customer);
@@ -453,13 +642,13 @@ class BookingRepositoryImpl implements BookingRepository {
 
         try (Connection connection = db.getConnection();
              PreparedStatement stmt = connection.prepareStatement(sql);
-             ResultSet results = stmt.executeQuery()) {
+             ResultSet rs = stmt.executeQuery()) {
 
             List<BookingData> bookings = new ArrayList<>();
 
-            while (results.next()) {
-                int bookingId = results.getInt("id");
-                bookings.add(buildBookingData(connection, bookingId, results));
+            while (rs.next()) {
+                int bookingId = rs.getInt("id");
+                bookings.add(buildBookingData(connection, bookingId, rs));
             }
 
             return bookings;
@@ -482,9 +671,9 @@ class BookingRepositoryImpl implements BookingRepository {
 
             stmt.setInt(1, id);
 
-            try (ResultSet results = stmt.executeQuery()) {
-                if (results.next()) {
-                    return buildBookingData(connection, id, results);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return buildBookingData(connection, id, rs);
                 }
             }
         } catch (SQLException e) {
@@ -494,11 +683,11 @@ class BookingRepositoryImpl implements BookingRepository {
         return null;
     }
     
-    private BookingData buildBookingData(Connection connection, int bookingId, ResultSet results) throws SQLException {
-        String flightId = results.getString("flightid");
-        boolean isActive = results.getBoolean("isactive");
-        String departureAirport = results.getString("departure_airport");
-        String arrivalAirport = results.getString("arrival_airport");
+    private BookingData buildBookingData(Connection connection, int bookingId, ResultSet rs) throws SQLException {
+        String flightId = rs.getString("flightid");
+        boolean isActive = rs.getBoolean("isactive");
+        String departureAirport = rs.getString("departure_airport");
+        String arrivalAirport = rs.getString("arrival_airport");
         
         // Get customers/tickets for this booking
         List<CustomerData> customers = getCustomersForBooking(connection, bookingId);
@@ -529,31 +718,6 @@ class BookingRepositoryImpl implements BookingRepository {
                 isActive ? "ACTIVE" : "CANCELLED",
                 customers
         );
-    }
-
-    @Override
-    public BookingData update(BookingData bookingData) {
-        // In the actual schema, update would focus on changing the active status
-        String sql = "UPDATE public.booking SET isactive = ? WHERE id = ?";
-
-        try (Connection connection = db.getConnection();
-             PreparedStatement stmt = connection.prepareStatement(sql)) {
-
-            boolean isActive = !"CANCELLED".equalsIgnoreCase(bookingData.status());
-            stmt.setBoolean(1, isActive);
-            stmt.setInt(2, bookingData.id());
-
-            int affectedRows = stmt.executeUpdate();
-
-            if (affectedRows == 0) {
-                throw new SQLException("Updating booking failed, no rows affected.");
-            }
-
-            return getOne(bookingData.id());
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error updating booking with ID " + bookingData.id(), e);
-            throw new RuntimeException("Failed to update booking", e);
-        }
     }
 
     public boolean delete(Integer id) {
@@ -587,12 +751,12 @@ class BookingRepositoryImpl implements BookingRepository {
 
             stmt.setInt(1, customerId);
 
-            try (ResultSet results = stmt.executeQuery()) {
+            try (ResultSet rs = stmt.executeQuery()) {
                 List<BookingData> bookings = new ArrayList<>();
 
-                while (results.next()) {
-                    int bookingId = results.getInt("id");
-                    bookings.add(buildBookingData(connection, bookingId, results));
+                while (rs.next()) {
+                    int bookingId = rs.getInt("id");
+                    bookings.add(buildBookingData(connection, bookingId, rs));
                 }
 
                 return bookings;
@@ -614,21 +778,21 @@ class BookingRepositoryImpl implements BookingRepository {
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, bookingId);
 
-            try (ResultSet results = stmt.executeQuery()) {
+            try (ResultSet rs = stmt.executeQuery()) {
                 List<CustomerData> customers = new ArrayList<>();
 
-                while (results.next()) {
+                while (rs.next()) {
                     customers.add(new CustomerData(
-                            results.getInt("id"),
-                            results.getString("firstname") != null ? results.getString("firstname") : "",
-                            results.getString("lastname") != null ? results.getString("lastname") : "",
-                            results.getString("email") != null ? results.getString("email") : "",
-                            results.getString("phonenumber") != null ? results.getString("phonenumber") : "",
-                            results.getString("street") != null ? results.getString("street") : "",
-                            results.getString("housenumber") != null ? results.getString("housenumber") : "",
-                            results.getString("city") != null ? results.getString("city") : "",
-                            results.getString("country") != null ? results.getString("country") : "",
-                            results.getBoolean("isinfant")
+                            rs.getInt("id"),
+                            rs.getString("firstname") != null ? rs.getString("firstname") : "",
+                            rs.getString("lastname") != null ? rs.getString("lastname") : "",
+                            rs.getString("email") != null ? rs.getString("email") : "",
+                            rs.getString("phonenumber") != null ? rs.getString("phonenumber") : "",
+                            rs.getString("street") != null ? rs.getString("street") : "",
+                            rs.getString("housenumber") != null ? rs.getString("housenumber") : "",
+                            rs.getString("city") != null ? rs.getString("city") : "",
+                            rs.getString("country") != null ? rs.getString("country") : "",
+                            rs.getBoolean("isinfant")
                     ));
                 }
 
@@ -637,6 +801,12 @@ class BookingRepositoryImpl implements BookingRepository {
         }
     }
 
+    /**
+     * Implements the required addSimple method from BookingRepository interface.
+     * 
+     * @param bookingMap the booking data as a map
+     * @return a map containing the created booking details
+     */
     @Override
     public Map<String, Object> addSimple(Map<String, Object> bookingMap) {
         Connection connection = null;
@@ -655,7 +825,7 @@ class BookingRepositoryImpl implements BookingRepository {
             // Process all flight information: outbound, return and now also connection flights
             List<String> flightIdsToLink = new ArrayList<>();
             
-            // 1. Process mainFlights array (could contain outbound, return, and now also connection flights)
+            // 1. Process mainFlights array (could contain outbound, return, and connection flights)
             List<Map<String, Object>> mainFlights = getSafeList(bookingMap, "mainFlights");
             if (mainFlights != null && !mainFlights.isEmpty()) {
                 LOGGER.info("Processing " + mainFlights.size() + " main flights");
@@ -802,6 +972,7 @@ class BookingRepositoryImpl implements BookingRepository {
         }
     }
 
+    // Add helper methods needed for addSimple
     private void saveFlightMapIfNeeded(Connection connection, Map<String, Object> flightMap) throws SQLException {
         String flightId = getSafeString(flightMap, "id");
         if (flightId == null) {
@@ -809,7 +980,7 @@ class BookingRepositoryImpl implements BookingRepository {
             String depCode = getSafeString(flightMap, "departureAirportShort");
             String arrCode = getSafeString(flightMap, "arrivalAirportShort");
             String flightNumber = getSafeString(flightMap, "number", "0");
-
+            
             if (depCode != null && arrCode != null) {
                 // Create ID with format number-depIATA-arrIATA
                 flightId = flightNumber + "-" + depCode + "-" + arrCode;
@@ -821,13 +992,13 @@ class BookingRepositoryImpl implements BookingRepository {
                 return;
             }
         }
-
+        
         // Check if flight exists
         if (flightExists(connection, flightId)) {
             LOGGER.info("Flight " + flightId + " already exists, skipping");
             return;
         }
-
+        
         // Parse data for flight creation
         String departureAirport = getSafeString(flightMap, "departureAirport");
         String departureAirportShort = getSafeString(flightMap, "departureAirportShort");
@@ -835,53 +1006,53 @@ class BookingRepositoryImpl implements BookingRepository {
         if (departureAirport == null && departureAirportShort != null) {
             departureAirport = "Airport " + departureAirportShort;
         }
-
+        
         String departureTerminal = getSafeString(flightMap, "departureTerminal");
         String departureGate = getSafeString(flightMap, "departureGate");
         String departureScheduledTimeStr = getSafeString(flightMap, "departureScheduledTime");
         java.sql.Timestamp departureTime = parseTimestamp(departureScheduledTimeStr);
-
+        
         String arrivalAirport = getSafeString(flightMap, "arrivalAirport");
         String arrivalAirportShort = getSafeString(flightMap, "arrivalAirportShort");
         // If we have the short code but no full name, create a generic one
         if (arrivalAirport == null && arrivalAirportShort != null) {
             arrivalAirport = "Airport " + arrivalAirportShort;
         }
-
+        
         String arrivalTerminal = getSafeString(flightMap, "arrivalTerminal");
         String arrivalGate = getSafeString(flightMap, "arrivalGate");
         String arrivalScheduledTimeStr = getSafeString(flightMap, "arrivalScheduledTime");
         java.sql.Timestamp arrivalTime = parseTimestamp(arrivalScheduledTimeStr);
-
+        
         Integer duration = getSafeInt(flightMap, "duration", 180); // Default 3 hour duration
-
+        
         // Log all the data we're inserting
         LOGGER.info("Inserting flight record with ID: " + flightId);
         LOGGER.info("  Departure: " + departureAirport + " (" + departureAirportShort + ")");
         LOGGER.info("  Arrival: " + arrivalAirport + " (" + arrivalAirportShort + ")");
-
+        
         // Insert flight
-        insertFlightRecord(connection, flightId,
+        insertFlightRecord(connection, flightId, 
                 departureAirport, departureAirportShort, departureTerminal, departureGate, departureTime,
                 arrivalAirport, arrivalAirportShort, arrivalTerminal, arrivalGate, arrivalTime, duration);
     }
-
+    
     private void saveBasicFlightIfNeeded(Connection connection, String flightId) throws SQLException {
         if (flightId == null || flightId.isEmpty()) {
             LOGGER.warning("Empty flight ID provided");
             return;
         }
-
+        
         if (flightExists(connection, flightId)) {
             LOGGER.info("Flight " + flightId + " already exists, skipping");
             return;
         }
-
+        
         // Try to extract airport codes and flight number from flight ID (e.g., "26-JFK-LAX")
         String departureAirportShort = "UNK";
         String arrivalAirportShort = "UNK";
         String flightNumber = "0";
-
+        
         String[] parts = flightId.split("-");
         if (parts.length >= 3) {
             // New format: number-dep-arr
@@ -893,14 +1064,91 @@ class BookingRepositoryImpl implements BookingRepository {
             departureAirportShort = parts[0];
             arrivalAirportShort = parts[1];
         }
-
-        String departureAirport = "Airport " + departureAirportShort;
+        
+        String departureAirport = "Airport " + departureAirportShort; 
         String arrivalAirport = "Airport " + arrivalAirportShort;
-
+        
         // Insert basic flight record
-        insertFlightRecord(connection, flightId,
+        insertFlightRecord(connection, flightId, 
                 departureAirport, departureAirportShort, null, null, null,
                 arrivalAirport, arrivalAirportShort, null, null, null, 180);
+    }
+
+        private boolean customerExists(Connection connection, int customerId) throws SQLException {
+        String sql = "SELECT 1 FROM public.customer WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, customerId);
+            try (ResultSet results = stmt.executeQuery()) {
+                return results.next();
+            }
+        }
+    }
+
+    private Integer getCustomerAddressId(Connection connection, int customerId) throws SQLException {
+        String sql = "SELECT addressid FROM public.customer WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, customerId);
+            try (ResultSet results = stmt.executeQuery()) {
+                if (results.next()) {
+                    int addressId = results.getInt("addressid");
+                    return results.wasNull() ? null : addressId;
+                }
+                return null;
+            }
+        }
+    }
+
+    private void updateCustomerMap(Connection connection, Map<String, Object> customerMap) throws SQLException {
+        Integer customerId = getSafeInt(customerMap, "id", null);
+        if (customerId == null) {
+            return;
+        }
+
+        // Check for address
+        Integer existingAddressId = getCustomerAddressId(connection, customerId);
+        int addressId = 0;
+
+        String street = getSafeString(customerMap, "street");
+        String houseNumber = getSafeString(customerMap, "houseNumber");
+        String city = getSafeString(customerMap, "city");
+        String country = getSafeString(customerMap, "country");
+
+        if (street != null && !street.isEmpty()) {
+            if (existingAddressId != null && existingAddressId > 0) {
+                // Update existing address
+                updateAddressSimple(connection, existingAddressId, street, houseNumber, city, country);
+                addressId = existingAddressId;
+            } else {
+                // Create new address
+                addressId = createAddressSimple(connection, street, houseNumber, city, country);
+            }
+        }
+
+        // Update customer
+        String firstName = getSafeString(customerMap, "firstName");
+        String lastName = getSafeString(customerMap, "lastName");
+        String email = getSafeString(customerMap, "email");
+        String phone = getSafeString(customerMap, "phone");
+        boolean isInfant = getSafeBoolean(customerMap, "isInfant", false);
+
+        String sql = "UPDATE public.customer SET firstname = ?, lastname = ?, email = ?, phonenumber = ?, " +
+                "addressid = ?, isinfant = ? WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, firstName);
+            stmt.setString(2, lastName);
+            stmt.setString(3, email);
+            stmt.setString(4, phone);
+
+            if (addressId > 0) {
+                stmt.setInt(5, addressId);
+            } else {
+                stmt.setNull(5, java.sql.Types.INTEGER);
+            }
+
+            stmt.setBoolean(6, isInfant);
+            stmt.setInt(7, customerId);
+            stmt.executeUpdate();
+        }
     }
     
     private int saveCustomerMap(Connection connection, Map<String, Object> customerMap) throws SQLException {
@@ -956,80 +1204,81 @@ class BookingRepositoryImpl implements BookingRepository {
         return createCustomerSimple(connection, firstName, lastName, email, getSafeString(customerMap, "phone"), addressId, isInfant);
     }
 
-    private boolean customerExists(Connection connection, int customerId) throws SQLException {
-        String sql = "SELECT 1 FROM public.customer WHERE id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, customerId);
-            try (ResultSet results = stmt.executeQuery()) {
-                return results.next();
+    // Helper methods for addSimple implementation
+    private String getSafeString(Map<String, Object> map, String key) {
+        return getSafeString(map, key, null);
+    }
+    
+    private String getSafeString(Map<String, Object> map, String key, String defaultValue) {
+        if (map == null || !map.containsKey(key)) return defaultValue;
+        Object value = map.get(key);
+        return value != null ? value.toString() : defaultValue;
+    }
+    
+    private Integer getSafeInt(Map<String, Object> map, String key, Integer defaultValue) {
+        if (map == null || !map.containsKey(key)) return defaultValue;
+        Object value = map.get(key);
+        if (value == null) return defaultValue;
+        
+        try {
+            if (value instanceof Number) {
+                return ((Number)value).intValue();
+            } else {
+                return Integer.parseInt(value.toString());
             }
+        } catch (NumberFormatException e) {
+            return defaultValue;
         }
     }
     
-    private void updateCustomerMap(Connection connection, Map<String, Object> customerMap) throws SQLException {
-        Integer customerId = getSafeInt(customerMap, "id", null);
-        if (customerId == null) {
-            return;
-        }
+    private boolean getSafeBoolean(Map<String, Object> map, String key, boolean defaultValue) {
+        if (map == null || !map.containsKey(key)) return defaultValue;
+        Object value = map.get(key);
+        if (value == null) return defaultValue;
         
-        // Check for address
-        Integer existingAddressId = getCustomerAddressId(connection, customerId);
-        int addressId = 0;
-        
-        String street = getSafeString(customerMap, "street");
-        String houseNumber = getSafeString(customerMap, "houseNumber");
-        String city = getSafeString(customerMap, "city");
-        String country = getSafeString(customerMap, "country");
-        
-        if (street != null && !street.isEmpty()) {
-            if (existingAddressId != null && existingAddressId > 0) {
-                // Update existing address
-                updateAddressSimple(connection, existingAddressId, street, houseNumber, city, country);
-                addressId = existingAddressId;
-            } else {
-                // Create new address
-                addressId = createAddressSimple(connection, street, houseNumber, city, country);
-            }
-        }
-        
-        // Update customer
-        String firstName = getSafeString(customerMap, "firstName");
-        String lastName = getSafeString(customerMap, "lastName");
-        String email = getSafeString(customerMap, "email");
-        String phone = getSafeString(customerMap, "phone");
-        boolean isInfant = getSafeBoolean(customerMap, "isInfant", false);
-        
-        String sql = "UPDATE public.customer SET firstname = ?, lastname = ?, email = ?, phonenumber = ?, " +
-                "addressid = ?, isinfant = ? WHERE id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, firstName);
-            stmt.setString(2, lastName);
-            stmt.setString(3, email);
-            stmt.setString(4, phone);
-            
-            if (addressId > 0) {
-                stmt.setInt(5, addressId);
-            } else {
-                stmt.setNull(5, java.sql.Types.INTEGER);
-            }
-            
-            stmt.setBoolean(6, isInfant);
-            stmt.setInt(7, customerId);
-            stmt.executeUpdate();
+        if (value instanceof Boolean) {
+            return (Boolean)value;
+        } else {
+            String strValue = value.toString().toLowerCase();
+            return "true".equals(strValue) || "yes".equals(strValue) || "1".equals(strValue);
         }
     }
     
-    private Integer getCustomerAddressId(Connection connection, int customerId) throws SQLException {
-        String sql = "SELECT addressid FROM public.customer WHERE id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, customerId);
-            try (ResultSet results = stmt.executeQuery()) {
-                if (results.next()) {
-                    int addressId = results.getInt("addressid");
-                    return results.wasNull() ? null : addressId;
-                }
-                return null;
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getSafeMap(Map<String, Object> map, String key) {
+        if (map == null || !map.containsKey(key)) return null;
+        Object value = map.get(key);
+        return value instanceof Map ? (Map<String, Object>)value : null;
+    }
+    
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> getSafeList(Map<String, Object> map, String key) {
+        if (map == null || !map.containsKey(key)) return null;
+        Object value = map.get(key);
+        if (!(value instanceof List)) return null;
+        
+        List<Object> list = (List<Object>)value;
+        List<Map<String, Object>> result = new ArrayList<>();
+        
+        for (Object item : list) {
+            if (item instanceof Map) {
+                result.add((Map<String, Object>)item);
             }
+        }
+        
+        return result;
+    }
+
+    private java.sql.Timestamp parseTimestamp(String dateTimeStr) {
+        if (dateTimeStr == null || dateTimeStr.isEmpty()) return null;
+        
+        try {
+            // Try to parse as ISO format
+            LocalDateTime dateTime = LocalDateTime.parse(dateTimeStr);
+            return java.sql.Timestamp.valueOf(dateTime);
+        } catch (Exception e) {
+            LOGGER.warning("Failed to parse timestamp: " + dateTimeStr);
+            return null;
         }
     }
     
@@ -1112,85 +1361,13 @@ class BookingRepositoryImpl implements BookingRepository {
             }
         }
     }
-    
-    // Helper methods to safely extract values from maps
-    private String getSafeString(Map<String, Object> map, String key) {
-        return getSafeString(map, key, null);
-    }
-    
-    private String getSafeString(Map<String, Object> map, String key, String defaultValue) {
-        if (map == null || !map.containsKey(key)) return defaultValue;
-        Object value = map.get(key);
-        return value != null ? value.toString() : defaultValue;
-    }
-    
-    private Integer getSafeInt(Map<String, Object> map, String key, Integer defaultValue) {
-        if (map == null || !map.containsKey(key)) return defaultValue;
-        Object value = map.get(key);
-        if (value == null) return defaultValue;
-        
-        try {
-            if (value instanceof Number) {
-                return ((Number)value).intValue();
-            } else {
-                return Integer.parseInt(value.toString());
-            }
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
-    }
-    
-    private boolean getSafeBoolean(Map<String, Object> map, String key, boolean defaultValue) {
-        if (map == null || !map.containsKey(key)) return defaultValue;
-        Object value = map.get(key);
-        if (value == null) return defaultValue;
-        
-        if (value instanceof Boolean) {
-            return (Boolean)value;
-        } else {
-            String strValue = value.toString().toLowerCase();
-            return "true".equals(strValue) || "yes".equals(strValue) || "1".equals(strValue);
-        }
-    }
-    
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> getSafeMap(Map<String, Object> map, String key) {
-        if (map == null || !map.containsKey(key)) return null;
-        Object value = map.get(key);
-        return value instanceof Map ? (Map<String, Object>)value : null;
-    }
-    
-    @SuppressWarnings("unchecked")
-    private List<Map<String, Object>> getSafeList(Map<String, Object> map, String key) {
-        if (map == null || !map.containsKey(key)) return null;
-        Object value = map.get(key);
-        if (!(value instanceof List)) return null;
-        
-        List<Object> list = (List<Object>)value;
-        List<Map<String, Object>> result = new ArrayList<>();
-        
-        for (Object item : list) {
-            if (item instanceof Map) {
-                result.add((Map<String, Object>)item);
-            }
-        }
-        
-        return result;
-    }
 
-    private java.sql.Timestamp parseTimestamp(String dateTimeStr) {
-        if (dateTimeStr == null || dateTimeStr.isEmpty()) return null;
-        
-        try {
-            // Try to parse as ISO format
-            LocalDateTime dateTime = LocalDateTime.parse(dateTimeStr);
-            return java.sql.Timestamp.valueOf(dateTime);
-        } catch (Exception e) {
-            LOGGER.warning("Failed to parse timestamp: " + dateTimeStr);
-            return null;
-        }
-    }
-
+    /**
+     * Implements the required findCustomerByEmail method from BookingRepository interface.
+     * 
+     * @param email the email to search for
+     * @return a map containing customer data if found, or null if not found
+     */
     @Override
     public Map<String, Object> findCustomerByEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
@@ -1201,81 +1378,81 @@ class BookingRepositoryImpl implements BookingRepository {
                      "FROM public.customer c " +
                      "LEFT JOIN public.address a ON c.addressid = a.id " +
                      "WHERE LOWER(c.email) = LOWER(?)";
-    
-    try (Connection connection = db.getConnection();
-         PreparedStatement stmt = connection.prepareStatement(sql)) {
         
-        stmt.setString(1, email.trim().toLowerCase());
-        
-        try (ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) {
-                Map<String, Object> customerData = new HashMap<>();
-                customerData.put("id", rs.getInt("id"));
-                customerData.put("firstName", rs.getString("firstname"));
-                customerData.put("lastName", rs.getString("lastname"));
-                customerData.put("email", rs.getString("email"));
-                customerData.put("phone", rs.getString("phonenumber"));
-                customerData.put("isInfant", rs.getBoolean("isinfant"));
-                
-                // Add address data if available
-                if (rs.getObject("street") != null) {
-                    customerData.put("street", rs.getString("street"));
-                    customerData.put("houseNumber", rs.getString("housenumber"));
-                    customerData.put("city", rs.getString("city"));
-                    customerData.put("country", rs.getString("country"));
+        try (Connection connection = db.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            
+            stmt.setString(1, email.trim().toLowerCase());
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Map<String, Object> customerData = new HashMap<>();
+                    customerData.put("id", rs.getInt("id"));
+                    customerData.put("firstName", rs.getString("firstname"));
+                    customerData.put("lastName", rs.getString("lastname"));
+                    customerData.put("email", rs.getString("email"));
+                    customerData.put("phone", rs.getString("phonenumber"));
+                    customerData.put("isInfant", rs.getBoolean("isinfant"));
+                    
+                    // Add address data if available
+                    if (rs.getObject("street") != null) {
+                        customerData.put("street", rs.getString("street"));
+                        customerData.put("houseNumber", rs.getString("housenumber"));
+                        customerData.put("city", rs.getString("city"));
+                        customerData.put("country", rs.getString("country"));
+                    }
+                    
+                    LOGGER.info("Found customer with email " + email + ": " + customerData);
+                    return customerData;
                 }
-                
-                LOGGER.info("Found customer with email " + email + ": " + customerData);
-                return customerData;
             }
+            
+            LOGGER.info("No customer found with email: " + email);
+            return null;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error finding customer by email: " + email, e);
+            throw new RuntimeException("Failed to find customer by email", e);
         }
-        
-        LOGGER.info("No customer found with email: " + email);
-        return null;
-    } catch (SQLException e) {
-        LOGGER.log(Level.SEVERE, "Error finding customer by email: " + email, e);
-        throw new RuntimeException("Failed to find customer by email", e);
     }
-}
 
-private Map<String, Object> findAddressByComponents(String street, String houseNumber, String city, String country) {
-    if (street == null || houseNumber == null || city == null || country == null) {
-        return null;
-    }
-    
-    String sql = "SELECT * FROM public.address " +
-                 "WHERE LOWER(street) = LOWER(?) " +
-                 "AND LOWER(housenumber) = LOWER(?) " +
-                 "AND LOWER(city) = LOWER(?) " +
-                 "AND LOWER(country) = LOWER(?)";
-    
-    try (Connection connection = db.getConnection();
-         PreparedStatement stmt = connection.prepareStatement(sql)) {
-        
-        stmt.setString(1, street.trim().toLowerCase());
-        stmt.setString(2, houseNumber.trim().toLowerCase());
-        stmt.setString(3, city.trim().toLowerCase());
-        stmt.setString(4, country.trim().toLowerCase());
-        
-        try (ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) {
-                Map<String, Object> addressData = new HashMap<>();
-                addressData.put("id", rs.getInt("id"));
-                addressData.put("street", rs.getString("street"));
-                addressData.put("houseNumber", rs.getString("housenumber"));
-                addressData.put("city", rs.getString("city"));
-                addressData.put("country", rs.getString("country"));
-                
-                LOGGER.info("Found existing address with ID " + rs.getInt("id") + 
-                           " for " + street + " " + houseNumber + ", " + city + ", " + country);
-                return addressData;
-            }
+    private Map<String, Object> findAddressByComponents(String street, String houseNumber, String city, String country) {
+        if (street == null || houseNumber == null || city == null || country == null) {
+            return null;
         }
         
-        return null;
-    } catch (SQLException e) {
-        LOGGER.log(Level.SEVERE, "Error finding address", e);
-        throw new RuntimeException("Failed to find address", e);
+        String sql = "SELECT * FROM public.address " +
+                     "WHERE LOWER(street) = LOWER(?) " +
+                     "AND LOWER(housenumber) = LOWER(?) " +
+                     "AND LOWER(city) = LOWER(?) " +
+                     "AND LOWER(country) = LOWER(?)";
+        
+        try (Connection connection = db.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            
+            stmt.setString(1, street.trim().toLowerCase());
+            stmt.setString(2, houseNumber.trim().toLowerCase());
+            stmt.setString(3, city.trim().toLowerCase());
+            stmt.setString(4, country.trim().toLowerCase());
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Map<String, Object> addressData = new HashMap<>();
+                    addressData.put("id", rs.getInt("id"));
+                    addressData.put("street", rs.getString("street"));
+                    addressData.put("houseNumber", rs.getString("housenumber"));
+                    addressData.put("city", rs.getString("city"));
+                    addressData.put("country", rs.getString("country"));
+                    
+                    LOGGER.info("Found existing address with ID " + rs.getInt("id") + 
+                               " for " + street + " " + houseNumber + ", " + city + ", " + country);
+                    return addressData;
+                }
+            }
+            
+            return null;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error finding address", e);
+            throw new RuntimeException("Failed to find address", e);
+        }
     }
-}
 }

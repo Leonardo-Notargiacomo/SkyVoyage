@@ -4,19 +4,18 @@ import java.util.List;
 import java.util.Map;
 
 import io.github.fontysvenlo.ais.datarecords.BookingData;
-import io.github.fontysvenlo.ais.datarecords.CustomerData;
 
 /**
  * Repository interface for bookings.
  */
 public interface BookingRepository {
     /**
-     * Adds a booking using a simple map structure.
+     * Adds a booking.
      * 
-     * @param bookingMap the booking data as a map
-     * @return a map containing the created booking details
+     * @param bookingData the booking to add
+     * @return the added booking with generated ID
      */
-    Map<String, Object> addSimple(Map<String, Object> bookingMap);
+    BookingData add(BookingData bookingData);
     
     /**
      * Lists all bookings.
@@ -34,12 +33,12 @@ public interface BookingRepository {
     BookingData getOne(Integer id);
     
     /**
-     * Updates a booking.
+     * Gets bookings by customer ID.
      * 
-     * @param bookingData the updated booking data
-     * @return the updated booking
+     * @param customerId The customer ID
+     * @return List of bookings for the customer
      */
-    BookingData update(BookingData bookingData);
+    List<BookingData> getByCustomerId(Integer customerId);
     
     /**
      * Finds a customer by email.
@@ -50,10 +49,10 @@ public interface BookingRepository {
     Map<String, Object> findCustomerByEmail(String email);
     
     /**
-     * Gets bookings by customer ID.
+     * Adds a booking using a simple map structure.
      * 
-     * @param customerId The customer ID
-     * @return List of bookings for the customer
+     * @param bookingMap the booking data as a map
+     * @return a map containing the created booking details
      */
-    List<BookingData> getByCustomerId(Integer customerId);
+    Map<String, Object> addSimple(Map<String, Object> bookingMap);
 }

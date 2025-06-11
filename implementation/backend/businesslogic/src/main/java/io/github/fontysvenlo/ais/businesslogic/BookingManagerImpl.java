@@ -22,10 +22,10 @@ public class BookingManagerImpl implements BookingManager {
     public BookingManagerImpl(BookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
     }
-
+    
     @Override
-    public Map<String, Object> addSimple(Map<String, Object> bookingMap) {
-        return bookingRepository.addSimple(bookingMap);
+    public BookingData add(BookingData bookingData) {
+        return bookingRepository.add(bookingData);
     }
     
     @Override
@@ -39,11 +39,6 @@ public class BookingManagerImpl implements BookingManager {
     }
     
     @Override
-    public BookingData update(BookingData bookingData) {
-        return bookingRepository.update(bookingData);
-    }
-    
-    @Override
     public List<BookingData> getByCustomerId(Integer customerId) {
         return bookingRepository.getByCustomerId(customerId);
     }
@@ -51,5 +46,10 @@ public class BookingManagerImpl implements BookingManager {
     @Override
     public Map<String, Object> findCustomerByEmail(String email) {
         return bookingRepository.findCustomerByEmail(email);
+    }
+    
+    @Override
+    public Map<String, Object> addSimple(Map<String, Object> bookingMap) {
+        return bookingRepository.addSimple(bookingMap);
     }
 }
