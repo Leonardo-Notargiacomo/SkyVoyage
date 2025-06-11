@@ -298,3 +298,171 @@ This document outlines the test cases for the project. Each test case describes 
 **Extension**: N/A
 
 ---
+
+# Test Case: Discount Management
+
+**Name**: testAddDiscountThrowsExceptionForInvalidInput
+
+**Precondition**: The system has a discount management module with validation rules in place.
+
+**Scenario**:
+
+1. A discount object is created with invalid data:
+   - ID: 6
+   - Name: "Invalid"
+   - Amount: 110.0 (exceeds 100%)
+   - Type: "regular"
+   - EmployeeID: 6
+   - Days: 10
+2. The system attempts to add this discount through the discount manager.
+3. The system validates the discount data before adding it to the repository.
+
+**Result**:
+
+- System throws an IllegalArgumentException due to the invalid discount amount.
+- The discount is not added to the repository.
+- The repository's add method is never called.
+
+---
+
+**Name**: testCalculateDiscountedPriceWithNoApplicableDiscount
+
+**Precondition**: The system has existing discount rules in the repository.
+
+**Scenario**:
+
+1. A base price of 100.0 is provided.
+2. A departure date 50 days in the future is specified.
+3. The system has two discounts in the repository:
+   - "Early Bird" discount of 15% applicable for bookings 30 days before departure
+   - "Super Early" discount of 25% applicable for bookings 20 days before departure
+4. The system calculates the discounted price based on these parameters.
+
+**Result**:
+
+- No discount is applied since the booking is 50 days before departure, which doesn't match any discount criteria.
+- The original base price (100.0) is returned without any discount.
+
+---
+
+**Name**: testCalculateDiscountedPriceWithEmptyDiscountList
+
+**Precondition**: The discount repository is empty.
+
+**Scenario**:
+
+1. A base price of 100.0 is provided.
+2. A departure date 15 days in the future is specified.
+3. The discount repository contains no discount rules.
+4. The system calculates the discounted price.
+
+**Result**:
+
+- No discount is applied since there are no discount rules in the repository.
+- The original base price (100.0) is returned without any discount.
+
+---
+
+**Name**: testCalculateDiscountedPriceWithZeroDiscount
+
+**Precondition**: The system has a discount rule with 0% discount in the repository.
+
+**Scenario**:
+
+1. A base price of 100.0 is provided.
+2. A departure date 15 days in the future is specified.
+3. The system has one discount in the repository:
+   - "No Discount" with 0% applicable for bookings 30 days before departure
+4. The system calculates the discounted price.
+
+**Result**:
+
+- Even though the discount rule applies, the discount percentage is 0%.
+- The original base price (100.0) is returned without any change.
+
+---
+
+**Name**: testCalculateDiscountedPriceWithSingleApplicableDiscount
+
+**Precondition**: The system has multiple discount rules in the repository.
+
+**Scenario**:
+
+1. A base price of 100.0 is provided.
+2. A departure date 25 days in the future is specified.
+3. The system has two discounts in the repository:
+   - "Early Bird" discount of 15% applicable for bookings 30 days before departure
+   - "Super Early" discount of 25% applicable for bookings 20 days before departure
+4. The system calculates the discounted price.
+
+**Result**:
+
+- Only the "Early Bird" discount is applicable (25 days ≤ 30 days).
+- The "Super Early" discount does not apply (25 days > 20 days).
+- The discounted price is calculated as 100.0 - (100.0 * 0.15) = 85.0.
+
+---
+
+**Name**: testCalculateDiscountedPriceWithMultipleApplicableDiscounts
+
+**Precondition**: The system has multiple discount rules in the repository.
+
+**Scenario**:
+
+1. A base price of 100.0 is provided.
+2. A departure date 15 days in the future is specified.
+3. The system has three discounts in the repository:
+   - "Early Bird" discount of 15% applicable for bookings 30 days before departure
+   - "Super Early" discount of 25% applicable for bookings 20 days before departure
+   - "Last Minute" discount of 10% applicable for bookings 10 days before departure
+4. The system calculates the discounted price.
+
+**Result**:
+
+- Both "Early Bird" (15%) and "Super Early" (25%) discounts are applicable.
+- The "Last Minute" discount does not apply (15 days > 10 days).
+- The system selects the highest applicable discount (25%).
+- The discounted price is calculated as 100.0 - (100.0 * 0.25) = 75.0.
+
+---
+
+**Name**: testCalculateDiscountedPriceWithLastMinuteDiscount
+
+**Precondition**: The system has multiple discount rules including last-minute discounts.
+
+**Scenario**:
+
+1. A base price of 100.0 is provided.
+2. A departure date 5 days in the future is specified.
+3. The system has three discounts in the repository:
+   - "Early Bird" discount of 15% applicable for bookings 30 days before departure
+   - "Super Early" discount of 25% applicable for bookings 20 days before departure
+   - "Last Minute" discount of 35% applicable for bookings 7 days before departure
+4. The system calculates the discounted price.
+
+**Result**:
+
+- All three discounts are applicable, including the "Last Minute" discount.
+- The system selects the highest applicable discount (35%).
+- The discounted price is calculated as 100.0 - (100.0 * 0.35) = 65.0.
+
+---
+
+**Name**: testGetAllDiscounts
+
+**Precondition**: The discount repository contains discount records.
+
+**Scenario**:
+
+1. The system contains two discount records in the repository:
+   - Discount 1: 10% discount, type "type1", 5 days before departure
+   - Discount 2: 20% discount, type "type2", 10 days before departure
+2. The system requests all discounts from the discount manager.
+
+**Result**:
+
+- The system successfully retrieves all discount records from the repository.
+- The returned list contains two discount objects with the correct names "Discount 1" and "Discount 2".
+
+---
+

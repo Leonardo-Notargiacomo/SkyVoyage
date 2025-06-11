@@ -44,7 +44,7 @@ public class DiscountResource {
 
         } catch (Exception e) {
 
-            context.status(500).json(Map.of("error", "An unexpected error occurred"));
+            context.status(400).json(Map.of("error", "An unexpected error occurred", "message", e.getMessage()));
         }
     }
 

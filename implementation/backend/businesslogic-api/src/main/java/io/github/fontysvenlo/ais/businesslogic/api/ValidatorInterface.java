@@ -72,13 +72,34 @@ public interface ValidatorInterface {
     public boolean isValidType(String type);
 
     /**
-     * Validates the given discount.
+     * Checks if the discount object exists (not null).
      *
-     * @param discount the discount to validate
-     *
-     * A valid discount must: be larger than 0, and less than or equal to 100. And the days must be larger than 0.
-     *
-     * @return true if the type is valid, false otherwise
+     * @param discount the discount to check
+     * @return true if the discount exists, false otherwise
      */
-    public boolean isValidDiscount(DiscountData discount);
+    boolean isDiscountExisting(DiscountData discount);
+
+    /**
+     * Checks if the discount amount is greater than zero.
+     *
+     * @param amount the amount to validate
+     * @return true if amount is greater than zero, false otherwise
+     */
+    boolean isDiscountMoreThanZero(double amount);
+
+    /**
+     * Checks if the discount amount is less than or equal to 100.
+     *
+     * @param amount the amount to validate
+     * @return true if amount is less than or equal to 100, false otherwise
+     */
+    boolean isDiscountLessThanHundred(double amount);
+
+    /**
+     * Checks if the discount days are valid (greater than zero).
+     *
+     * @param days the days to validate
+     * @return true if days are greater than zero, false otherwise
+     */
+    boolean areDiscountDaysValid(int days);
 }

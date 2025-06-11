@@ -69,16 +69,20 @@ public class Validator implements ValidatorInterface {
                 || type.equals("AccountManager"));
     }
 
-    public boolean isValidDiscount(DiscountData discount){
-        if (discount == null) {
-            return false;
-        }
-        if (discount.amount() <= 0 || discount.amount() > 100) {
-            return false;
-        }
-        if (discount.days() <= 0) {
-            return false;
-        }
-        return true;
+    public boolean isDiscountExisting(DiscountData discount) {
+        return discount != null;
     }
+
+    public boolean isDiscountMoreThanZero(double amount) {
+        return !(amount <= 0);
+    }
+
+    public boolean isDiscountLessThanHundred(double amount) {
+        return !(amount > 100);
+    }
+
+    public boolean areDiscountDaysValid(int days) {
+        return days > 0;
+    }
+
 }
