@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -224,13 +223,14 @@ class BookingRepositoryImpl implements BookingRepository {
         }
     }
     
-    private int createTicket(Connection connection, int customerId, String flightId) throws SQLException {
+
+    private int createTicket(Connection connection, int customerId, String flightId, int priceCents) throws SQLException {
         String sql = "INSERT INTO public.ticket (flightid, customerid, tariff) VALUES (?, ?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, flightId);
             stmt.setInt(2, customerId);
-            stmt.setInt(3, 0);
+            stmt.setInt(3, priceCents); 
             
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
@@ -528,13 +528,23 @@ class BookingRepositoryImpl implements BookingRepository {
             connection = db.getConnection();
             connection.setAutoCommit(false);
 
+            // Extract basic booking information
             String flightId = getSafeString(bookingMap, "flightId");
             String airline = getSafeString(bookingMap, "airline");
             int adultPassengers = getSafeInt(bookingMap, "adultPassengers", 1);
             int infantPassengers = getSafeInt(bookingMap, "infantPassengers", 0);
             
+            // Default base price if we can't find individual prices
+            double basePrice = getSafeDouble(bookingMap, "price", 0.0);
+            double discountPercent = getSafeDouble(bookingMap, "discount", 0.0);
+            
+            // Extract prices from fullOffer trips if available - store in cents
+            Map<String, Integer> flightPrices = extractPricesFromFullOffer(bookingMap);
+            
+            // Used to track all flights we need to link to the booking
             List<String> flightIdsToLink = new ArrayList<>();
             
+            // Process main flights
             List<Map<String, Object>> mainFlights = getSafeList(bookingMap, "mainFlights");
             if (mainFlights != null && !mainFlights.isEmpty()) {
                 for (Map<String, Object> mainFlight : mainFlights) {
@@ -554,6 +564,13 @@ class BookingRepositoryImpl implements BookingRepository {
                         saveFlightMapIfNeeded(connection, mainFlight);
                         if (!flightIdsToLink.contains(mainFlightId)) {
                             flightIdsToLink.add(mainFlightId);
+                            
+                            // If no price in the extracted map, try to get it from the flight data or use base price
+                            if (!flightPrices.containsKey(mainFlightId)) {
+                                double flightPrice = getSafeDouble(mainFlight, "price", basePrice);
+                                int priceCents = (int)(flightPrice * 100);
+                                flightPrices.put(mainFlightId, priceCents);
+                            }
                         }
                     }
                 }
@@ -617,9 +634,20 @@ class BookingRepositoryImpl implements BookingRepository {
             if (customers != null) {
                 for (Map<String, Object> customer : customers) {
                     int customerId = saveCustomerMap(connection, customer);
+                    boolean isInfant = getSafeBoolean(customer, "isInfant", false);
                     
                     for (String id : flightIdsToLink) {
-                        createTicket(connection, customerId, id);
+                        int ticketPriceCents = flightPrices.getOrDefault(id, (int)(basePrice * 100));
+                        
+                        if (discountPercent > 0) {
+                            ticketPriceCents = (int)(ticketPriceCents * (1 - (discountPercent / 100)));
+                        }
+                        
+                        if (isInfant) {
+                            ticketPriceCents = 0; 
+                        }
+                        
+                        createTicket(connection, customerId, id, ticketPriceCents);
                     }
                 }
             }
@@ -641,17 +669,16 @@ class BookingRepositoryImpl implements BookingRepository {
                 try {
                     connection.rollback();
                 } catch (SQLException ex) {
-                    // Silent rollback failure
+                    e.addSuppressed(ex);
                 }
             }
-            throw new RuntimeException("Failed to add booking", e);
+            throw new RuntimeException("Failed to add booking: " + e.getMessage(), e);
         } finally {
             if (connection != null) {
                 try {
                     connection.setAutoCommit(true);
                     connection.close();
                 } catch (SQLException e) {
-                    // Silent close failure
                 }
             }
         }
@@ -870,6 +897,22 @@ class BookingRepositoryImpl implements BookingRepository {
         }
     }
     
+    private Double getSafeDouble(Map<String, Object> map, String key, Double defaultValue) {
+        if (map == null || !map.containsKey(key)) return defaultValue;
+        Object value = map.get(key);
+        if (value == null) return defaultValue;
+        
+        try {
+            if (value instanceof Number) {
+                return ((Number)value).doubleValue();
+            } else {
+                return Double.parseDouble(value.toString());
+            }
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
     private boolean getSafeBoolean(Map<String, Object> map, String key, boolean defaultValue) {
         if (map == null || !map.containsKey(key)) return defaultValue;
         Object value = map.get(key);
@@ -1073,5 +1116,78 @@ class BookingRepositoryImpl implements BookingRepository {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to find address", e);
         }
+    }
+
+    /**
+     * Extract individual flight prices from fullOffer.trips data
+     * @param bookingMap The booking data map
+     * @return Map of flight IDs to prices in cents
+     */
+    private Map<String, Integer> extractPricesFromFullOffer(Map<String, Object> bookingMap) {
+        Map<String, Integer> flightPrices = new HashMap<>();
+        
+        try {
+            Map<String, Object> flight = getSafeMap(bookingMap, "flight");
+            if (flight == null) return flightPrices;
+            
+            Map<String, Object> fullOffer = getSafeMap(flight, "fullOffer");
+            if (fullOffer == null) return flightPrices;
+            
+            List<Map<String, Object>> trips = getSafeList(fullOffer, "trips");
+            if (trips == null) return flightPrices;
+            
+            for (Map<String, Object> trip : trips) {
+                String tripType = getSafeString(trip, "type", "");
+                
+                double tripPrice = getSafeDouble(trip, "price", 0.0);
+                
+                List<Map<String, Object>> tripFlights = getSafeList(trip, "flights");
+                if (tripFlights == null || tripFlights.isEmpty()) continue;
+                
+                if (tripFlights.size() == 1) {
+                    Map<String, Object> tripFlight = tripFlights.get(0);
+                    String flightId = extractFlightId(tripFlight);
+                    if (flightId != null) {
+                        int priceCents = (int)(tripPrice * 100); // Convert to cents
+                        flightPrices.put(flightId, priceCents);
+                    }
+                    continue;
+                }
+                
+                int pricePerFlight = (int)((tripPrice * 100) / tripFlights.size());
+                
+                for (Map<String, Object> tripFlight : tripFlights) {
+                    String flightId = extractFlightId(tripFlight);
+                    if (flightId != null) {
+                        flightPrices.put(flightId, pricePerFlight);
+                    }
+                }
+            }
+        } catch (Exception e) {
+
+        }
+        
+        return flightPrices;
+    }
+
+    /**
+     * Extract flight ID from flight data map
+     */
+    private String extractFlightId(Map<String, Object> flightMap) {
+        String number = getSafeString(flightMap, "number", "0");
+        
+        Map<String, Object> departure = getSafeMap(flightMap, "departure");
+        Map<String, Object> arrival = getSafeMap(flightMap, "arrival");
+        
+        if (departure != null && arrival != null) {
+            String depCode = getSafeString(departure, "iata");
+            String arrCode = getSafeString(arrival, "iata");
+            
+            if (depCode != null && arrCode != null) {
+                return number + "-" + depCode + "-" + arrCode;
+            }
+        }
+        
+        return getSafeString(flightMap, "id");
     }
 }

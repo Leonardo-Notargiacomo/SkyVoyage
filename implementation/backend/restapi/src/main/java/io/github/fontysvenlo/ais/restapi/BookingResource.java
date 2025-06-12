@@ -1,13 +1,13 @@
 package io.github.fontysvenlo.ais.restapi;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import io.github.fontysvenlo.ais.businesslogic.api.BookingManager;
 import io.github.fontysvenlo.ais.datarecords.BookingData;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * REST resource for booking operations.
