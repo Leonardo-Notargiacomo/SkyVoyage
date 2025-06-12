@@ -24,11 +24,6 @@ public class BookingManagerImpl implements BookingManager {
     }
     
     @Override
-    public BookingData add(BookingData bookingData) {
-        return bookingRepository.add(bookingData);
-    }
-    
-    @Override
     public List<BookingData> list() {
         return bookingRepository.list();
     }
@@ -49,7 +44,7 @@ public class BookingManagerImpl implements BookingManager {
     }
     
     @Override
-    public Map<String, Object> addSimple(Map<String, Object> bookingMap) {
-        return bookingRepository.addSimple(bookingMap);
+    public Map<String, Object> add(Map<String, Object> bookingMap) {
+        return bookingRepository.add(bookingMap);
     }
 }
