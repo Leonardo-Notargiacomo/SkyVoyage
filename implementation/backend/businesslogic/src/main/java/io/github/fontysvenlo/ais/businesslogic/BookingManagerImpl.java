@@ -7,18 +7,10 @@ import io.github.fontysvenlo.ais.businesslogic.api.BookingManager;
 import io.github.fontysvenlo.ais.datarecords.BookingData;
 import io.github.fontysvenlo.ais.persistence.api.BookingRepository;
 
-/**
- * Implementation of the BookingManager interface.
- */
 public class BookingManagerImpl implements BookingManager {
     
     private final BookingRepository bookingRepository;
     
-    /**
-     * Initializes a new booking manager.
-     * 
-     * @param bookingRepository the booking repository
-     */
     public BookingManagerImpl(BookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
     }
