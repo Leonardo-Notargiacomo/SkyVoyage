@@ -27,11 +27,11 @@ public class DiscountManagerImpl implements DiscountManager {
         }
 
         if (!validator.isDiscountMoreThanZero(discountData.amount())){
-            throw new IllegalArgumentException("Discount amount must be greater than 0");
+            throw new IllegalArgumentException("Discount amount must be greater than 0%");
         }
 
         if (!validator.isDiscountLessThanHundred(discountData.amount())){
-            throw new IllegalArgumentException("Discount amount cannot exceed 100%");
+            throw new IllegalArgumentException("Discount amount can not be greater than 100%");
         }
 
         if (!validator.areDiscountDaysValid(discountData.days())){
