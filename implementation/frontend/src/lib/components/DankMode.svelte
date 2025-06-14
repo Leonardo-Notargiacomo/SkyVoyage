@@ -29,6 +29,29 @@
     />
 </div>
 
+<div class="dank-mode-container">
+  <div class="dank-objects">
+    <div class="dank-object">
+      <img 
+        src="/images/dank/doge.png" 
+        alt="Doge meme" 
+        class="dank-img doge" />
+    </div>
+    <div class="dank-object">
+      <img 
+        src="/images/dank/mlg-glasses.png" 
+        alt="MLG glasses" 
+        class="dank-img glasses" />
+    </div>
+    <div class="dank-object">
+      <img 
+        src="/images/dank/rainbow.png" 
+        alt="Rainbow effect" 
+        class="dank-img rainbow" />
+    </div>
+  </div>
+</div>
+
 <style>
     .dank-banner {
         animation: fadeIn 1s ease-in-out;
@@ -141,5 +164,59 @@
         height: auto;
         z-index: 1000;
         pointer-events: none;
+    }
+
+    .dank-mode-container {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .dank-objects {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .dank-object {
+        margin: 10px;
+        animation: slideIn 1s ease-in-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .dank-img {
+        max-width: 100px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+    }
+
+    .doge {
+        animation: spin 10s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
     }
 </style>

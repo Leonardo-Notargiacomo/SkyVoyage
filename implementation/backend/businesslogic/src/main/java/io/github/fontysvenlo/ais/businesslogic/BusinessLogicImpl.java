@@ -26,15 +26,6 @@ class BusinessLogicImpl implements BusinessLogic {
         this.persistenceAPI = persistenceAPI;
     }
 
-    /**
-     * Get the implementation of the CustomerManager.
-     * @return the implementation of the CustomerManager
-     */
-    @Override
-    public CustomerManager getCustomerManager() {
-        return new CustomerManagerImpl(persistenceAPI.getCustomerRepository());
-    }
-
     @Override
     public EmployeeManager getEmployeeManager() {
         return new EmployeeManagerImpl(persistenceAPI.getEmployeeRepository());
@@ -62,5 +53,10 @@ class BusinessLogicImpl implements BusinessLogic {
     @Override
     public DiscountManager getDiscountManager() {
         return DiscountManagerImpl.getInstance(persistenceAPI.getDiscountRepository());
+    }
+
+    @Override
+    public BookingManager getBookingManager() {
+        return new BookingManagerImpl(persistenceAPI.getBookingRepository());
     }
 }
