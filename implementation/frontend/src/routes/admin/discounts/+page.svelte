@@ -62,7 +62,13 @@
             newDiscount = { name: "", type: "", amount: 0, days: 0 };
             successMessage = "Discount added successfully!";
         } catch (err) {
-            error = err.message || "Failed to add discount";
+            // Extract the error message from the backend response
+            if (err.errorData) {
+                // Use the specific message from the backend if available
+                error = err.errorData.message || err.errorData.error || "Failed to add discount";
+            } else {
+                error = err.message || "Failed to add discount";
+            }
             console.error("Error adding discount:", err);
         } finally {
             isSubmitting = false;
@@ -80,7 +86,13 @@
             await fetchDiscounts();
             successMessage = "Discount deleted successfully!";
         } catch (err) {
-            error = err.message || "Failed to delete discount";
+            // Extract the error message from the backend response
+            if (err.errorData) {
+                // Use the specific message from the backend if available
+                error = err.errorData.message || err.errorData.error || "Failed to delete discount";
+            } else {
+                error = err.message || "Failed to delete discount";
+            }
             console.error("Error deleting discount:", err);
         }
     }
@@ -214,7 +226,10 @@
             <p class="text-green-500 mt-4">{successMessage}</p>
         {/if}
         {#if error}
-            <p class="text-red-500 mt-4">{error}</p>
+            <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700">
+                <p class="font-medium">Error:</p>
+                <p>{error}</p>
+            </div>
         {/if}
     </div>
-</div> 
+</div>

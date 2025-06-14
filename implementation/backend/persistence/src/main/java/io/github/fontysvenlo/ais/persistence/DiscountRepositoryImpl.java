@@ -93,39 +93,6 @@ public class DiscountRepositoryImpl implements DiscountRepository {
     }
 
     @Override
-    public DiscountData update(DiscountData discount) {
-        String query = "UPDATE " + discountTableName + 
-            " SET name = ?, amount = ?, type = ?, employeeid = ?, days = ? WHERE id = ? RETURNING *";
-        
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            
-            stmt.setString(1, discount.name());
-            stmt.setDouble(2, discount.amount());
-            stmt.setString(3, discount.type());
-            
-            // Handle null employeeID
-            if (discount.employeeID() == null) {
-                stmt.setNull(4, java.sql.Types.INTEGER);
-            } else {
-                stmt.setInt(4, discount.employeeID());
-            }
-            
-            stmt.setInt(5, discount.days());
-            stmt.setInt(6, discount.id());
-            
-            try (ResultSet resultSet = stmt.executeQuery()) {
-                if (resultSet.next()) {
-                    return mapResultSetToDiscount(resultSet);
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error updating discount", e);
-        }
-        return null;
-    }
-
-    @Override
     public DiscountData delete(Integer id) {
         String query = "DELETE FROM " + discountTableName + " WHERE id = ? RETURNING *";
         
@@ -143,27 +110,6 @@ public class DiscountRepositoryImpl implements DiscountRepository {
             throw new RuntimeException("Error deleting discount", e);
         }
         return null;
-    }
-
-    @Override
-    public List<DiscountData> getByType(String type) {
-        List<DiscountData> discounts = new ArrayList<>();
-        String query = "SELECT * FROM " + discountTableName + " WHERE type = ?";
-        
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            
-            stmt.setString(1, type);
-            
-            try (ResultSet resultSet = stmt.executeQuery()) {
-                while (resultSet.next()) {
-                    discounts.add(mapResultSetToDiscount(resultSet));
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error getting discounts by type", e);
-        }
-        return discounts;
     }
 
     @Override

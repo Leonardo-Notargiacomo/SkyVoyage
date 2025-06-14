@@ -16,9 +16,7 @@ public class PriceManagerImplTest {
 
     @BeforeEach
     public void setup() {
-
         priceRepository = mock(PriceRepository.class);
-
         priceManager = PriceManagerImpl.getInstance(priceRepository);
     }
 
@@ -89,4 +87,5 @@ public class PriceManagerImplTest {
         // Formula: (duration * 15 * defaultPrice) / 100 = (60 * 15 * 11) / 100 = 9900 / 100 = 99
         assertThat(result).isEqualTo(99);
     }
-} 
+}
+

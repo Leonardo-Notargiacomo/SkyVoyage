@@ -12,17 +12,9 @@ import io.github.fontysvenlo.ais.persistence.api.DiscountRepository;
 public class DiscountManagerImpl implements DiscountManager {
 
     private final DiscountRepository discountRepository;
-    private static DiscountManager instance;
 
-    DiscountManagerImpl(DiscountRepository discountRepository) {
+    public DiscountManagerImpl(DiscountRepository discountRepository) {
         this.discountRepository = discountRepository;
-    }
-
-    public static synchronized DiscountManager getInstance(DiscountRepository discountRepository) {
-        if (instance == null) {
-            instance = new DiscountManagerImpl(discountRepository);
-        }
-        return instance;
     }
 
     @Override
@@ -30,8 +22,20 @@ public class DiscountManagerImpl implements DiscountManager {
 
         Validator validator = new Validator();
 
-        if (!(validator.isValidDiscount(discountData))) {
-            throw new IllegalArgumentException("Invalid discount percentage. Please enter a value between 0 and 100.");
+        if (!validator.isDiscountExisting(discountData)){
+            throw new NullPointerException("The discount is not initialized");
+        }
+
+        if (!validator.isDiscountMoreThanZero(discountData.amount())){
+            throw new IllegalArgumentException("Discount amount must be greater than 0%");
+        }
+
+        if (!validator.isDiscountLessThanHundred(discountData.amount())){
+            throw new IllegalArgumentException("Discount amount can not be greater than 100%");
+        }
+
+        if (!validator.areDiscountDaysValid(discountData.days())){
+            throw new IllegalArgumentException("Days until departure must be greater than 0");
         }
 
         discountRepository.add(discountData);
@@ -87,3 +91,4 @@ public class DiscountManagerImpl implements DiscountManager {
 
     }
 }
+

@@ -51,7 +51,7 @@ class BusinessLogicImpl implements BusinessLogic {
     }
     @Override
     public DiscountManager getDiscountManager() {
-        return DiscountManagerImpl.getInstance(persistenceAPI.getDiscountRepository());
+        return new DiscountManagerImpl(persistenceAPI.getDiscountRepository());
     }
 
     @Override

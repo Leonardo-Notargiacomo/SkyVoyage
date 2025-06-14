@@ -8,13 +8,9 @@ public interface DiscountRepository {
 
     DiscountData add(DiscountData discountData);
 
-    DiscountData update(DiscountData discountData);
-
     DiscountData delete(Integer id);
 
     DiscountData getOne(Integer id);
 
     List<DiscountData> getAll();
-
-    List<DiscountData> getByType(String type);
 }
