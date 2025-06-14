@@ -3,7 +3,6 @@ package io.github.fontysvenlo.ais.businesslogic;
 import io.github.fontysvenlo.ais.businesslogic.api.*;
 import io.github.fontysvenlo.ais.persistence.api.FlightStatsRepository;
 import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
-import io.github.fontysvenlo.ais.businesslogic.api.CustomerManager;
 import io.github.fontysvenlo.ais.businesslogic.api.DiscountManager;
 import io.github.fontysvenlo.ais.businesslogic.api.EmployeeManager;
 import io.github.fontysvenlo.ais.businesslogic.api.FlightManager;
