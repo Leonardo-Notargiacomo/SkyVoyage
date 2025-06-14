@@ -49,3 +49,11 @@ INSERT INTO Ticket (FlightID, CustomerID, Tariff) VALUES
 ('FL001', 4, 100),
 ('FL002', 2, 400);
 ('FL002', 3, 250);
+
+-- Early Bird Discount (30+ days before departure)
+INSERT INTO public.discount (name, amount, type, employeeid, days)
+VALUES ('Early Bird Discount', 15.0, 'early_bird', 1, 30);
+
+-- Last Minute Discount (7 days or less before departure)
+INSERT INTO public.discount (name, amount, type, employeeid, days)
+VALUES ('Last Minute Discount', 20.0, 'last_minute', 1, 7);

@@ -6,8 +6,6 @@ import io.github.fontysvenlo.ais.datarecords.EmployeeData;
 import io.javalin.http.Context;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import io.github.fontysvenlo.ais.businesslogic.EmployeeManagerImpl;
-import io.github.fontysvenlo.ais.persistence.api.EmployeeRepository;
 import org.mockito.ArgumentCaptor;
 
 import java.util.ArrayList;
@@ -27,8 +25,7 @@ public class EmployeeResourceTest {
 
     @BeforeEach
     public void setup() {
-        EmployeeRepository employeeRepository = mock(EmployeeRepository.class);
-        employeeManager = new EmployeeManagerImpl(employeeRepository);
+        employeeManager = mock(EmployeeManager.class);
         businessLogic = mock(BusinessLogic.class);
         when(businessLogic.getEmployeeManager()).thenReturn(employeeManager);
         employeeResource = new EmployeeResource(employeeManager);

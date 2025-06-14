@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import io.github.fontysvenlo.ais.businesslogic.api.ValidatorInterface;
+import io.github.fontysvenlo.ais.datarecords.DiscountData;
 
 public class Validator implements ValidatorInterface {
 
@@ -67,4 +68,21 @@ public class Validator implements ValidatorInterface {
                 || type.equals("SalesEmployee")
                 || type.equals("AccountManager"));
     }
+
+    public boolean isDiscountExisting(DiscountData discount) {
+        return discount != null;
+    }
+
+    public boolean isDiscountMoreThanZero(double amount) {
+        return !(amount <= 0);
+    }
+
+    public boolean isDiscountLessThanHundred(double amount) {
+        return !(amount > 100);
+    }
+
+    public boolean areDiscountDaysValid(int days) {
+        return days > 0;
+    }
+
 }

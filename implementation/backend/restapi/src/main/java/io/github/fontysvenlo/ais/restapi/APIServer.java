@@ -6,7 +6,6 @@ import io.github.fontysvenlo.ais.businesslogic.api.BusinessLogic;
 import io.github.fontysvenlo.ais.datarecords.EmployeeData;
 import io.github.fontysvenlo.ais.datarecords.LoginRequest;
 import io.javalin.Javalin;
-
 import static io.javalin.apibuilder.ApiBuilder.crud;
 import static io.javalin.apibuilder.ApiBuilder.delete;
 import static io.javalin.apibuilder.ApiBuilder.get;
@@ -34,6 +33,7 @@ public class APIServer {
         this.businessLogic = businessLogic;
         this.aviationStackClient = new AviationStackClient(apiKey);
         aviationStackClient.setPriceManager(businessLogic.getPriceManager());
+        aviationStackClient.setDiscountManager(businessLogic.getDiscountManager());
 
         // Read Amadeus credentials from environment variables
         String amadeusClientId = System.getenv("AMADEUS_API_KEY");
@@ -42,8 +42,11 @@ public class APIServer {
         // Print debug information
         System.out.println("========= EXTERNAL API CREDENTIALS =========");
         System.out.println("AviationStack API Key: " + (apiKey != null ? apiKey.substring(0, 5) + "..." : "null"));
-        System.out.println("Amadeus API Key:       " + (amadeusClientId != null ? amadeusClientId.substring(0, 5) + "..." : "null"));
-        System.out.println("Amadeus API Secret:    " + (amadeusClientSecret != null ? (amadeusClientSecret.length() > 5 ? amadeusClientSecret.substring(0, 5) + "..." : amadeusClientSecret) : "null"));
+        System.out.println("Amadeus API Key:       "
+                + (amadeusClientId != null ? amadeusClientId.substring(0, 5) + "..." : "null"));
+        System.out.println("Amadeus API Secret:    " + (amadeusClientSecret != null
+                ? (amadeusClientSecret.length() > 5 ? amadeusClientSecret.substring(0, 5) + "..." : amadeusClientSecret)
+                : "null"));
         System.out.println("============================================");
 
         if (amadeusClientId == null || amadeusClientSecret == null) {
@@ -56,23 +59,27 @@ public class APIServer {
 
         this.amadeusClient = new AmadeusClient(amadeusClientId, amadeusClientSecret);
         amadeusClient.setPriceManager(businessLogic.getPriceManager());
+        amadeusClient.setDiscountManager(businessLogic.getDiscountManager());
     }
 
     /**
      * Initializes the REST API server with Amadeus credentials
      *
-     * @param businessLogic the business logic implementation
+     * @param businessLogic       the business logic implementation
      * @param aviationStackApiKey the API key for AviationStack
-     * @param amadeusClientId the client ID for Amadeus API
+     * @param amadeusClientId     the client ID for Amadeus API
      * @param amadeusClientSecret the client secret for Amadeus API
      */
     public APIServer(BusinessLogic businessLogic, String aviationStackApiKey,
             String amadeusClientId, String amadeusClientSecret) {
         this.businessLogic = businessLogic;
         this.aviationStackClient = new AviationStackClient(aviationStackApiKey);
-        
+        aviationStackClient.setPriceManager(businessLogic.getPriceManager());
+        aviationStackClient.setDiscountManager(businessLogic.getDiscountManager());
+
         this.amadeusClient = new AmadeusClient(amadeusClientId, amadeusClientSecret);
-        amadeusClient.setPriceManager(businessLogic.getPriceManager()); // Set PriceManager for AmadeusClient
+        amadeusClient.setPriceManager(businessLogic.getPriceManager());
+        amadeusClient.setDiscountManager(businessLogic.getDiscountManager()); // Set DiscountManager for AmadeusClient
     }
 
     /**
@@ -81,8 +88,6 @@ public class APIServer {
      * @param configuration the configuration of the server
      */
     public void start(ServerConfig configuration) {
-        // No need for preloading - flights will be fetched and stored on first request
-
         var app = Javalin.create(config -> {
             config.router.contextPath = "/api/v1";
             config.bundledPlugins.enableCors(cors -> {
@@ -91,31 +96,24 @@ public class APIServer {
                 });
             });
             config.router.apiBuilder(() -> {
-                crud("customers/{customer-id}", new CustomerResource(businessLogic.getCustomerManager()));
+                // Employee routes
                 crud("employees/{employee-id}", new EmployeeResource(businessLogic.getEmployeeManager()));
                 crud("tickets/{ticket-id}", new TicketResource(businessLogic.getTicketManager()));
 
-                // Add flight routes
+                // Flight routes
                 FlightResource flightResource = new FlightResource(
                         businessLogic.getFlightManager(),
                         aviationStackClient,
-                        amadeusClient
-                );
+                        amadeusClient);
 
-                PriceResource priceResource = new PriceResource(
-                        businessLogic.getPriceManager(),
-                        businessLogic.getFlightManager()
-                );
+                PriceResource priceResource = new PriceResource(businessLogic.getPriceManager(), businessLogic.getFlightManager());
 
-                // Add custom endpoint to refresh flight data
-                // Replace automatic CRUD with explicit path definitions
-                // Define flight paths
+                // Add discount resource
+                DiscountResource discountResource = new DiscountResource(businessLogic.getDiscountManager());
+
                 path("flights", () -> {
-                    // GET operations
                     get("/", flightResource::getAll);
-                    // Add search endpoint
                     get("/search", flightResource::searchFlights);
-                    // Add a endpoint to clear the flight data
                     delete("/cache", flightResource::clearCache);
 
                     path("/price", () -> {
@@ -123,18 +121,24 @@ public class APIServer {
                         post("/create", priceResource::create);
                     });
                 });
-              
-                // Add login endpoint
+
+                // Define discount paths
+                path("discounts", () -> {
+                    get("/", discountResource::getAll);
+                    post("/", discountResource::create);
+                    delete("/{discount-id}", ctx -> discountResource.delete(ctx, ctx.pathParam("discount-id")));
+                });
+  
+                // Authentication routes
                 post("login", ctx -> {
                     LoginRequest loginRequest = ctx.bodyAsClass(LoginRequest.class);
-                    boolean success = businessLogic.getLoginService().login(loginRequest.email(), loginRequest.password());
+                    boolean success = businessLogic.getLoginService().login(loginRequest.email(),
+                            loginRequest.password());
                     if (success) {
-                        ctx.status(200).json(Map.of(
-                                "message", "Login successful"));
+                        ctx.status(200).json(Map.of("message", "Login successful"));
                     }
                     else {
-                        ctx.status(401).json(Map.of(
-                                "error", "Invalid email or password"));
+                        ctx.status(401).json(Map.of("error", "Invalid email or password"));
                     }
                 });
 
@@ -147,9 +151,28 @@ public class APIServer {
                         ctx.status(404).json(Map.of("error", "User not found"));
                     }
                 });
+                get("kpi", ctx -> {
+                    var stats = businessLogic.getFlightStatsManager().getStatsForFlight();
+                    System.out.println("Flight stats: " + stats);
+                    if (stats != null) {
+                        ctx.status(200).json(stats);
+                    } else {
+                        ctx.status(404).json(Map.of("error", "Flight stats not found"));
+                    }
+                });
+                
+                // Booking routes
+                BookingResource bookingResource = new BookingResource(businessLogic.getBookingManager());
+                path("bookings", () -> {
+                    get("/check-customer", bookingResource::checkCustomerEmail);
+                    post("/", bookingResource::create);
+                    get("/", bookingResource::list);
+                    get("/{id}", bookingResource::getOne);
+                    get("/customer/{customerId}", bookingResource::getByCustomerId);
+                });
             });
-
         });
+        
         app.exception(IllegalArgumentException.class, (e, ctx) -> {
             ctx.status(422).json(Map.of("error", e.getMessage()));
         });

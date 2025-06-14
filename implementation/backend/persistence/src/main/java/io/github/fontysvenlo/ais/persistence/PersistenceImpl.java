@@ -13,16 +13,6 @@ class PersistenceImpl implements Persistence {
         this.config = config;
     }
 
-    /**
-     * Get the implementation of the CustomerRepository.
-     *
-     * @return the implementation of the CustomerRepository
-     */
-    @Override
-    public CustomerRepository getCustomerRepository() {
-        return new CustomerRepositoryImpl(config);
-    }
-
     @Override
     public EmployeeRepository getEmployeeRepository() {
         return new EmployeeRepositoryImpl(config);
@@ -42,5 +32,19 @@ class PersistenceImpl implements Persistence {
 
     @Override
     public TicketRepository getTicketRepository() {return new TicketRepositoryImpl(config);
+
+    @Override
+    public FlightStatsRepository getFlightStatsRepository() {
+        return new FlightStatsRepositoryImpl(config);
+    }
+
+    @Override
+    public DiscountRepository getDiscountRepository() {
+        return new DiscountRepositoryImpl(config);
+    }
+    
+    @Override
+    public BookingRepository getBookingRepository() {
+        return new BookingRepositoryImpl(config);
     }
 }

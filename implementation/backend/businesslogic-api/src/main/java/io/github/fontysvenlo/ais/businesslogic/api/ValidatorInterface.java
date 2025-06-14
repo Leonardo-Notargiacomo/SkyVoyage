@@ -1,5 +1,7 @@
 package io.github.fontysvenlo.ais.businesslogic.api;
 
+import io.github.fontysvenlo.ais.datarecords.DiscountData;
+
 /**
  * Interface for validating input data in the business logic layer. Provides
  * methods to check if data fields meet the required format and constraints.
@@ -68,4 +70,36 @@ public interface ValidatorInterface {
      * @return true if the type is valid, false otherwise
      */
     public boolean isValidType(String type);
+
+    /**
+     * Checks if the discount object exists (not null).
+     *
+     * @param discount the discount to check
+     * @return true if the discount exists, false otherwise
+     */
+    boolean isDiscountExisting(DiscountData discount);
+
+    /**
+     * Checks if the discount amount is greater than zero.
+     *
+     * @param amount the amount to validate
+     * @return true if amount is greater than zero, false otherwise
+     */
+    boolean isDiscountMoreThanZero(double amount);
+
+    /**
+     * Checks if the discount amount is less than or equal to 100.
+     *
+     * @param amount the amount to validate
+     * @return true if amount is less than or equal to 100, false otherwise
+     */
+    boolean isDiscountLessThanHundred(double amount);
+
+    /**
+     * Checks if the discount days are valid (greater than zero).
+     *
+     * @param days the days to validate
+     * @return true if days are greater than zero, false otherwise
+     */
+    boolean areDiscountDaysValid(int days);
 }

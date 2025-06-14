@@ -7,4 +7,6 @@ public interface PriceManager {
     int getPrice();
     void setPrice(PricePerKmData newPrice);
     long getPriceVersion();
+    int calculateBasePrice(int duration);
+    int getDefaultPrice(int duration);
 }

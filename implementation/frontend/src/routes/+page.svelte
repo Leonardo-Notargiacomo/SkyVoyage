@@ -20,6 +20,7 @@
             document.cookie = `firstname=${data.Firstname}; path=/;`;
             document.cookie = `lastname=${data.Lastname}; path=/;`;
             document.cookie = `type=${data.Type}; path=/;`;
+            document.cookie = `employeeID=${data.id}; path=/;`;
 
             // Notify layout to update user info
             window.dispatchEvent(new Event('userInfoChanged'));
