@@ -34,12 +34,12 @@ class BookingRepositoryImpl implements BookingRepository {
 
         try (Connection connection = db.getConnection();
              PreparedStatement stmt = connection.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+             ResultSet results = stmt.executeQuery()) {
 
             List<BookingData> bookings = new ArrayList<>();
-            while (rs.next()) {
-                int bookingId = rs.getInt("id");
-                bookings.add(buildBookingData(connection, bookingId, rs));
+            while (results.next()) {
+                int bookingId = results.getInt("id");
+                bookings.add(buildBookingData(connection, bookingId, results));
             }
             return bookings;
         } catch (SQLException e) {
@@ -58,9 +58,9 @@ class BookingRepositoryImpl implements BookingRepository {
         try (Connection connection = db.getConnection();
              PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return buildBookingData(connection, id, rs);
+            try (ResultSet results = stmt.executeQuery()) {
+                if (results.next()) {
+                    return buildBookingData(connection, id, results);
                 }
             }
         } catch (SQLException e) {
@@ -81,11 +81,11 @@ class BookingRepositoryImpl implements BookingRepository {
         try (Connection connection = db.getConnection();
              PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, customerId);
-            try (ResultSet rs = stmt.executeQuery()) {
+            try (ResultSet results = stmt.executeQuery()) {
                 List<BookingData> bookings = new ArrayList<>();
-                while (rs.next()) {
-                    int bookingId = rs.getInt("id");
-                    bookings.add(buildBookingData(connection, bookingId, rs));
+                while (results.next()) {
+                    int bookingId = results.getInt("id");
+                    bookings.add(buildBookingData(connection, bookingId, results));
                 }
                 return bookings;
             }
@@ -94,9 +94,9 @@ class BookingRepositoryImpl implements BookingRepository {
         }
     }
 
-    private BookingData buildBookingData(Connection connection, int bookingId, ResultSet rs) throws SQLException {
-        String flightId = rs.getString("flightid");
-        boolean isActive = rs.getBoolean("isactive");
+    private BookingData buildBookingData(Connection connection, int bookingId, ResultSet results) throws SQLException {
+        String flightId = results.getString("flightid");
+        boolean isActive = results.getBoolean("isactive");
         List<CustomerData> customers = getCustomersForBooking(connection, bookingId);
         
         int adultCount = 0;
@@ -127,19 +127,19 @@ class BookingRepositoryImpl implements BookingRepository {
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, bookingId);
             List<CustomerData> customers = new ArrayList<>();
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
+            try (ResultSet results = stmt.executeQuery()) {
+                while (results.next()) {
                     customers.add(new CustomerData(
-                            rs.getInt("id"),
-                            getString(rs, "firstname"),
-                            getString(rs, "lastname"),
-                            getString(rs, "email"),
-                            getString(rs, "phonenumber"),
-                            getString(rs, "street"),
-                            getString(rs, "housenumber"),
-                            getString(rs, "city"),
-                            getString(rs, "country"),
-                            rs.getBoolean("isinfant")
+                            results.getInt("id"),
+                            getString(results, "firstname"),
+                            getString(results, "lastname"),
+                            getString(results, "email"),
+                            getString(results, "phonenumber"),
+                            getString(results, "street"),
+                            getString(results, "housenumber"),
+                            getString(results, "city"),
+                            getString(results, "country"),
+                            results.getBoolean("isinfant")
                     ));
                 }
             }
@@ -147,8 +147,8 @@ class BookingRepositoryImpl implements BookingRepository {
         }
     }
     
-    private String getString(ResultSet rs, String columnName) throws SQLException {
-        String value = rs.getString(columnName);
+    private String getString(ResultSet results, String columnName) throws SQLException {
+        String value = results.getString(columnName);
         return value != null ? value : "";
     }
 
@@ -166,21 +166,21 @@ class BookingRepositoryImpl implements BookingRepository {
         try (Connection connection = db.getConnection();
              PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, email.trim().toLowerCase());
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
+            try (ResultSet results = stmt.executeQuery()) {
+                if (results.next()) {
                     Map<String, Object> customerData = new HashMap<>();
-                    customerData.put("id", rs.getInt("id"));
-                    customerData.put("firstName", rs.getString("firstname"));
-                    customerData.put("lastName", rs.getString("lastname"));
-                    customerData.put("email", rs.getString("email"));
-                    customerData.put("phone", rs.getString("phonenumber"));
-                    customerData.put("isInfant", rs.getBoolean("isinfant"));
+                    customerData.put("id", results.getInt("id"));
+                    customerData.put("firstName", results.getString("firstname"));
+                    customerData.put("lastName", results.getString("lastname"));
+                    customerData.put("email", results.getString("email"));
+                    customerData.put("phone", results.getString("phonenumber"));
+                    customerData.put("isInfant", results.getBoolean("isinfant"));
                     
-                    if (rs.getObject("street") != null) {
-                        customerData.put("street", rs.getString("street"));
-                        customerData.put("houseNumber", rs.getString("housenumber"));
-                        customerData.put("city", rs.getString("city"));
-                        customerData.put("country", rs.getString("country"));
+                    if (results.getObject("street") != null) {
+                        customerData.put("street", results.getString("street"));
+                        customerData.put("houseNumber", results.getString("housenumber"));
+                        customerData.put("city", results.getString("city"));
+                        customerData.put("country", results.getString("country"));
                     }
                     return customerData;
                 }
@@ -551,8 +551,8 @@ class BookingRepositoryImpl implements BookingRepository {
         String sql = "SELECT 1 FROM public.flight WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, flightId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next();
+            try (ResultSet results = stmt.executeQuery()) {
+                return results.next();
             }
         }
     }
@@ -683,8 +683,8 @@ class BookingRepositoryImpl implements BookingRepository {
         String sql = "SELECT 1 FROM public.customer WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, customerId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next();
+            try (ResultSet results = stmt.executeQuery()) {
+                return results.next();
             }
         }
     }
@@ -735,10 +735,10 @@ class BookingRepositoryImpl implements BookingRepository {
         String sql = "SELECT addressid FROM public.customer WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, customerId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    int addressId = rs.getInt("addressid");
-                    return rs.wasNull() ? null : addressId;
+            try (ResultSet results = stmt.executeQuery()) {
+                if (results.next()) {
+                    int addressId = results.getInt("addressid");
+                    return results.wasNull() ? null : addressId;
                 }
                 return null;
             }
@@ -849,14 +849,14 @@ class BookingRepositoryImpl implements BookingRepository {
             stmt.setString(3, city.trim().toLowerCase());
             stmt.setString(4, country.trim().toLowerCase());
             
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
+            try (ResultSet results = stmt.executeQuery()) {
+                if (results.next()) {
                     Map<String, Object> addressData = new HashMap<>();
-                    addressData.put("id", rs.getInt("id"));
-                    addressData.put("street", rs.getString("street"));
-                    addressData.put("houseNumber", rs.getString("housenumber"));
-                    addressData.put("city", rs.getString("city"));
-                    addressData.put("country", rs.getString("country"));
+                    addressData.put("id", results.getInt("id"));
+                    addressData.put("street", results.getString("street"));
+                    addressData.put("houseNumber", results.getString("housenumber"));
+                    addressData.put("city", results.getString("city"));
+                    addressData.put("country", results.getString("country"));
                     return addressData;
                 }
                 return null;

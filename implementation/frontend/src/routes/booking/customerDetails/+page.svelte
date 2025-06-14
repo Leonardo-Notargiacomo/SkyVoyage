@@ -372,7 +372,7 @@
                   type="text"
                   bind:value={customer.houseNumber}
                   class="w-full border p-2 rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="42A"
+                  placeholder="25A"
                 />
               </div>
 
@@ -388,7 +388,7 @@
                   type="text"
                   bind:value={customer.city}
                   class="w-full border p-2 rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Amsterdam"
+                  placeholder="Erzurum"
                 />
               </div>
 
@@ -404,7 +404,7 @@
                   type="text"
                   bind:value={customer.country}
                   class="w-full border p-2 rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Netherlands"
+                  placeholder="Turkiye"
                 />
               </div>
             </div>

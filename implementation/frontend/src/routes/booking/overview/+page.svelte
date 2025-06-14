@@ -231,36 +231,6 @@
     }
   }
 
-  async function reserveBooking() {
-    try {
-      // Same approach as confirmBooking but with RESERVED status
-      const allFlights = prepareFlightsForBooking();
-      
-      const bookingData = {
-        flightId: allFlights[0].id,
-        airline: booking.flight.airline,
-        price: booking.flight.price,
-        adultPassengers: booking.AdultPassengers || 1,
-        infantPassengers: booking.infantsPassengers || 0,
-        travelClass: booking.travelClass || "ECONOMY",
-        discount: booking.discount || 0,
-        discountReason: booking.discountReason || "",
-        status: "RESERVED",
-        customers: booking.customers || [],
-        mainFlights: allFlights
-      };
-
-      const result = await api.create("bookings", JSON.stringify(bookingData));
-      
-      sessionStorage.setItem("reservedBooking", JSON.stringify($bookingStore));
-      alert("Booking reserved for later payment! ⏳");
-      goto("/home");
-    } catch (error) {
-      console.error("Error reserving booking:", error);
-      alert("Failed to reserve booking. Please try again.");
-    }
-  }
-
   function cancelBooking() {
     if (confirm("Are you sure you want to cancel this booking?")) {
       bookingStore.set({
@@ -666,17 +636,6 @@
               </svg>
               Confirm Booking
             </button>
-            
-            <button
-              on:click={reserveBooking}
-              class="w-full bg-yellow-400 hover:bg-yellow-500 text-black py-3 rounded-md font-medium mb-4 transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50 transform hover:-translate-y-0.5"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Reserve (Pay Later)
-            </button>
-            
             <button
               on:click={cancelBooking}
               class="w-full bg-red-100 hover:bg-red-200 text-red-600 py-3 rounded-md font-medium transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transform hover:-translate-y-0.5"

@@ -205,22 +205,22 @@ public class BookingResource {
             String email = ctx.queryParam("email");
 
             if (email == null || email.trim().isEmpty()) {
-                ctx.status(400).json(Map.of("error", "Email parameter is required"));
+                ctx.status(HttpStatus.BAD_REQUEST).json(Map.of("error", "Email parameter is required"));
                 return;
             }
 
             Map<String, Object> existingCustomer = bookingManager.findCustomerByEmail(email);
 
             if (existingCustomer != null) {
-                ctx.status(200).json(Map.of(
+                ctx.status(HttpStatus.OK).json(Map.of(
                         "exists", true,
                         "customer", existingCustomer
                 ));
             } else {
-                ctx.status(200).json(Map.of("exists", false));
+                ctx.status(HttpStatus.OK).json(Map.of("exists", false));
             }
         } catch (Exception e) {
-            ctx.status(500).json(Map.of("error", e.getMessage()));
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).json(Map.of("error", e.getMessage()));
         }
     }
     
