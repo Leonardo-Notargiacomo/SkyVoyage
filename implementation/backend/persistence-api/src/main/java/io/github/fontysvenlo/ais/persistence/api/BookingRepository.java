@@ -47,4 +47,7 @@ public interface BookingRepository {
      * @return a map containing the created booking details
      */
     Map<String, Object> add(Map<String, Object> bookingMap);
+
+    void delete(int id);
+
 }

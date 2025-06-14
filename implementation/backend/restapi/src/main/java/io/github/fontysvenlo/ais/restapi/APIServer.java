@@ -163,12 +163,14 @@ public class APIServer {
                 // Booking routes
                 BookingResource bookingResource = new BookingResource(businessLogic.getBookingManager());
                 path("bookings", () -> {
+                    delete("/{id}", bookingResource::delete); // ✅ Move this to the top
                     get("/check-customer", bookingResource::checkCustomerEmail);
                     post("/", bookingResource::create);
                     get("/", bookingResource::list);
-                    get("/{id}", bookingResource::getOne);
+                    get("/{id}", bookingResource::getOne); // This must come last!
                     get("/customer/{customerId}", bookingResource::getByCustomerId);
                 });
+
             });
         });
         

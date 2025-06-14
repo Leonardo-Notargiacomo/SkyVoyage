@@ -51,6 +51,16 @@ public class BookingResource {
         }
     }
 
+    public void delete(Context ctx) {
+        try {
+            int id = Integer.parseInt(ctx.pathParam("id"));
+            bookingManager.delete(id);
+            ctx.status(204);
+        } catch (Exception e) {
+            ctx.status(500).json(Map.of("error", e.getMessage()));
+        }
+    }
+
     /**
      * Process booking data to ensure it has all necessary flight information.
      * 

@@ -146,7 +146,7 @@ class BookingRepositoryImpl implements BookingRepository {
             return customers;
         }
     }
-    
+
     private String getString(ResultSet results, String columnName) throws SQLException {
         String value = results.getString(columnName);
         return value != null ? value : "";
@@ -248,6 +248,41 @@ class BookingRepositoryImpl implements BookingRepository {
                     // Ignore
                 }
             }
+        }
+    }
+
+    @Override
+    public void delete(int id) {
+        try (Connection connection = db.getConnection()) {
+            connection.createStatement().execute("SET search_path TO public");
+            connection.setAutoCommit(false);
+
+            try {
+                // Step 1: Remove from booking_flight
+                try (PreparedStatement stmt = connection.prepareStatement(
+                        "DELETE FROM booking_flight WHERE bookingid = ?")) {
+                    stmt.setInt(1, id);
+                    stmt.executeUpdate();
+                }
+
+                // Step 2: Remove from booking
+                try (PreparedStatement stmt = connection.prepareStatement(
+                        "DELETE FROM booking WHERE id = ?")) {
+                    stmt.setInt(1, id);
+                    int rows = stmt.executeUpdate();
+                    if (rows == 0) {
+                        connection.rollback();
+                        throw new RuntimeException("Booking not found");
+                    }
+                }
+
+                connection.commit();
+            } catch (SQLException e) {
+                connection.rollback();
+                throw new RuntimeException("Failed to delete booking", e);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Database error", e);
         }
     }
 
