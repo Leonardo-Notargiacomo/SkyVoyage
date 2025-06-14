@@ -22,11 +22,6 @@ class EmployeeResource implements CrudHandler {
         this.employeeManager = employeeManager;
     }
 
-    /**
-     * Adds an employee to the storage. - If the employee data is null, the
-     * status is set to 400 (Bad Request). - Otherwise, the status is set to 201
-     * (Created) and the added employee is returned as JSON.
-     */
     @Override
     public void create(Context context) {
         try {
@@ -56,8 +51,6 @@ class EmployeeResource implements CrudHandler {
 
     // Helper method to parse validation error messages
     private Map<String, String> createValidationErrorMap(String errorMessage) {
-        // This is a simple implementation to convert error messages to the map format
-        // expected by the tests
         if (errorMessage.contains("email")) {
             return Map.of("email", "Invalid email format");
         } else if (errorMessage.contains("password")) {
@@ -70,15 +63,10 @@ class EmployeeResource implements CrudHandler {
         } else if (errorMessage.contains("type")) {
             return Map.of("type", "Employee type is required");
         }
-        
-        // If we can't parse a specific error, create a generic one
+
         return Map.of("general", errorMessage);
     }
 
-    /**
-     * Retrieves all employees from the storage. - The status is set to 200 (OK)
-     * and the list of employees is returned as JSON.
-     */
     @Override
     public void getAll(Context context) {
         context.status(200);
@@ -153,4 +141,3 @@ class EmployeeResource implements CrudHandler {
         }
     }
 }
-                    

@@ -375,7 +375,7 @@
                   class="block text-sm font-medium text-gray-700 mb-2"
                   for="password"
                 >
-                  Password <span class="text-xs text-gray-500 font-normal">(Optional)</span>
+                  Password <span class="text-xs text-gray-500 font-normal">*Required</span>
                 </label>
                 <div class="relative">
                   <div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
@@ -391,9 +391,6 @@
                     bind:value={editForm.Password}
                   />
                 </div>
-                <p class="text-xs text-gray-500 mt-2 italic">
-                  Leave blank to keep current password
-                </p>
               </div>
 
               <div>
@@ -574,27 +571,27 @@
           </div>
         </div>
       </div>
-      <div class="mt-6">
-        <a
-          href="/employees"
-          class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-5 rounded-lg shadow-sm transition-all duration-200 transform hover:-translate-y-0.5"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5 mr-2"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          Back to Employees List
-        </a>
-      </div>
     {/if}
+    <div class="mt-6">
+      <a
+              href="/employees"
+              class="inline-flex items-center bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-2.5 px-5 rounded-lg shadow-sm transition-colors"
+      >
+        <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+        >
+          <path
+                  fill-rule="evenodd"
+                  d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                  clip-rule="evenodd"
+          />
+        </svg>
+        Back to Employees List
+      </a>
+    </div>
   </div>
 
   {#if showDeleteModal}
