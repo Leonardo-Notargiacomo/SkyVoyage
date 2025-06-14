@@ -39,10 +39,10 @@ public class TicketRepositoryImpl implements TicketRepository {
         // Query performed
         try (PreparedStatement statement = db.getConnection().prepareStatement(query)) {
             statement.setInt(1, bookingId);
-            ResultSet rs = statement.executeQuery();
+            ResultSet resultSet = statement.executeQuery();
             // Adding IDs to a list
-            while (rs.next()) {
-                ticketIDs.add(rs.getInt("id"));
+            while (resultSet.next()) {
+                ticketIDs.add(resultSet.getInt("id"));
             }
         } catch (SQLException e) {
             return ticketIDs; // Return empty list if an error occurs
@@ -83,16 +83,16 @@ public class TicketRepositoryImpl implements TicketRepository {
         // Query performed
         try (PreparedStatement statement = db.getConnection().prepareStatement(flightQuery)) {
             statement.setInt(1, ticketId);
-            ResultSet rs = statement.executeQuery();
+            ResultSet resultSet = statement.executeQuery();
             // Adding the flight data to a list
-            if (rs.next()) {
-                flightData.add(rs.getString("id"));
-                flightData.add(rs.getString("departure_airport"));
-                flightData.add(rs.getString("departure_terminal"));
-                flightData.add(rs.getString("departure_gate"));
-                flightData.add(rs.getString("departure_scheduled_time"));
-                flightData.add(rs.getString("arrival_airport"));
-                flightData.add(rs.getString("arrival_scheduled_time"));
+            if (resultSet.next()) {
+                flightData.add(resultSet.getString("id"));
+                flightData.add(resultSet.getString("departure_airport"));
+                flightData.add(resultSet.getString("departure_terminal"));
+                flightData.add(resultSet.getString("departure_gate"));
+                flightData.add(resultSet.getString("departure_scheduled_time"));
+                flightData.add(resultSet.getString("arrival_airport"));
+                flightData.add(resultSet.getString("arrival_scheduled_time"));
             }
         } catch (SQLException e) {
             return null; // Return null if an error occurs
@@ -114,12 +114,12 @@ public class TicketRepositoryImpl implements TicketRepository {
         // Query performed
         try (PreparedStatement statement = db.getConnection().prepareStatement(customerQuery)) {
             statement.setInt(1, ticketId);
-            ResultSet rs = statement.executeQuery();
+            ResultSet resultSet = statement.executeQuery();
             // Adding the passenger data to variables
-            if (rs.next()) {
-                customerFirstname = rs.getString("firstname");
-                customerLastname = rs.getString("lastname");
-                hasSeat = !rs.getBoolean("isinfant");
+            if (resultSet.next()) {
+                customerFirstname = resultSet.getString("firstname");
+                customerLastname = resultSet.getString("lastname");
+                hasSeat = !resultSet.getBoolean("isinfant");
             }
         } catch (SQLException e) {
             return null; // Return null if an error occurs
