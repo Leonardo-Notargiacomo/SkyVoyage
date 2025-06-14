@@ -1,14 +1,10 @@
 package io.github.fontysvenlo.ais.persistence;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.sql.DataSource;
 
@@ -17,7 +13,6 @@ import io.github.fontysvenlo.ais.persistence.api.TicketRepository;
 
 public class TicketRepositoryImpl implements TicketRepository {
 
-    private static final Logger LOGGER = Logger.getLogger(TicketRepositoryImpl.class.getName());
     private final DataSource db;
 
     public TicketRepositoryImpl(DBConfig config) {
@@ -50,7 +45,7 @@ public class TicketRepositoryImpl implements TicketRepository {
                 ticketIDs.add(rs.getInt("id"));
             }
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error retrieving ticket IDs: ", e);
+            return ticketIDs; // Return empty list if an error occurs
         }
         // Return the list with the IDs
         return ticketIDs;
@@ -100,7 +95,7 @@ public class TicketRepositoryImpl implements TicketRepository {
                 flightData.add(rs.getString("arrival_scheduled_time"));
             }
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error retrieving flight data: ", e);
+            return null; // Return null if an error occurs
         }
 
         // Next the passenger data
@@ -127,7 +122,7 @@ public class TicketRepositoryImpl implements TicketRepository {
                 hasSeat = !rs.getBoolean("isinfant");
             }
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error retrieving customer data: ", e);
+            return null; // Return null if an error occurs
         }
 
         // Finally creating the new TicketData and returning it
