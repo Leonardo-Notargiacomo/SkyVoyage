@@ -27,6 +27,13 @@ public interface BusinessLogic {
     LoginService getLoginService();
 
     /**
+     * Get the TicketManager.
+     *
+     * @return the TicketManager
+     */
+    TicketManager getTicketManager();
+  
+    /**
      * Get the BookingManager.
      * 
      * @return the booking manager

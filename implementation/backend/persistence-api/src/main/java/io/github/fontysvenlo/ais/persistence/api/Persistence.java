@@ -23,6 +23,8 @@ public interface Persistence {
 
     UserRepository getUserRepository();
 
+    TicketRepository getTicketRepository();
+
     FlightStatsRepository getFlightStatsRepository();
 
     DiscountRepository getDiscountRepository();
