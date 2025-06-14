@@ -223,8 +223,16 @@
       
       // Save confirmation and redirect
       sessionStorage.setItem("confirmedBooking", JSON.stringify($bookingStore));
-      alert("Booking confirmed! ✅");
-      goto("/home");
+      
+      // Check if we have a booking ID in the result
+      if (result && result.id) {
+        // Redirect to tickets page with the booking ID
+        goto(`/tickets/${result.id}`);
+      } else {
+        // Fallback if no ID is returned
+        alert("Booking confirmed! ✅");
+        goto("/home");
+      }
     } catch (error) {
       console.error("Error confirming booking:", error);
       alert("Failed to confirm booking. Please try again.");
@@ -594,7 +602,7 @@
         </div>
         
         <div class="p-4 space-y-4">
-          <div>
+          <!-- <div>
             <label for="discount" class="block text-sm text-gray-700 mb-1">Discount (%)</label>
             <input
               type="number"
@@ -604,9 +612,9 @@
               placeholder="e.g. 10"
               class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             />
-          </div>
+          </div> -->
           
-          <div>
+          <!-- <div>
             <label for="reason" class="block text-sm text-gray-700 mb-1">Reason for Discount</label>
             <input
               type="text"
@@ -614,9 +622,9 @@
               placeholder="e.g. loyal customer"
               class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             />
-          </div>
+          </div> -->
           
-          <button
+          <!-- <button
             on:click={applyDiscount}
             class="w-full bg-gray-700 hover:bg-gray-800 text-white font-medium py-2 rounded-md transition-colors flex items-center justify-center"
           >
@@ -624,12 +632,14 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Apply Discount
-          </button>
+          </button> -->
           
-          <div class="border-t border-gray-200 my-4 pt-4">
+          <!-- re-add this div if discount options get re-added -->
+          <!-- <div class="border-t border-gray-200 my-4 pt-4"> -->
+            <div>
             <button
               on:click={confirmBooking}
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-md font-medium mb-4 transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transform hover:-translate-y-0.5"
+              class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-md font-medium mb-4 transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transform hover:-translate-y-0.5"
             >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />

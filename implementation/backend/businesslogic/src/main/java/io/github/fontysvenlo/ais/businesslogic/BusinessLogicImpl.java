@@ -49,6 +49,7 @@ class BusinessLogicImpl implements BusinessLogic {
     @Override
     public TicketManager getTicketManager() {
         return new TicketManagerImpl(persistenceAPI.getTicketRepository());
+    }
     
     @Override
     public FlightStatsManager getFlightStatsManager() {
