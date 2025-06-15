@@ -120,6 +120,82 @@
   };
 </script>
 
+<style>
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Added new styles for enhanced UI */
+  .card-hover {
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px rgba(79, 70, 229, 0.2);
+  }
+  
+  .employee-avatar {
+    transition: all 0.3s ease;
+  }
+  
+  .employee-card:hover .employee-avatar {
+    transform: scale(1.05);
+  }
+  
+  .badge-pulse {
+    position: relative;
+  }
+  
+  .badge-pulse::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 100px;
+    animation: pulse 2s infinite;
+    z-index: -1;
+  }
+  
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+      opacity: 0.8;
+    }
+    50% {
+      transform: scale(1.1);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 0;
+    }
+  }
+</style>
+
 <nav class="flex my-4" aria-label="Breadcrumb">
   <ol class="inline-flex items-center space-x-2">
     <li class="inline-flex items-center">
@@ -165,22 +241,30 @@
 </nav>
 
 <div class="max-w-6xl mx-auto">
-  <div class="mb-8 bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-lg shadow-sm border border-indigo-200 overflow-hidden">
-    <div class="p-6">
-      <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
-        <div>
-          <h2 class="text-2xl font-bold text-indigo-900 mb-2">Employee Management</h2>
-          <p class="text-indigo-700">Manage your team members and their access roles</p>
-        </div>
+  <div class="mb-8 bg-gradient-to-r from-blue-50 to-indigo-100 rounded-lg shadow-sm border border-blue-200 overflow-hidden p-6">
+    <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+      <div>
+        <h1 class="text-3xl font-bold header-gradient flex items-center">
+          <div class="bg-blue-600 p-2 rounded-lg shadow-md mr-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+          Employee Management
+        </h1>
+        <p class="text-blue-700 ml-14">Manage your team members and their access roles</p>
+      </div>
+      
+      <div>
         <button
           onclick={() => (isOpen = !isOpen)}
-          class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-5 rounded-lg shadow-md transition-all duration-200 transform hover:-translate-y-0.5 flex items-center self-start"
+          class="bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 font-medium py-2.5 px-5 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg flex items-center"
           type="button"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
-          Add New Employee
+          Add Employee
         </button>
       </div>
     </div>
@@ -188,7 +272,7 @@
 
   {#if errorMessage}
     <div
-      class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-md flex items-center"
+      class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-md flex items-center animate-fadeIn shadow-md"
       role="alert"
     >
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -201,20 +285,20 @@
   {#if employees.length > 0}
     <div class="grid gap-6 grid-cols-1">
       {#each employees as employee}
-        <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+        <div class="bg-white/90 border border-gray-200 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow employee-card card-hover backdrop-blur-sm">
           <div class="flex flex-col md:flex-row md:items-center">
             <div class="p-5 flex-grow">
               <div class="flex items-center">
-                <div class="relative flex-shrink-0 inline-flex items-center justify-center w-14 h-14 overflow-hidden bg-gradient-to-br from-blue-700 to-blue-900 rounded-full text-white shadow-md mr-4">
+                <div class="relative flex-shrink-0 inline-flex items-center justify-center w-14 h-14 overflow-hidden bg-gradient-to-br from-indigo-600 to-blue-700 rounded-full text-white shadow-md mr-4 employee-avatar">
                   <span class="font-bold text-lg">
                   {(employee.Firstname.charAt(0) || '').toUpperCase() + (employee.Lastname.charAt(0) || '').toUpperCase()}
                   </span>
                 </div>
                 <div class="flex-grow">
-                  <h3 class="text-xl font-bold text-gray-800">{employee.Firstname} {employee.Lastname}</h3>
+                  <h3 class="text-xl font-bold text-gray-800 group-hover:text-indigo-700 transition-colors">{employee.Firstname} {employee.Lastname}</h3>
                   
                   <div class="mt-1.5 flex items-center">
-                    <span class={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold 
+                    <span class={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold badge-pulse
                       ${employee.Type === 'SalesManager' ? 'bg-purple-100 text-purple-800 ring-1 ring-purple-300' : 
                       employee.Type === 'AccountManager' ? 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-300' : 
                       'bg-indigo-100 text-indigo-800 ring-1 ring-indigo-300'}`}>
@@ -236,7 +320,7 @@
                   </div>
                   
                   <div class="mt-3 flex items-center">
-                    <div class="inline-flex items-center px-2.5 py-1 bg-gray-100 rounded text-sm text-gray-600">
+                    <div class="inline-flex items-center px-2.5 py-1 bg-gray-100 rounded-lg text-sm text-gray-600 border border-gray-200">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
@@ -247,10 +331,10 @@
               </div>
             </div>
             
-            <div class="p-5 md:p-6 flex justify-center md:justify-end items-center">
+            <div class="p-5 md:p-6 flex justify-center md:justify-end items-center bg-gradient-to-br from-gray-50 to-gray-100 border-t md:border-t-0 md:border-l border-gray-200">
               <a
               href="/employees/{employee.id}"
-              class="w-full md:w-auto bg-white text-green-600 border-2 border-green-600 hover:bg-green-600 hover:text-white font-medium py-2.5 px-5 rounded-lg shadow-sm transition-all duration-200 text-center"
+              class="w-full md:w-auto bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 font-medium py-2.5 px-5 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg text-center flex items-center justify-center"
               >
               <span class="flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -266,15 +350,17 @@
       {/each}
     </div>
   {:else}
-    <div class="mt-6 p-6 bg-gray-50 border border-gray-200 text-gray-600 rounded-lg flex flex-col items-center justify-center">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-      </svg>
-      <p class="text-lg font-medium mb-2">No employees found</p>
-      <p class="text-gray-500 text-center mb-4">Your employee list is currently empty. Add employees to get started.</p>
+    <div class="mt-6 p-8 bg-white/90 backdrop-blur-sm border border-gray-200 text-gray-600 rounded-xl flex flex-col items-center justify-center shadow-lg">
+      <div class="bg-indigo-100 p-4 rounded-full mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      </div>
+      <p class="text-lg font-medium mb-2 text-gray-700">No employees found</p>
+      <p class="text-gray-500 text-center mb-6 max-w-md">Your employee list is currently empty. Add employees to get started with team management.</p>
       <button
         onclick={() => (isOpen = !isOpen)}
-        class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-5 rounded-lg shadow-md flex items-center"
+        class="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-medium py-2.5 px-6 rounded-lg shadow-lg flex items-center transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
         type="button"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -288,7 +374,7 @@
   <div class="mt-8 flex justify-between items-center">
     <a
       href="/home"
-      class="inline-flex items-center bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-2.5 px-5 rounded-lg shadow-sm transition-colors"
+      class="inline-flex items-center bg-white/90 backdrop-blur-sm border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-2.5 px-5 rounded-lg shadow-sm transition-all duration-300 transform hover:-translate-x-1"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -306,13 +392,14 @@
     </a>
 
     {#if employees.length > 0}
-      <div class="text-sm text-gray-500">
+      <div class="bg-indigo-50 px-4 py-2 rounded-lg text-indigo-700 text-sm font-medium border border-indigo-100 shadow-sm">
         Showing {employees.length} employee{employees.length !== 1 ? 's' : ''}
       </div>
     {/if}
   </div>
 </div>
 
+<!-- Modal with enhanced styling -->
 <div
   onclick={() => (isOpen = !isOpen)}
   id="crud-modal"
@@ -320,15 +407,15 @@
   aria-hidden="true"
   class="{isOpen
     ? ''
-    : 'hidden'} backdrop-blur-sm bg-gray-900/50 flex overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-screen"
+    : 'hidden'} backdrop-blur-sm bg-gray-900/60 flex overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-screen"
 >
   <div
     role="none"
     class="relative p-4 w-full max-w-md max-h-full"
     onclick={(event) => event.stopPropagation()}
   >
-    <div class="relative bg-white rounded-xl shadow-2xl animate-fadeIn">
-      <div class="bg-gradient-to-r from-blue-600 to-blue-800 p-5 rounded-t-xl flex justify-between items-center">
+    <div class="relative bg-white rounded-xl shadow-2xl animate-fadeIn border border-white/20">
+      <div class="bg-gradient-to-r from-indigo-600 to-blue-700 p-5 rounded-t-xl flex justify-between items-center border-b border-indigo-700/50">
         <h3 class="text-xl font-bold text-white flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -358,6 +445,8 @@
           <span class="sr-only">Close modal</span>
         </button>
       </div>
+
+      <!-- Form remains largely the same but with enhanced styling -->
       <form class="p-6" onsubmit={createEmployee}>
         <div class="space-y-5">
           <div>
@@ -558,20 +647,3 @@
     </div>
   </div>
 </div>
-
-<style>
-  .animate-fadeIn {
-    animation: fadeIn 0.3s ease-out;
-  }
-  
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-</style>
