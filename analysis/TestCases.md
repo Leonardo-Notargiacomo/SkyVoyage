@@ -748,3 +748,40 @@ This document outlines the test cases for the project. Each test case describes 
 
 
   ---
+
+# Test Case: View Tickets
+
+**Name**: testGetTicketData
+
+**Precondition**: Actor is logged into the system and is viewing a booking 
+
+**Scenario**:
+
+1. Actor selects the view ticket option
+2. System shows ticket data
+
+**Result**:
+
+- Actor sees ticket data
+- Ticket data shown is of requested booking
+
+**Extension**: N/A
+
+---
+
+**Name**: testGetTicketDataWithNoTickets
+
+**Precondition**: Actor is logged into the system and is viewing a booking without a booking ID
+**Scenario**:
+
+1. Actor selects the view ticket option
+2. System shows no ticket data
+
+**Result**:
+
+- Actor sees message stating that no tickets were found
+- No ticket data shown
+
+**Extension**: N/A
+
+---

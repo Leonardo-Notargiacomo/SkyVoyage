@@ -279,10 +279,8 @@ The actor views all tickets of a booking.
 **Precondition**:
 Actor is logged into the system.
 Actor must have the role "Sales Employee".
-System has booking data available
-One of the following:
- * Actor is currently viewing the details of a booking and wants to press the view tickets button
- * Actor is finishing up a booking and wants to press the button that finalizes a booking
+System has booking data available.
+Actor is viewing a booking.
 
 **Scenario**:
 1. Actor presses the butto mentioned in the precondition
