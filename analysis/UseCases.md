@@ -283,14 +283,14 @@ System has booking data available.
 Actor is viewing a booking.
 
 **Scenario**:
-1. Actor presses the butto mentioned in the precondition
-2. System returns page with all of the tickets belonging to the booking that was selected
+1. Actor presses the button to view tickets
+2. System returns page with all of the tickets belonging to the booking
 
 **Result**:
 Actor sees all of the tickets of the booking
 
 **Exception**:
-- 2a. Data retrieval error: If there is an error while retrieving the data, system displays: "Something went wrong, please try again. If this error keeps occurring, please contact your IT support."
+- 2a. If no ticket data was found or something went wrong within the system, no tickets will be displayed and instead a message stating that no tickets were found is displayed
 
 ---
 
