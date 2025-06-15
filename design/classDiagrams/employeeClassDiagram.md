@@ -10,7 +10,6 @@ classDiagram
         +String Password
         +String Type
     }
-
     %% Interfaces
     class EmployeeManager {
         <<interface>>
@@ -21,7 +20,6 @@ classDiagram
         +EmployeeData delete(String)
         +EmployeeData getByEmail(String)
     }
-
     class ValidatorInterface {
         <<interface>>
         +boolean isValidName(String)
@@ -30,7 +28,6 @@ classDiagram
         +boolean isValidPassword(String)
         +boolean isValidType(String)
     }
-
     class EmployeeRepository {
         <<interface>>
         +EmployeeData add(EmployeeData)
@@ -40,7 +37,6 @@ classDiagram
         +List~EmployeeData~ getAll()
         +EmployeeData getByEmail(String)
     }
-
     %% Implementation Classes
     class EmployeeManagerImpl {
         -EmployeeRepository employeeRepository
@@ -54,7 +50,6 @@ classDiagram
         -String hashPassword(String)
         +boolean verifyPassword(String, String)
     }
-
     class Validator {
         -static Pattern EMAIL_PATTERN
         -static Pattern PASSWORD_PATTERN
@@ -64,7 +59,6 @@ classDiagram
         +boolean isValidPassword(String)
         +boolean isValidType(String)
     }
-
     class EmployeeRepositoryImpl {
         -DataSource db
         +EmployeeData add(EmployeeData)
@@ -76,14 +70,12 @@ classDiagram
         -int getRoleIdByTypeName(String)
         -String getTypeNameByRoleId(int)
     }
-
     class Employee {
         -EmployeeData data
         +Employee(EmployeeData)
         +String getFullName()
         +EmployeeData getData()
     }
-
     class EmployeeResource {
         -EmployeeManager employeeManager
         +void create(Context)
@@ -93,18 +85,14 @@ classDiagram
         +void update(Context, String)
         -Map createValidationErrorMap(String)
     }
-
-    %% Relationships
-    EmployeeManagerImpl ..|> EmployeeManager
-    Validator ..|> ValidatorInterface
-    EmployeeRepositoryImpl ..|> EmployeeRepository
-
+    
+    EmployeeManager <|.. EmployeeManagerImpl
+    ValidatorInterface <|.. Validator
+    EmployeeRepository <|.. EmployeeRepositoryImpl
     EmployeeManagerImpl o-- EmployeeRepository
     EmployeeManagerImpl o-- ValidatorInterface
     EmployeeManagerImpl ..> Employee
-
     Employee o-- EmployeeData
-
     EmployeeResource o-- EmployeeManager
     EmployeeManagerImpl ..> EmployeeData
     EmployeeRepositoryImpl ..> EmployeeData
