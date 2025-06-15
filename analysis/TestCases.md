@@ -1,385 +1,382 @@
 # Test Cases
 
-This document outlines the test cases for the project. Each test case describes a specific scenario to be tested, including the steps to reproduce, expected results, and actual results.
+This document outlines the test cases for the project. Each test case describes a specific scenario from a user's perspective while matching the underlying test implementation.
 
 ---
 
-# Test Case: Create Employee
+# Test Case: Employee Account Security
+
+**Name**: testPasswordIsHashed
+
+**Precondition**: A Account Manager is logged into the employee management system.
+
+**Scenario**:
+
+1. Account Manager navigates to the "Add New Employee" screen.
+2. Account Manager fills in the employee form with:
+   - First Name: "John"
+   - Last Name: "Doe"
+   - Email: "john.doe@example.com"
+   - Password: "SecurePassword123!"
+   - Role: "Sales Manager"
+3. Account Manager clicks the "Create Employee" button.
+4. System processes the request and creates the employee account.
+
+**Result**:
+
+- Account Manager sees a success message: "Employee John Doe created successfully."
+- The password is securely stored in the database.
+- If the Account Manager were to view the database directly, they would see the password is stored as a BCrypt hash (starting with "$2a$", "$2b$", or "$2y$").
+- The employee can log in with their original password despite it being stored in a hashed format.
+
+---
+
+# Test Case: Employee Management
+
+**Name**: testGetAllEmployees
+
+**Precondition**: A Account Manager is logged into the employee management system.
+
+**Scenario**:
+
+1. Account Manager navigates to the "Employees" page.
+2. System retrieves the employee list from the database.
+3. System displays the list of employees on the interface.
+
+**Result**:
+
+- Account Manager sees a complete list of employees in the system.
+- The HTTP status code in the browser's network tab shows 200 (OK).
+
+---
 
 **Name**: testCreateEmployee
 
-**Precondition**: Actor is logged into the system and is on the employee management interface.
+**Precondition**: A Account Manager is logged into the employee management system.
 
 **Scenario**:
 
-1. Actor selects the option to create a new account.
-2. System prompts the Actor to enter the employee's details (name, email, role).
-3. Actor enters the required information:
-   - Name: "John Smith"
+1. Account Manager navigates to the "Add New Employee" screen.
+2. Account Manager fills in all required fields:
+   - First Name: "John"
+   - Last Name: "Smith"
    - Email: "john.smith@company.com"
-   - Role: "Sales employee"
-4. System validates the information:
-   - Checks if email format is valid
-   - Verifies email is not already in use
-   - Confirms all required fields are filled
-5. Actor submits the form.
-6. System creates the new account for the employee with ID "EMP2025001".
-7. Test checks if the account was created successfully by querying the database for the new employee record.
-8. Actor receives a confirmation message: "Employee account for John Smith has been created successfully."
+   - Password: "Johndoe1230@"
+   - Role: "Sales Manager"
+3. Account Manager clicks the "Create Employee" button.
 
 **Result**:
 
-- Actor successfully creates a new account for the employee.
-- Employee ID "EMP2025001" is generated and stored in the system.
+- Account Manager sees a success message: "Employee created successfully."
+- The new employee appears in the employee list.
+- The HTTP status code in the browser's network tab shows 201 (Created).
 
 ---
 
-**Extension**: N/A
+**Name**: testCreateEmployeeNull
 
-**Name**: testCreateEmployeeInvalidEmail
-
-**Precondition**: Actor is logged into the system and is on the employee management interface.
+**Precondition**: A Account Manager is logged into the employee management system.
 
 **Scenario**:
 
-1. Actor selects the option to create a new account.
-2. System prompts the Actor to enter the employee's details (name, email, role).
-3. Actor enters the following information:
-   - Name: "Jane Doe"
-   - Email: "john.smith@company.com" (already in use)
-   - Role: "Sales employee"
-4. Test checks if the system displays the error message: "Email address is already associated with an existing account. Please use a different email address."
+1. Account Manager navigates to the "Add New Employee" screen.
+2. Account Manager clicks the "Create Employee" button without entering any information.
 
 **Result**:
 
-- System displays the error message: "Email address is already associated with an existing account. Please use a different email address."
-- Form is not submitted and account is not created.
-- System highlights the email field in red to indicate the error.
-
-**Extension**: 4a. If the entered email is already in use, the system displays an error message and prompts the actor to enter a different email.
+- Account Manager sees an error message: "Employee data cannot be empty."
+- No employee is created in the system.
+- The form remains on the screen for the Account Manager to complete properly.
+- The HTTP status code in the browser's network tab shows 400 (Bad Request).
 
 ---
 
 **Name**: testCreateEmployeeInvalidInformation
 
-**Precondition**: Actor is logged into the system and is on the employee management interface.
+**Precondition**: A Account Manager is logged into the employee management system.
 
 **Scenario**:
 
-1. Actor selects the option to create a new account.
-2. System prompts the Actor to enter the employee's details (name, email, role).
-3. Actor enters the following information:
-   - Name: "" (empty)
-   - Email: "invalid-email"
-   - Role: "Sales manager"
-4. Actor submits the form.
-5. Test checks if the system displays appropriate error messages for invalid fields.
+1. Account Manager navigates to the "Add New Employee" screen.
+2. Account Manager fills in the employee form with:
+   - First Name: "John"
+   - Last Name: "Smith"
+   - Email: "john.smith" (missing domain)
+   - Password: "john12345"
+   - Role: "Sales Manager"
+3. Account Manager clicks the "Create Employee" button.
 
 **Result**:
 
-- System displays the error message: "Please correct the following errors:"
-- System shows "Name field cannot be empty" next to the name field.
-- System shows "Invalid email format" next to the email field.
-- Form is not submitted and account is not created.
-- System highlights the invalid fields in red.
-
-**Extension**: 6a. If the information is invalid, the system displays an error message and prompts the actor to correct the information.
+- Account Manager sees an error message: "Invalid email: john.smith"
+- The email field is highlighted in red.
+- No employee is created in the system.
+- The HTTP status code in the browser's network tab shows 400 (Bad Request).
 
 ---
 
-**Name**: testCreateEmployeeSystemError
+**Name**: testCreateEmployeeMultipleValidationErrors
 
-**Precondition**: Actor is logged into the system and is on the employee management interface. The database connection is configured to fail during account creation.
+**Precondition**: A Account Manager is logged into the employee management system.
 
 **Scenario**:
 
-1. Actor selects the option to create a new account.
-2. System prompts the Actor to enter the employee's details (name, email, role).
-3. Actor enters valid information:
-   - Name: "Alex Johnson"
-   - Email: "alex.johnson@company.com"
-   - Role: "Account manager"
-4. Actor submits the form.
-5. System attempts to create the account but encounters a database connection error.
-6. Test checks if the system displays an appropriate error message.
+1. Account Manager navigates to the "Add New Employee" screen.
+2. Account Manager fills in the employee form with multiple invalid entries:
+   - First Name: "J" (too short)
+   - Last Name: "" (empty)
+   - Email: "invalid-email" (invalid format)
+   - Password: "weak" (too weak)
+   - Role: "" (empty)
+3. Account Manager clicks the "Create Employee" button.
 
 **Result**:
 
-- System displays the error message: "An unexpected error occurred while creating the account. Please try again later or contact system administrator."
-- Account is not created in the system.
-
-**Extension**: 6b. If the system encounters an unexpected error, the system displays an error message.
+- Account Manager sees multiple validation errors:
+  - "First name must be at least 2 characters"
+  - "Last name is required"
+  - "Invalid email format"
+  - "Password must meet complexity requirements"
+  - "Role is required"
+- All invalid fields are highlighted in red.
+- No employee is created in the system.
+- The HTTP status code in the browser's network tab shows 400 (Bad Request).
 
 ---
 
-# Test Case: Search Flights
+**Name**: testGetEmployee
 
-**Name**: testSearchFlights
-
-**Precondition**: The sales employee is logged into the system and on the flight search interface.
+**Precondition**: A Account Manager is logged into the employee management system with existing employees.
 
 **Scenario**:
 
-1. Sales employee selects the flight search option.
-2. The system displays the flight search interface.
-3. Sales employee enters flight search criteria:
-   - Deaparture: "Amsterdam"
-   - Arrival: "Sint Maarten"
-   - Travel date: "24.03.2025 - "07.04.2025
-   - Number passengers: "2"
-4. Sales employee clicks the "Search" button.
-   - Checks if Deaparture & Arrival exists.
-   - Checks if Travel date is not in the past.
-   - Checks if Number passengers is not an negative number.
-5. The system retrieves available flights based on the provided criteria.
-6. The system displays a list of available flights, including details such as:
-   - Airline name
-   - Departure time
-   - Arrival time
-   - Duration
-   - Price
-8. Sales employee can sort or filter the results (e.g., by price, airline, duration).
+1. Account Manager navigates to the "Employees" page.
+2. Account Manager clicks on the "Manage" button next to employee "John Smith" (ID: 1).
+3. System retrieves the employee's information from the database.
 
 **Result**:
 
-- Flights matching the search criteria are displayed.
-- Sales employee can view flight details and proceed with the next steps (e.g., booking).
+- Account Manager sees a detailed profile page for John Smith.
+- The page displays all employee information including name, email, and role.
+- The HTTP status code in the browser's network tab shows 200 (OK).
 
 ---
 
-**Name**: testSearchFlightsInvalidInformation
+**Name**: testDeleteEmployee
 
-**Precondition**: Sales Employee is logged into the system and is on the search flights interface.
+**Precondition**: A Account Manager is logged into the employee management system with existing employees.
 
 **Scenario**:
 
-1. Sales Employee selects the flight search option.
-2. System displays the flight search interface.
-3. Sales Employee enters the following invalid search criteria:
-   - Departure: " " (empty)
-   - Arrival: " " (empty)
-   - Travel date: "21.03.2024" (date in the past)
-   - Number passengers: "-1" (negativ number)
-4. Sales Employee submits the search request.
-5. Test checks if the system displays appropriate error messages for invalid fields.
+1. Account Manager navigates to the "Employees" page.
+2. Account Manager finds employee "John Smith" (ID: 1) in the list.
+3. Account Manager clicks the "Delete" button next to the employee's name.
+4. System displays a confirmation dialog: "Are you sure you want to delete this employee account?"
+5. Account Manager clicks "Confirm".
 
 **Result**:
 
-- System shows "Departure cannot be empty" next to the departure field.
-- System shows "Arrival cannot be empty" next to the arrival field.
-- System shows "Invalid date format" next to the date field.
-- System shows "Number of passengers must be at least 1" next to the passenger field
-- Form is not submitted, and no search results are displayed.
-- System highlights the invalid fields in red.
-
-**Extension**: 6a. If the information is invalid, the system displays an error message and prompts the Sales Employee to correct the information.
+- Account Manager sees a success message: "Employee account deleted successfully."
+- John Smith no longer appears in the employee list.
+- The HTTP status code in the browser's network tab shows 204 (No Content).
 
 ---
 
-**Name**: testSearchFlightsNoResult
+**Name**: testGetAll
 
-**Precondition**: Sales Employee is logged into the system and is on the flight search interface.
+**Precondition**: A Account Manager is logged into the employee management system with multiple employees.
 
 **Scenario**:
 
-1. Sales Employee selects the flight search option.
-2. System displays the flight search interface.
-3. Sales Employee enters the following search criteria:
-   - Departure: "Amsterdam"
-   - Arrival: "Sint Maarten" 
-   - Travel date: "26.03.2025" - "06.04.2025" 
-   - Number passengers: "1"
-4. Sales Employee submits the search request.
-5. System processes the request and checks for available flights.
-6. No flights are found for the given criteria.
+1. Account Manager navigates to the "Employees" page.
+2. System retrieves all employee records from the database.
+3. System displays the list of employees including:
+   - John Smith (Sales Manager)
+   - Jane Doe (HR Manager)
 
 **Result**:
 
-- System displays the message: "No flights found for the selected criteria. Please try different dates or departure."
-- System suggests nearby airports or alternative travel dates (if available).
-- Sales Employee can modify the search criteria and try again.
-
-
-**Extension**: 6a. If no flights are found, the system provides alternative suggestions or prompts the user to refine their search.
+- Account Manager sees both employees listed in the employee page.
+- The page shows each employee's name, email, and role.
+- The HTTP status code in the browser's network tab shows 200 (OK).
 
 ---
 
-**Name**: testSearchFlightsSystemError
+# Test Case: Discount Management 
 
-**Precondition**: Sales Employee is logged into the system and is on the flight search interface.
+**Name**: Add Invalid Discount
+
+**Precondition**: A sales manager is logged into the system and navigates to the discount management screen.
 
 **Scenario**:
 
-1. Sales Employee selects the flight search option.
-2. System displays the flight search interface.
-3. Sales Employee enters the following search criteria:
-   - Departure: "Amsterdam"
-   - Arrival: "Sint Maarten" 
-   - Travel date: "26.03.2025" - "06.04.2025" 
-   - Number passengers: "1"
-4. Sales Employee submits the search request.
-5. System encounters an unexpected error (e.g., database connection issue or API failure).
+1. Sales manager clicks on "Create New Discount".
+2. Sales manager fills in the discount form with:
+   - Name: "Invalid Discount"
+   - Amount: 110% (invalid percentage)
+   - Type: "Regular"
+   - Days before departure: 10
+3. Sales manager clicks the "Create Discount" button.
 
 **Result**:
 
-- System displays an error message: "An error occurred while retrieving flights. Please try again later."
-- System logs the error for debugging.
-- Sales Employee cannot view flight results until the issue is resolved.
-
-
-**Extension**: 5a. If the system encounters an unexpected error, the system displays an error message and logs the issue for further investigation.
+- System displays an error message: "Invalid discount amount. Percentage must be between 0 and 100."
+- The discount is not created in the system.
+- The amount field is highlighted in red.
+- The form remains on the screen for correction.
 
 ---
 
-# Test Case: Display Flights
+**Name**: Calculate Price with No Applicable Discount
 
-**Name**: testDisplayFlightsSuccessful
-
-**Precondition**: The sales employee is logged into the system and made a flight search.
+**Precondition**: A sales employee is creating a booking that is 50 days before departure.
 
 **Scenario**:
 
-1. Sales Employee submits a flight search request with valid criteria.
-2. The system retrieves flight data from the external API.
-3. The system displays a list of available flights, including details such as:
-   - Deaparture: "Amsterdam"
-   - Arrival: "Sint Maarten"
-   - Duration: "15 hours"
-   - Airline: "Lufthansa"
-   - Price: "1,500€"
-4. Sales Employee can sort the flights (e.g., by price, duration, airline).
-5. Sales Employee selects a flight to view more details.
-6. System navigates to the flight details page.
+1. Sales employee searches for and selects a flight.
+2. System displays the flight details with a base price of €100.
+3. System checks for applicable discounts:
+   - "Early Bird" discount of 15% (applies 30 days before departure)
+   - "Super Early" discount of 25% (applies 20 days before departure)
+4. Since the booking is 50 days before departure, no discount is applicable.
 
 **Result**:
 
-- System successfully displays a list of flights matching the search criteria.
-- Sales Employee can proceed to the next step (e.g., booking).
-  
+- The booking summary shows the original price: €100.
+- No discount is applied to the booking.
+- The sales employee proceeds with the booking at the full price.
+
 ---
 
-**Name**: testDisplayFlightsNoResult
+**Name**: Calculate Price with No Discounts in System
 
-**Precondition**: Sales Employee is logged into the system and made a flight search with criteria that may not return results.
+**Precondition**: A sales employee is creating a booking, but no discount rules exist in the system.
 
 **Scenario**:
 
-1. Sales Employee submits a flight search request with criteria that have no available flights.
-2. The system processes the request.
-3. No flights match the criteria.
-4. The system displays a message: "No flights found. Try modifying your search criteria."
-5. The system suggests alternative search options (e.g., nearby airports, different dates).
+1. Sales employee searches for and selects a flight.
+2. System displays the flight details with a base price of €100.
+3. System checks for applicable discounts but finds none in the database.
 
 **Result**:
 
-- Sales Employee is informed that no flights are available.
-- Sales Employee can modify the search criteria and try again.
-
-
-**Extension**: N/A
+- The booking summary shows the original price: €100.
+- No discount section is displayed in the booking summary.
+- The sales employee proceeds with the booking at the full price.
 
 ---
 
-**Name**: testDisplayFlightsSystemError
+**Name**: Calculate Price with Zero Percent Discount
 
-**Precondition**:  The sales employee is logged into the system and made a flight search.
-
-1. Sales Employee submits a flight search request.
-2. The system attempts to retrieve flight data but encounters an unexpected error (e.g., API failure, database connection issue).
-3. The system displays an error message: "An error occurred while retrieving flights. Please try again later."
-4. The system logs the error for debugging.
-
-**Result**:
-
-- Sales Employee is informed of the issue and cannot view flight results until it is resolved.
-- The system logs the error for further investigation.
-
-
-**Extension**: N/A
-
----
-
-# Test Case: Discount Management
-
-**Name**: testAddDiscountThrowsExceptionForInvalidInput
-
-**Precondition**: The system has a discount management module with validation rules in place.
+**Precondition**: A sales employee is creating a booking with a 0% discount rule in place.
 
 **Scenario**:
 
-1. A discount object is created with invalid data:
-   - ID: 6
-   - Name: "Invalid"
-   - Amount: 110.0 (exceeds 100%)
-   - Type: "regular"
-   - EmployeeID: 6
-   - Days: 10
-2. The system attempts to add this discount through the discount manager.
-3. The system validates the discount data before adding it to the repository.
+1. Sales employee searches for and selects a flight for a date 15 days in the future.
+2. System displays the flight details with a base price of €100.
+3. System checks for applicable discounts and finds:
+   - "No Discount" promotion with 0% applicable for bookings 30 days before departure.
 
 **Result**:
 
-- System throws an IllegalArgumentException due to the invalid discount amount.
-- The discount is not added to the repository.
-- The repository's add method is never called.
+- The booking summary shows the original price: €100.
+- Even though the discount rule applies, no actual discount is calculated (0%).
+- The sales employee proceeds with the booking at the full price.
 
 ---
 
-**Name**: testCalculateDiscountedPriceWithNoApplicableDiscount
+**Name**: Calculate Price with Single Applicable Discount
 
-**Precondition**: The system has existing discount rules in the repository.
+**Precondition**: A sales employee is creating a booking 25 days before departure.
 
 **Scenario**:
 
-1. A base price of 100.0 is provided.
-2. A departure date 50 days in the future is specified.
-3. The system has two discounts in the repository:
-   - "Early Bird" discount of 15% applicable for bookings 30 days before departure
-   - "Super Early" discount of 25% applicable for bookings 20 days before departure
-4. The system calculates the discounted price based on these parameters.
+1. Sales employee searches for and selects a flight.
+2. System displays the flight details with a base price of €100.
+3. System checks for applicable discounts:
+   - "Early Bird" discount of 15% (applies 30 days before departure)
+   - "Super Early" discount of 25% (applies 20 days before departure)
+4. Only the "Early Bird" discount is applicable since 25 days is within the 30-day window.
 
 **Result**:
 
-- No discount is applied since the booking is 50 days before departure, which doesn't match any discount criteria.
-- The original base price (100.0) is returned without any discount.
+- The booking summary shows:
+  - Original price: €100
+  - "Early Bird" discount: -€15
+  - Final price: €85
+- The sales employee sees the discount applied and proceeds with the booking.
 
 ---
 
-**Name**: testCalculateDiscountedPriceWithEmptyDiscountList
+**Name**: Calculate Price with Multiple Applicable Discounts
 
-**Precondition**: The discount repository is empty.
+**Precondition**: A sales employee is creating a booking 15 days before departure.
 
 **Scenario**:
 
-1. A base price of 100.0 is provided.
-2. A departure date 15 days in the future is specified.
-3. The discount repository contains no discount rules.
-4. The system calculates the discounted price.
+1. Sales employee searches for and selects a flight.
+2. System displays the flight details with a base price of €100.
+3. System checks for applicable discounts:
+   - "Early Bird" discount of 15% (applies 30 days before departure)
+   - "Super Early" discount of 25% (applies 20 days before departure)
+   - "Last Minute" discount of 10% (applies 10 days before departure)
+4. Both "Early Bird" and "Super Early" discounts are applicable.
 
 **Result**:
 
-- No discount is applied since there are no discount rules in the repository.
-- The original base price (100.0) is returned without any discount.
+- The booking summary shows:
+  - Original price: €100
+  - "Super Early" discount: -€25 (highest applicable discount)
+  - Final price: €75
+- The system applies only the highest discount (25%) rather than combining them.
+- The sales employee sees the best discount applied and proceeds with the booking.
 
 ---
 
-**Name**: testCalculateDiscountedPriceWithZeroDiscount
+**Name**: Calculate Price with Last-Minute Discount
 
-**Precondition**: The system has a discount rule with 0% discount in the repository.
+**Precondition**: A sales employee is creating a booking just 5 days before departure.
 
 **Scenario**:
 
-1. A base price of 100.0 is provided.
-2. A departure date 15 days in the future is specified.
-3. The system has one discount in the repository:
-   - "No Discount" with 0% applicable for bookings 30 days before departure
-4. The system calculates the discounted price.
+1. Sales employee searches for and selects a flight.
+2. System displays the flight details with a base price of €100.
+3. System checks for applicable discounts:
+   - "Early Bird" discount of 15% (applies 30 days before departure)
+   - "Super Early" discount of 25% (applies 20 days before departure)
+   - "Last Minute" discount of 35% (applies 7 days before departure)
+4. All three discounts are applicable since 5 days is within all time windows.
 
 **Result**:
 
-- Even though the discount rule applies, the discount percentage is 0%.
-- The original base price (100.0) is returned without any change.
+- The booking summary shows:
+  - Original price: €100
+  - "Last Minute" discount: -€35 (highest applicable discount)
+  - Final price: €65
+- The system applies the highest discount (35%).
+- The sales employee sees the best discount applied and proceeds with the booking.
 
+---
+
+**Name**: View All Available Discounts
+
+**Precondition**: A sales manager is logged into the system.
+
+**Scenario**:
+
+1. Sales manager navigates to the "Discount Management" screen.
+2. System retrieves all discount rules from the database:
+   - Discount 1: 10% discount, type "type1", 5 days before departure
+   - Discount 2: 20% discount, type "type2", 10 days before departure
+3. System displays the list of discount rules.
+
+**Result**:
+
+- Sales manager sees a complete list of all discount rules in the system.
+- Each discount shows its name, percentage, type, and applicable time window.
+- The sales manager can edit or delete existing discounts from this screen.
+
+---
 ---
 
 **Name**: testCalculateDiscountedPriceWithSingleApplicableDiscount
@@ -465,4 +462,3 @@ This document outlines the test cases for the project. Each test case describes 
 - The returned list contains two discount objects with the correct names "Discount 1" and "Discount 2".
 
 ---
-

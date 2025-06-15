@@ -1,64 +1,110 @@
-```mermaid
----
-title: Class Diagram for Employee Process
----
 classDiagram
-    
-    namespace datarecords {
-        class EmployeeData {
-            -Integer id
-            - String Firstname
-            - String Lastname
-            - String Email
-            - String Password
-            - String Type
-        }
-    }
-    
-    namespace businesslogic {
-        class Employee {
-            -EmployeeData employeeData
-            +Employee(EmployeeData employeeData)
-        }
-        class EmployeeManagerImpl {
-            - Logger logger
-            - EmployeeRepository employeeRepository
-            +EmployeeManagerImpl(EmployeeRepository employeeRepository)
-            +add(EmployeeData employeeData): EmployeeData
-            +list(): List<EmployeeData>
-            +getOne(String id): EmployeeData
-            +update(EmployeeData employeeData): EmployeeData
-            +delete(String id): EmployeeData
-        }
+    %% Data Records
+    class EmployeeData {
+        <<record>>
+        +Integer id
+        +String Firstname
+        +String Lastname
+        +String Email
+        +String Password
+        +String Type
     }
 
-    namespace persistence-api {
-        class EmployeeRepository {
-            <<interface>>
-            +add(EmployeeData employeeData): EmployeeData
-            +update(EmployeeData employeeData): EmployeeData
-            +delete(String id): EmployeeData
-            +getOne(String id): EmployeeData
-            +getAll(): List<EmployeeData>
-        }
+    %% Interfaces
+    class EmployeeManager {
+        <<interface>>
+        +EmployeeData add(EmployeeData)
+        +List~EmployeeData~ list()
+        +EmployeeData getOne(String)
+        +EmployeeData update(EmployeeData)
+        +EmployeeData delete(String)
+        +EmployeeData getByEmail(String)
     }
 
-    namespace persistence {
-        class EmployeeRepositoryImpl {
-            - DataSource db
-            - List<EmployeeData> employees
-            +EmployeeRepositoryImpl(DBConfig config)
-            +add(EmployeeData employeeData): EmployeeData
-            +update(EmployeeData employeeData): EmployeeData
-            +delete(String id): EmployeeData
-            +getOne(String id): EmployeeData
-            +getAll(): List<EmployeeData>
-        }
+    class ValidatorInterface {
+        <<interface>>
+        +boolean isValidName(String)
+        +boolean isValidEmail(String)
+        +boolean isValidPhoneNumber(String)
+        +boolean isValidPassword(String)
+        +boolean isValidType(String)
     }
 
-    EmployeeManagerImpl --> EmployeeRepository
+    class EmployeeRepository {
+        <<interface>>
+        +EmployeeData add(EmployeeData)
+        +EmployeeData update(EmployeeData)
+        +EmployeeData delete(String)
+        +EmployeeData getOne(String)
+        +List~EmployeeData~ getAll()
+        +EmployeeData getByEmail(String)
+    }
+
+    %% Implementation Classes
+    class EmployeeManagerImpl {
+        -EmployeeRepository employeeRepository
+        -ValidatorInterface validator
+        +EmployeeData add(EmployeeData)
+        +List~EmployeeData~ list()
+        +EmployeeData getOne(String)
+        +EmployeeData update(EmployeeData)
+        +EmployeeData delete(String)
+        +EmployeeData getByEmail(String)
+        -String hashPassword(String)
+        +boolean verifyPassword(String, String)
+    }
+
+    class Validator {
+        -static Pattern EMAIL_PATTERN
+        -static Pattern PASSWORD_PATTERN
+        +boolean isValidName(String)
+        +boolean isValidEmail(String)
+        +boolean isValidPhoneNumber(String)
+        +boolean isValidPassword(String)
+        +boolean isValidType(String)
+    }
+
+    class EmployeeRepositoryImpl {
+        -DataSource db
+        +EmployeeData add(EmployeeData)
+        +EmployeeData update(EmployeeData)
+        +EmployeeData delete(String)
+        +EmployeeData getOne(String)
+        +List~EmployeeData~ getAll()
+        +EmployeeData getByEmail(String)
+        -int getRoleIdByTypeName(String)
+        -String getTypeNameByRoleId(int)
+    }
+
+    class Employee {
+        -EmployeeData data
+        +Employee(EmployeeData)
+        +String getFullName()
+        +EmployeeData getData()
+    }
+
+    class EmployeeResource {
+        -EmployeeManager employeeManager
+        +void create(Context)
+        +void getAll(Context)
+        +void delete(Context, String)
+        +void getOne(Context, String)
+        +void update(Context, String)
+        -Map createValidationErrorMap(String)
+    }
+
+    %% Relationships
+    EmployeeManagerImpl ..|> EmployeeManager
+    Validator ..|> ValidatorInterface
     EmployeeRepositoryImpl ..|> EmployeeRepository
-    EmployeeRepositoryImpl ..|> EmployeeData
-    Employee --> EmployeeData
 
-```
+    EmployeeManagerImpl o-- EmployeeRepository
+    EmployeeManagerImpl o-- ValidatorInterface
+    EmployeeManagerImpl ..> Employee
+
+    Employee o-- EmployeeData
+
+    EmployeeResource o-- EmployeeManager
+    EmployeeManagerImpl ..> EmployeeData
+    EmployeeRepositoryImpl ..> EmployeeData
+    EmployeeResource ..> EmployeeData
