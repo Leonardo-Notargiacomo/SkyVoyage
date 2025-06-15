@@ -24,6 +24,7 @@ classDiagram
     class ValidatorInterface {
         <<interface>>
         +boolean isValidName(String)
+        +boolean isValidEmail(String)
         +boolean isValidPhoneNumber(String)
         +boolean isValidPassword(String)
         +boolean isValidType(String)
