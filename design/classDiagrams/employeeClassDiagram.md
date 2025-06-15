@@ -1,3 +1,4 @@
+```mermaid
 classDiagram
     %% Data Records
     class EmployeeData {
@@ -108,3 +109,4 @@ classDiagram
     EmployeeManagerImpl ..> EmployeeData
     EmployeeRepositoryImpl ..> EmployeeData
     EmployeeResource ..> EmployeeData
+```

@@ -1,3 +1,4 @@
+```mermaid
 sequenceDiagram
   actor Client as Account Manager
   participant ER as EmployeeResource
@@ -100,3 +101,4 @@ sequenceDiagram
   EM -->>- ER: ValidationException("Invalid employee type")
   ER ->> ER: createValidationErrorMap("Invalid employee type")
   ER -->>- Client: 400 Bad Request + validation errors
+  ```
