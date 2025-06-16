@@ -785,3 +785,89 @@ This document outlines the test cases for the project. Each test case describes 
 **Extension**: N/A
 
 ---
+
+# Test Case: View Bookings
+
+**Name**: testDisplayBookingListSuccessfully
+
+**Precondition**: The system contains active bookings stored in the database, and the Sales Employee is logged in.
+
+**Scenario**:
+
+1. Sales Employee navigates to the "Bookings" page.
+2. The system fetches the list of active bookings from the backend.
+3. Each booking contains flight information and at least one customer.
+4. The system transforms and displays each booking in a card format.
+5. Sales Employee clicks on a booking to open a detailed modal view.
+
+**Result**:
+
+- All bookings are fetched and displayed correctly.
+- Each card shows the booking ID, flight info, passenger count, and total price.
+- Clicking a card opens a modal with flight timeline and customer details.
+
+---
+
+**Name**: testSearchBookingById
+
+**Precondition**: Bookings with valid IDs exist in the system.
+
+**Scenario**:
+
+1. Sales Employee types a valid booking ID into the search input.
+2. The system filters the list in real-time based on the input.
+
+**Result**:
+
+- The correct booking appears in the filtered results.
+- If no booking matches, the system shows “No bookings found.”
+
+---
+
+**Name**: testOpenBookingModal
+
+**Precondition**: At least one booking is visible in the list.
+
+**Scenario**:
+
+1. Sales Employee clicks on a booking entry.
+2. The system opens a modal displaying detailed booking data, including flight timeline, passengers, and pricing.
+
+**Result**:
+
+- The modal opens and displays accurate booking data.
+- The UI remains responsive, and no crashes occur.
+
+---
+
+**Name**: testSoftDeleteBooking
+
+**Precondition**: A booking is available and visible in the list.
+
+**Scenario**:
+
+1. Sales Employee opens the modal of a booking.
+2. Sales Employee clicks the “Delete Booking” button.
+3. The system sends a soft delete request to the backend.
+4. The booking is removed from the active view.
+
+**Result**:
+
+- The booking disappears from the list of active bookings.
+- A snackbar appears with the message: “Booking deleted.”
+
+---
+
+**Name**: testUndoBookingDelete
+
+**Precondition**: A booking has just been soft deleted.
+
+**Scenario**:
+
+1. Within 7 seconds of deletion, Sales Employee clicks the “Undo” button on the snackbar.
+2. The system restores the booking to the active list.
+
+**Result**:
+
+- The booking reappears in the active list.
+- No booking data is lost or corrupted.
