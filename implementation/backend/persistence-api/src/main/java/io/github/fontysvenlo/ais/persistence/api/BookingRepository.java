@@ -48,6 +48,6 @@ public interface BookingRepository {
      */
     Map<String, Object> add(Map<String, Object> bookingMap);
 
-    void delete(int id);
+    void softDelete(int id);
 
 }

@@ -163,7 +163,7 @@ public class APIServer {
                 // Booking routes
                 BookingResource bookingResource = new BookingResource(businessLogic.getBookingManager());
                 path("bookings", () -> {
-                    delete("/{id}", bookingResource::delete); // ✅ Move this to the top
+                    post("/soft-delete/{id}", bookingResource::softDelete);
                     get("/check-customer", bookingResource::checkCustomerEmail);
                     post("/", bookingResource::create);
                     get("/", bookingResource::list);

@@ -41,7 +41,7 @@ public class BookingManagerImpl implements BookingManager {
     }
 
     @Override
-    public void delete(int id) {
-        bookingRepository.delete(id);
+    public void softDelete(int id) {
+        bookingRepository.softDelete(id);
     }
 }

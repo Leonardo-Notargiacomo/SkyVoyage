@@ -51,10 +51,10 @@ public class BookingResource {
         }
     }
 
-    public void delete(Context ctx) {
+    public void softDelete(Context ctx) {
         try {
             int id = Integer.parseInt(ctx.pathParam("id"));
-            bookingManager.delete(id);
+            bookingManager.softDelete(id);
             ctx.status(204);
         } catch (Exception e) {
             ctx.status(500).json(Map.of("error", e.getMessage()));

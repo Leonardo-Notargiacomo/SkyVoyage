@@ -1,0 +1,18 @@
+@startuml
+actor "Sales Employee" as SE
+participant "BookingsPage.svelte" as Frontend
+participant "BookingResource" as Controller
+participant "BookingManagerImpl" as Service
+participant "BookingRepositoryImpl" as Repository
+
+SE -> Frontend : Loads Bookings page
+Frontend -> Controller : GET /api/v1/bookings
+Controller -> Service : getAllBookings()
+Service -> Repository : findAllActiveBookings()
+Repository --> Service : List<BookingEntity>
+Service --> Controller : List<BookingDTO>
+Controller --> Frontend : JSON response (List of bookings)
+Frontend -> Frontend : Transform to UI-friendly structure
+Frontend -> SE : Render booking cards and allow interaction
+
+@enduml
