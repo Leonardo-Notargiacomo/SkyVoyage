@@ -154,4 +154,78 @@ public class DiscountManagerImplTest {
         assertEquals("Discount 2", result.get(1).name());
     }
 
+    @Test
+    void testAddDiscountThrowsNullPointerExceptionForNullDiscount() {
+        DiscountData nullDiscount = null;
+
+        assertThrows(NullPointerException.class, () -> {
+            discountManager.addDiscount(nullDiscount);
+        });
+
+        verify(discountRepository, never()).add(any());
+    }
+
+    @Test
+    void testAddDiscountThrowsIllegalArgumentExceptionForZeroAmount() {
+        DiscountData zeroAmountDiscount = new DiscountData(7, "Zero Amount", 0.0, "regular", 6, 10);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            discountManager.addDiscount(zeroAmountDiscount);
+        }, "Discount amount must be greater than 0%");
+
+        verify(discountRepository, never()).add(any());
+    }
+
+    @Test
+    void testAddDiscountThrowsIllegalArgumentExceptionForNegativeAmount() {
+        DiscountData negativeAmountDiscount = new DiscountData(8, "Negative Amount", -10.0, "regular", 6, 10);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            discountManager.addDiscount(negativeAmountDiscount);
+        }, "Discount amount must be greater than 0%");
+
+        verify(discountRepository, never()).add(any());
+    }
+
+    @Test
+    void testAddDiscountThrowsIllegalArgumentExceptionForZeroDays() {
+        DiscountData zeroDaysDiscount = new DiscountData(9, "Zero Days", 15.0, "regular", 6, 0);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            discountManager.addDiscount(zeroDaysDiscount);
+        }, "Days until departure must be greater than 0");
+
+        verify(discountRepository, never()).add(any());
+    }
+
+    @Test
+    void testAddDiscountThrowsIllegalArgumentExceptionForNegativeDays() {
+        DiscountData negativeDaysDiscount = new DiscountData(10, "Negative Days", 15.0, "regular", 6, -5);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            discountManager.addDiscount(negativeDaysDiscount);
+        }, "Days until departure must be greater than 0");
+
+        verify(discountRepository, never()).add(any());
+    }
+
+    @Test
+    void testDeleteDiscount() {
+        Integer discountId = 1;
+
+        discountManager.deleteDiscount(discountId);
+
+        verify(discountRepository).delete(discountId);
+    }
+
+    @Test
+    void testCalculateDiscountedPriceThrowsNullPointerExceptionForNullDepartureDate() {
+        double basePrice = 100.0;
+        OffsetDateTime departureDate = null;
+
+        assertThrows(NullPointerException.class, () -> {
+            discountManager.calculateDiscountedPrice(basePrice, departureDate);
+        }, "Departure date cannot be null");
+    }
+
 }
