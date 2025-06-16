@@ -10,14 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class DiscountDataTest {
 
     @Test
-    void testConstructorWithNullId() {
-        NullPointerException exception = assertThrows(NullPointerException.class, () -> {
-            new DiscountData(null, "Test Discount", 10.0, "regular", 5, 30);
-        });
-        assertEquals("id cannot be null", exception.getMessage());
-    }
-
-    @Test
     void testConstructorWithNullName() {
         NullPointerException exception = assertThrows(NullPointerException.class, () -> {
             new DiscountData(1, null, 10.0, "regular", 5, 30);

@@ -3,9 +3,6 @@ package io.github.fontysvenlo.ais.datarecords;
 public record DiscountData(Integer id, String name, Double amount, String type, Integer employeeID, Integer days) {
 
     public DiscountData {
-        if (id == null) {
-            throw new NullPointerException("id cannot be null");
-        }
         if (name == null) {
             throw new NullPointerException("name cannot be null");
         }
