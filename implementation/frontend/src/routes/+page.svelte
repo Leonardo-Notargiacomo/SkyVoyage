@@ -1,11 +1,23 @@
 <script>
     import { goto } from '$app/navigation';
     import { api } from "$lib/api";
+    import { onMount, onDestroy } from 'svelte';
 
     let email = "";
     let password = "";
     let activeUser = false;
     let errorMessage = "";
+
+    // Add onMount and onDestroy to handle body overflow
+    onMount(() => {
+        // Prevent scrolling on the body when this component is mounted
+        document.body.style.overflow = 'hidden';
+    });
+    
+    onDestroy(() => {
+        // Restore scrolling when this component is destroyed
+        document.body.style.overflow = '';
+    });
 
     const handleLogin = async () => {
         try {
@@ -127,8 +139,10 @@
 
 <style>
     .login-page {
-        position: relative;
-        min-height: 100vh;
+        position: fixed; /* Change from relative to fixed */
+        top: 0;
+        left: 0;
+        height: 100vh;
         width: 100%;
         overflow: hidden;
     }
