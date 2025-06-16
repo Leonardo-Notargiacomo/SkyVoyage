@@ -39,4 +39,9 @@ public class BookingManagerImpl implements BookingManager {
     public Map<String, Object> add(Map<String, Object> bookingMap) {
         return bookingRepository.add(bookingMap);
     }
+
+    @Override
+    public void softDelete(int id) {
+        bookingRepository.softDelete(id);
+    }
 }

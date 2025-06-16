@@ -146,7 +146,7 @@ class BookingRepositoryImpl implements BookingRepository {
             return customers;
         }
     }
-    
+
     private String getString(ResultSet results, String columnName) throws SQLException {
         String value = results.getString(columnName);
         return value != null ? value : "";
@@ -250,6 +250,25 @@ class BookingRepositoryImpl implements BookingRepository {
             }
         }
     }
+
+    @Override
+    public void softDelete(int id) {
+        try (Connection connection = db.getConnection()) {
+            connection.createStatement().execute("SET search_path TO public");
+
+            try (PreparedStatement stmt = connection.prepareStatement(
+                    "UPDATE booking SET isactive = false WHERE id = ?")) {
+                stmt.setInt(1, id);
+                int rows = stmt.executeUpdate();
+                if (rows == 0) {
+                    throw new RuntimeException("Booking not found");
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to soft delete booking", e);
+        }
+    }
+
 
     private List<String> extractFlightIds(Map<String, Object> bookingMap) {
         List<String> flightIds = new ArrayList<>();

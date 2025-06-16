@@ -47,4 +47,7 @@ public interface BookingManager {
      * @return Map containing the result
      */
     Map<String, Object> add(Map<String, Object> bookingMap);
+
+    void softDelete(int id);
+
 }
