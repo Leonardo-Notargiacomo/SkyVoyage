@@ -462,3 +462,150 @@ This document outlines the test cases for the project. Each test case describes 
 - The returned list contains two discount objects with the correct names "Discount 1" and "Discount 2".
 
 ---
+
+**Name**: testAddDiscountThrowsNullPointerExceptionForNullDiscount
+
+**Precondition**: The system has a discount management module with validation rules in place.
+
+**Scenario**:
+
+1. A null discount object is passed to the discount manager.
+2. The system attempts to add this discount through the discount manager.
+3. The system validates the discount data before adding it to the repository.
+
+**Result**:
+
+- System throws a NullPointerException due to the null discount object.
+- The discount is not added to the repository.
+- The repository's add method is never called.
+
+---
+
+**Name**: testAddDiscountThrowsIllegalArgumentExceptionForZeroAmount
+
+**Precondition**: The system has a discount management module with validation rules in place.
+
+**Scenario**:
+
+1. A discount object is created with zero amount:
+   - ID: 7
+   - Name: "Zero Amount"
+   - Amount: 0.0 (zero percent)
+   - Type: "regular"
+   - EmployeeID: 6
+   - Days: 10
+2. The system attempts to add this discount through the discount manager.
+3. The system validates the discount data before adding it to the repository.
+
+**Result**:
+
+- System throws an IllegalArgumentException with message "Discount amount must be greater than 0%".
+- The discount is not added to the repository.
+- The repository's add method is never called.
+
+---
+
+**Name**: testAddDiscountThrowsIllegalArgumentExceptionForNegativeAmount
+
+**Precondition**: The system has a discount management module with validation rules in place.
+
+**Scenario**:
+
+1. A discount object is created with negative amount:
+   - ID: 8
+   - Name: "Negative Amount"
+   - Amount: -10.0 (negative percent)
+   - Type: "regular"
+   - EmployeeID: 6
+   - Days: 10
+2. The system attempts to add this discount through the discount manager.
+3. The system validates the discount data before adding it to the repository.
+
+**Result**:
+
+- System throws an IllegalArgumentException with message "Discount amount must be greater than 0%".
+- The discount is not added to the repository.
+- The repository's add method is never called.
+
+---
+
+**Name**: testAddDiscountThrowsIllegalArgumentExceptionForZeroDays
+
+**Precondition**: The system has a discount management module with validation rules in place.
+
+**Scenario**:
+
+1. A discount object is created with zero days:
+   - ID: 9
+   - Name: "Zero Days"
+   - Amount: 15.0
+   - Type: "regular"
+   - EmployeeID: 6
+   - Days: 0 (zero days)
+2. The system attempts to add this discount through the discount manager.
+3. The system validates the discount data before adding it to the repository.
+
+**Result**:
+
+- System throws an IllegalArgumentException with message "Days until departure must be greater than 0".
+- The discount is not added to the repository.
+- The repository's add method is never called.
+
+---
+
+**Name**: testAddDiscountThrowsIllegalArgumentExceptionForNegativeDays
+
+**Precondition**: The system has a discount management module with validation rules in place.
+
+**Scenario**:
+
+1. A discount object is created with negative days:
+   - ID: 10
+   - Name: "Negative Days"
+   - Amount: 15.0
+   - Type: "regular"
+   - EmployeeID: 6
+   - Days: -5 (negative days)
+2. The system attempts to add this discount through the discount manager.
+3. The system validates the discount data before adding it to the repository.
+
+**Result**:
+
+- System throws an IllegalArgumentException with message "Days until departure must be greater than 0".
+- The discount is not added to the repository.
+- The repository's add method is never called.
+
+---
+
+**Name**: testDeleteDiscount
+
+**Precondition**: The system has a discount management module with a delete functionality.
+
+**Scenario**:
+
+1. A discount ID (1) is provided to the discount manager for deletion.
+2. The system attempts to delete the discount through the discount manager.
+
+**Result**:
+
+- The discount manager calls the repository's delete method with the provided discount ID.
+- The discount is successfully deleted from the repository.
+
+---
+
+**Name**: testCalculateDiscountedPriceThrowsNullPointerExceptionForNullDepartureDate
+
+**Precondition**: The system has a discount management module with validation rules in place.
+
+**Scenario**:
+
+1. A base price of 100.0 is provided.
+2. A null departure date is specified.
+3. The system attempts to calculate the discounted price.
+
+**Result**:
+
+- System throws a NullPointerException with message "Departure date cannot be null".
+- The discount calculation is not performed.
+
+---
