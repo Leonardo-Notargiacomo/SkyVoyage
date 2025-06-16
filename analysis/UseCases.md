@@ -294,3 +294,36 @@ Actor sees all of the tickets of the booking
 
 ---
 
+# Use Case: View Bookings
+
+**Actor**: 
+Sales Employee
+
+**Description**: 
+The Sales Employee accesses the list of bookings made by customers. This allows them to view detailed flight and passenger information, check booking statuses, apply filters (e.g. tags, departure time), search by ID or passenger, and manage bookings as needed.
+
+**Precondition**: 
+The Sales Employee is logged in and has permission to access the bookings view.
+
+**Scenario**:
+1. Sales Employee navigates to the "Bookings" page.
+2. System displays a searchable and paginated list of active bookings.
+3. Employee can view booking ID, flight info, passenger summary, and price.
+4. Employee uses filters and sort options to refine the list.
+5. Employee clicks on a booking to view full details in a modal.
+6. Employee optionally tags the booking or soft deletes it if necessary.
+
+**Result**: 
+The Sales Employee successfully views and manages customer bookings.
+
+**Exception**: 
+- 1a. No Bookings Exist: If no bookings exist, the system displays a message: "No bookings found."  
+- 4a. No Filter Matches: If no bookings match the filter criteria, the list is empty.  
+- 3a. Fallback Values: If booking contains missing or malformed data, fallback values are displayed.  
+- 6a. Deletion Error: If a soft delete fails, an error message is shown.
+
+**Extensions**:
+
+- N/A
+
+---
