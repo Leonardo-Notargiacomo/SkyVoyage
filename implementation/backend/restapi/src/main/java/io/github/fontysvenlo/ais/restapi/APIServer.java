@@ -155,7 +155,6 @@ public class APIServer {
                 });
                 get("kpi", ctx -> {
                     var stats = businessLogic.getFlightStatsManager().getStatsForFlight();
-                    System.out.println("Flight stats: " + stats);
                     if (stats != null) {
                         ctx.status(200).json(stats);
                     } else {
