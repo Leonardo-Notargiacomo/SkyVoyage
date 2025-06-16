@@ -9,10 +9,7 @@ import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,7 +25,6 @@ import io.github.fontysvenlo.ais.datarecords.FlightData;
  */
 public class AviationStackClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(AviationStackClient.class);
     private static final String API_BASE_URL = "http://api.aviationstack.com/v1";
 
     private final String apiKey;
@@ -98,7 +94,6 @@ public class AviationStackClient {
     public JsonNode getAllFlights() {
         try {
             String url = API_BASE_URL + "/flights?access_key=" + apiKey;
-            logger.info("Fetching flights from URL: {}", url);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -106,16 +101,13 @@ public class AviationStackClient {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            logger.info("API response status: {}", Optional.of(response.statusCode()));
 
             if (response.statusCode() != 200) {
-                logger.error("Failed to get flights from API: {}", response.body());
                 return objectMapper.createArrayNode();
             }
 
             return parseFlightResponse(response.body());
         } catch (IOException | InterruptedException e) {
-            logger.error("Error while fetching flights", e);
             return objectMapper.createArrayNode();
         }
     }
@@ -129,7 +121,6 @@ public class AviationStackClient {
     public JsonNode getAllFlightsHome() {
         try {
             String url = API_BASE_URL + "/flights?access_key=" + apiKey + "&dep_iata=AMS&flight_status=scheduled";
-            logger.info("Fetching flights from URL: {}", url);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -137,10 +128,8 @@ public class AviationStackClient {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            logger.info("API response status: {}", Optional.of(response.statusCode()));
 
             if (response.statusCode() != 200) {
-                logger.error("Failed to get flights from API: {}", response.body());
                 return objectMapper.createArrayNode();
             }
 
@@ -171,7 +160,6 @@ public class AviationStackClient {
 
             return uniqueDestinationFlights;
         } catch (IOException | InterruptedException e) {
-            logger.error("Error while fetching flights", e);
             return objectMapper.createArrayNode();
         }
     }
@@ -212,13 +200,11 @@ public class AviationStackClient {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
-                logger.error("Failed to search flights from API: {}", response.body());
                 return objectMapper.createArrayNode();
             }
 
             return parseFlightResponse(response.body());
         } catch (IOException | InterruptedException e) {
-            logger.error("Error while searching flights", e);
             return objectMapper.createArrayNode();
         }
     }
@@ -237,7 +223,6 @@ public class AviationStackClient {
         JsonNode dataNode = rootNode.get("data");
 
         if (dataNode == null || !dataNode.isArray()) {
-            logger.error("Invalid response format from API");
             return objectMapper.createArrayNode();
         }
 
@@ -258,7 +243,6 @@ public class AviationStackClient {
                 // Create a unique ID using flight number, departure, arrival, and timestamp
                 String timestamp = String.valueOf(System.currentTimeMillis()).substring(6);
                 id = flightNumber + "_" + depIata + "_" + arrIata + "_" + timestamp;
-                logger.debug("Generated ID {} for flight with no IATA", id);
             }
             
             formattedFlight.put("id", id);
@@ -337,7 +321,6 @@ public class AviationStackClient {
             if (departureTimezone != null && !departureTimezone.isEmpty()
                     && arrivalTimezone != null && !arrivalTimezone.isEmpty()) {
 
-                try {
                     java.time.ZoneId depZone = java.time.ZoneId.of(departureTimezone);
                     java.time.ZoneId arrZone = java.time.ZoneId.of(arrivalTimezone);
 
@@ -363,19 +346,15 @@ public class AviationStackClient {
                     }
 
                     return (int) durationMinutes;
-                } catch (Exception e) {
-                    logger.error("Error calculating with timezones, falling back to direct UTC calculation", e);
-                }
             }
             long durationMinutes = ChronoUnit.MINUTES.between(departureTimeUTC, arrivalTimeUTC);
 
-            if (durationMinutes <= 0 || durationMinutes < 30) {
+            if (durationMinutes < 30) {
                 return 45;
             }
 
             return (int) durationMinutes;
         } catch (Exception e) {
-            logger.error("Error calculating flight duration: ", e);
             return 90;
         }
     }
@@ -395,7 +374,6 @@ public class AviationStackClient {
                 String arrIata = flightNode.path("arrival").path("iata").asText("");
                 String timestamp = String.valueOf(System.currentTimeMillis()).substring(6);
                 id = depIata + "_" + arrIata + "_" + timestamp;
-                logger.debug("Generated ID {} for flight with no ID during conversion", id);
             }
 
             // Departure information
@@ -457,7 +435,6 @@ public class AviationStackClient {
                     duration
             );
         } catch (Exception e) {
-            logger.error("Error converting flight JSON to FlightData: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -565,7 +542,6 @@ public class AviationStackClient {
                 String depIata = flightNode.path("departure").path("iata").asText("");
                 String arrIata = flightNode.path("arrival").path("iata").asText("");
                 id = depIata + "-" + arrIata + "-" + System.currentTimeMillis();
-                logger.debug("Generated ID {} for flight with no ID", id);
             }
 
             // Departure info
@@ -598,7 +574,6 @@ public class AviationStackClient {
                     duration
             );
         } catch (Exception e) {
-            logger.error("Error converting flight JSON to FlightData: {}", e.getMessage(), e);
             return null;
         }
     }

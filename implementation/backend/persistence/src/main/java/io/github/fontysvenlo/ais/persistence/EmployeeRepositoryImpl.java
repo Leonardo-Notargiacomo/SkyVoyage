@@ -8,7 +8,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.sql.DataSource;
 
@@ -21,7 +20,6 @@ import io.github.fontysvenlo.ais.persistence.api.EmployeeRepository;
  */
 class EmployeeRepositoryImpl implements EmployeeRepository {
 
-    private static final Logger LOGGER = Logger.getLogger(EmployeeRepositoryImpl.class.getName());
     private final DataSource db;
 
     public EmployeeRepositoryImpl(DBConfig config) {
@@ -46,7 +44,6 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
                 return 1;
             }
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error getting role ID: " + e.getMessage(), e);
             return 1; // Default to first role
         }
     }
@@ -68,7 +65,6 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
                 return "SalesEmployee"; // Default
             }
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error getting type name: " + e.getMessage(), e);
             return "SalesEmployee"; // Default
         }
     }
@@ -104,7 +100,6 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
                 }
             }
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error adding employee: " + e.getMessage(), e);
             return null;
         }
     }
@@ -138,7 +133,6 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
             }
             return null;
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error updating employee: " + e.getMessage(), e);
             return null;
         }
     }
@@ -162,10 +156,8 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
             }
             return null;
         } catch (NumberFormatException e) {
-            LOGGER.log(Level.WARNING, "Invalid employee ID format: " + id);
             return null;
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error deleting employee: " + e.getMessage(), e);
             return null;
         }
     }
@@ -195,10 +187,8 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
             }
             return null;
         } catch (NumberFormatException e) {
-            LOGGER.log(Level.WARNING, "Invalid employee ID format: " + id);
             return null;
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error retrieving employee: " + e.getMessage(), e);
             return null;
         }
     }
@@ -224,7 +214,6 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
                 }
             }
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error retrieving all employees: " + e.getMessage(), e);
         }
 
         return result;

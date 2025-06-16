@@ -5,8 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jetbrains.annotations.NotNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -21,7 +20,6 @@ import io.javalin.http.Context;
  */
 class FlightResource implements CrudHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(FlightResource.class);
     private final FlightManager flightManager;
     private final AviationStackClient aviationStackClient;
     private final AmadeusClient amadeusClient;
@@ -41,13 +39,12 @@ class FlightResource implements CrudHandler {
      * the list of flights is returned as JSON.
      */
     @Override
-    public void getAll(Context context) {
+    public void getAll(@NotNull Context context) {
         // First, try to get flights from the repository
         List<FlightData> flights = flightManager.list();
 
         // If we have flights in the repository, return them
         if (flights != null && !flights.isEmpty()) {
-            logger.info("Returning {} flights from repository", flights.size());
             // Convert FlightData objects to the expected JSON format
             List<Map<String, Object>> formattedFlights = flights.stream()
                     .map(aviationStackClient::convertFlightDataToJson)
@@ -65,7 +62,6 @@ class FlightResource implements CrudHandler {
                 return;
             }
 
-            logger.info("Retrieved {} flights from AviationStack API", apiFlights.size());
 
             // Store flights in the repository for future use
             List<FlightData> newFlights = new ArrayList<>();
@@ -95,7 +91,6 @@ class FlightResource implements CrudHandler {
             context.status(200).json(formattedFlights);
 
         } catch (Exception e) {
-            logger.error("Error retrieving flights", e);
             context.status(500).json(Map.of(
                     "error", "Failed to retrieve flights",
                     "details", e.getMessage()
@@ -104,7 +99,7 @@ class FlightResource implements CrudHandler {
     }
 
     @Override
-    public void getOne(Context context, String flightId) {
+    public void getOne(Context context, @NotNull String flightId) {
         // Simplified to just return not implemented since we're not using this endpoint
         context.status(501);
         context.json(Map.of("error", "Getting individual flights is not implemented"));
@@ -117,14 +112,14 @@ class FlightResource implements CrudHandler {
     }
 
     @Override
-    public void update(Context context, String flightId) {
+    public void update(Context context, @NotNull String flightId) {
         context.status(501);
         context.json(Map.of("error", "Updating flights is not supported"));
     }
 
     @Override
-    public void delete(Context context, String flightId) {
-        context.status(405); // Method Not Allowed
+    public void delete(Context context, @NotNull String flightId) {
+        context.status(405);
         context.json(Map.of("error", "Deleting flights is not supported"));
     }
 
@@ -143,7 +138,6 @@ class FlightResource implements CrudHandler {
 
             context.status(200).json(Map.of("message", "Flight data cleared successfully"));
         } catch (Exception e) {
-            logger.error("Error clearing flight data", e);
             context.status(500).json(Map.of("error", "Failed to clear flight data: " + e.getMessage()));
         }
     }
@@ -187,11 +181,9 @@ class FlightResource implements CrudHandler {
             // Add return date if provided (for round trips)
             if (returnDate != null && !returnDate.isEmpty()) {
                 params.put("returnDate", returnDate);
-                logger.info("Searching for round-trip flight: {} to {} and back, departing {} and returning {}",
-                        originLocationCode, destinationLocationCode, departureDate, returnDate);
             } else {
-                logger.info("Searching for one-way flight: {} to {}, departing {}",
-                        originLocationCode, destinationLocationCode, departureDate);
+                // If no return date, set it to an empty string
+                params.put("returnDate", "");
             }
 
             // Add optional parameters if provided - using Amadeus parameter names directly
@@ -211,7 +203,6 @@ class FlightResource implements CrudHandler {
             context.status(200).json(processedResults);
 
         } catch (Exception e) {
-            logger.error("Error searching flights with Amadeus API", e);
             context.status(500).json(Map.of(
                     "error", "Failed to search flights",
                     "details", e.getMessage()

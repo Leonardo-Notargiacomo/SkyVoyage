@@ -4,15 +4,12 @@ import io.github.fontysvenlo.ais.businesslogic.api.TicketManager;
 import io.github.fontysvenlo.ais.datarecords.TicketData;
 import io.javalin.apibuilder.CrudHandler;
 import io.javalin.http.Context;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 class TicketResource implements CrudHandler {
-    private static final Logger logger = LoggerFactory.getLogger(TicketResource.class);
     private final TicketManager ticketManager;
 
     TicketResource(TicketManager ticketManager) {

@@ -3,7 +3,6 @@ package io.github.fontysvenlo.ais.businesslogic.resources;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,7 +11,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Utility class to retrieve error messages from a central JSON file.
  */
 public class ErrorMessages {
-    private static final Logger logger = Logger.getLogger(ErrorMessages.class.getName());
     private static JsonNode messages;
 
     static {
@@ -20,12 +18,9 @@ public class ErrorMessages {
             if (input != null) {
                 ObjectMapper mapper = new ObjectMapper();
                 messages = mapper.readTree(input).get("messages");
-                logger.info("Successfully loaded error messages");
             } else {
-                logger.severe("Could not find ErrorMessages.json file");
             }
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "Error loading error messages", e);
+        } catch (IOException ignored) {
         }
     }
 
@@ -37,7 +32,6 @@ public class ErrorMessages {
      */
     public static String getMessage(String key) {
         if (messages == null || !messages.has(key)) {
-            logger.warning("Missing error message for key: " + key);
             return "Unknown error";
         }
         return messages.get(key).asText();

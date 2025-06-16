@@ -1,6 +1,5 @@
 package io.github.fontysvenlo.ais.businesslogic;
 
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import io.github.fontysvenlo.ais.businesslogic.api.ValidatorInterface;
@@ -8,7 +7,6 @@ import io.github.fontysvenlo.ais.datarecords.DiscountData;
 
 public class Validator implements ValidatorInterface {
 
-    private static final Logger logger = Logger.getLogger(Validator.class.getName());
 
     private static final Pattern EMAIL_PATTERN
             = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+\\..+)$");
@@ -42,10 +40,7 @@ public class Validator implements ValidatorInterface {
 
     @Override
     public boolean isValidPassword(String password) {
-        logger.info("Validating password: " + (password != null ? "Length: " + password.length() : "null"));
-
         if (password == null || password.length() < 8) {
-            logger.warning("Password failed: too short or null");
             return false;
         }
 
@@ -53,11 +48,6 @@ public class Validator implements ValidatorInterface {
         boolean hasLower = password.matches(".*[a-z].*");
         boolean hasUpper = password.matches(".*[A-Z].*");
         boolean hasSpecial = password.matches(".*[@#$%^&+=!].*");
-
-        logger.info("Password validation - hasDigit: " + hasDigit
-                + ", hasLower: " + hasLower
-                + ", hasUpper: " + hasUpper
-                + ", hasSpecial: " + hasSpecial);
 
         return hasDigit && hasLower && hasUpper && hasSpecial;
     }

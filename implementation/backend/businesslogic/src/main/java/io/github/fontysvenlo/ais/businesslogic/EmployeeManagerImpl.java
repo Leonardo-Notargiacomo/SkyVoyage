@@ -1,7 +1,6 @@
 package io.github.fontysvenlo.ais.businesslogic;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -13,12 +12,11 @@ import io.github.fontysvenlo.ais.persistence.api.EmployeeRepository;
 
 /**
  * Manages employees in the business logic. Linking pin between GUI and
- * persistence. Connected to EmployeeRepository in order to retrieve employees
+ * persistence. Connected to EmployeeRepository to retrieve employees
  * and to persist changes.
  */
 public class EmployeeManagerImpl implements EmployeeManager {
 
-    private static final Logger logger = Logger.getLogger(EmployeeManagerImpl.class.getName());
     private final EmployeeRepository employeeRepository;
 
     /**
