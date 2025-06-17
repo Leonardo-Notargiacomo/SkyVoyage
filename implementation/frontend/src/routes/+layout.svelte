@@ -285,6 +285,33 @@
               <span class="font-medium">KPI Dashboard</span>
             </a>
           </li>
+          {#if type === "Sales Manager" || type === "Account Manager"}
+          <li>
+              <a
+                      href="/sales/bookings"
+                      class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 group"
+              >
+                <div class="bg-blue-50 p-2 rounded-lg mr-3 text-blue-600 group-hover:bg-blue-100 transition-colors duration-200">
+                  <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="feather feather-clipboard"
+                  >
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                  </svg>
+                </div>
+                <span class="font-medium">My Bookings</span>
+              </a>
+            </li>
+          {/if}
         {/if}
       </ul>
 
