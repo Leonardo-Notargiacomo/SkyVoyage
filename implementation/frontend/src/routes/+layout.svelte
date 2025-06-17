@@ -119,28 +119,15 @@
     <div
       class="flex flex-col h-full py-5 overflow-y-auto bg-white shadow-lg border-r border-gray-100"
     >
-      <!-- Logo/Brand - Updated with plane icon -->
+      <!-- Logo/Brand -->
       <div class="px-6 mb-6">
-        <div class="flex items-center">
-          <div class="bg-blue-600 p-2 rounded-lg shadow-md">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </div>
-          <span class="ml-3 text-xl font-bold text-gray-800"
-            >SkyVoyage</span
-          >
+        <div class="flex items-center gap-3">
+          <img
+                  src="/SkyVoyage-square.png"
+                  alt="SkyVoyage Logo"
+                  class="w-10 h-10 rounded-xl shadow-lg object-cover border border-gray-200"
+          />
+          <span class="text-xl font-extrabold tracking-tight text-gray-800">SkyVoyage</span>
         </div>
       </div>
 
@@ -285,6 +272,33 @@
               <span class="font-medium">KPI Dashboard</span>
             </a>
           </li>
+          {#if type === "Sales Manager" || type === "Account Manager"}
+          <li>
+              <a
+                      href="/sales/bookings"
+                      class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 group"
+              >
+                <div class="bg-blue-50 p-2 rounded-lg mr-3 text-blue-600 group-hover:bg-blue-100 transition-colors duration-200">
+                  <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="feather feather-clipboard"
+                  >
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                  </svg>
+                </div>
+                <span class="font-medium">My Bookings</span>
+              </a>
+            </li>
+          {/if}
         {/if}
       </ul>
 
