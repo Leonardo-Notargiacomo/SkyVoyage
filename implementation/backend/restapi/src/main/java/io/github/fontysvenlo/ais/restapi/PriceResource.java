@@ -7,15 +7,12 @@ import io.github.fontysvenlo.ais.datarecords.PricePerKmData;
 import io.javalin.apibuilder.CrudHandler;
 import io.javalin.http.Context;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
 
 public class PriceResource implements CrudHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(PriceResource.class);
     private final PriceManager priceManager;
 
     public PriceResource(PriceManager priceManager, FlightManager flightManager) {
@@ -30,7 +27,6 @@ public class PriceResource implements CrudHandler {
         try {
             int currentPrice = priceManager.getPrice();
         } catch (Exception e) {
-            logger.error("Error initializing price: {}", e.getMessage());
         }
     }
 
@@ -51,13 +47,11 @@ public class PriceResource implements CrudHandler {
 
             PricePerKmData priceData = new PricePerKmData(price);
             priceManager.setPrice(priceData);
-            logger.info("Price updated to: {}", price);
 
             context.status(201).json(priceData);
         } catch (NumberFormatException e) {
             context.status(400).json(Map.of("error", "Invalid price format"));
         } catch (Exception e) {
-            logger.error("Error setting price: {}", e.getMessage());
             context.status(500).json(Map.of("error", "Could not set price"));
         }
     }
@@ -68,7 +62,6 @@ public class PriceResource implements CrudHandler {
             int currentPrice = priceManager.getPrice();
             context.status(200).json(Map.of("price", currentPrice));
         } catch (Exception e) {
-            logger.error("Error getting price: {}", e.getMessage());
             context.status(500).json(Map.of("error", "Could not retrieve price"));
         }
     }

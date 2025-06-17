@@ -1,7 +1,8 @@
 package io.github.fontysvenlo.ais.businesslogic;
 
 import java.util.List;
-import java.util.logging.Logger;
+
+import org.mindrot.jbcrypt.BCrypt;
 
 import io.github.fontysvenlo.ais.businesslogic.api.EmployeeManager;
 import io.github.fontysvenlo.ais.businesslogic.api.ValidatorInterface;
@@ -11,12 +12,11 @@ import io.github.fontysvenlo.ais.persistence.api.EmployeeRepository;
 
 /**
  * Manages employees in the business logic. Linking pin between GUI and
- * persistence. Connected to EmployeeRepository in order to retrieve employees
+ * persistence. Connected to EmployeeRepository to retrieve employees
  * and to persist changes.
  */
 public class EmployeeManagerImpl implements EmployeeManager {
 
-    private static final Logger logger = Logger.getLogger(EmployeeManagerImpl.class.getName());
     private final EmployeeRepository employeeRepository;
 
     /**
@@ -59,8 +59,21 @@ public class EmployeeManagerImpl implements EmployeeManager {
             throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_type"));
         }
 
-        Employee employee = new Employee(employeeData);
-        return employeeRepository.add(employeeData);
+        // Hash the password before storing it
+        String hashedPassword = hashPassword(employeeData.Password());
+        
+        // Create a new EmployeeData instance with the hashed password
+        EmployeeData employeeWithHashedPassword = new EmployeeData(
+            employeeData.id(),
+            employeeData.Firstname(),
+            employeeData.Lastname(),
+            employeeData.Email(),
+            hashedPassword,
+            employeeData.Type()
+        );
+
+        Employee employee = new Employee(employeeWithHashedPassword);
+        return employeeRepository.add(employeeWithHashedPassword);
     }
 
     /**
@@ -115,15 +128,51 @@ public class EmployeeManagerImpl implements EmployeeManager {
             throw new IllegalArgumentException(ErrorMessages.getMessage("invalid_type"));
         }
 
-        return employeeRepository.update(employeeData);
+        // Hash the password before updating
+        String hashedPassword = hashPassword(employeeData.Password());
+        
+        // Create a new EmployeeData instance with the hashed password
+        EmployeeData employeeWithHashedPassword = new EmployeeData(
+            employeeData.id(),
+            employeeData.Firstname(),
+            employeeData.Lastname(),
+            employeeData.Email(),
+            hashedPassword,
+            employeeData.Type()
+        );
+
+        return employeeRepository.update(employeeWithHashedPassword);
     }
 
     @Override
     public EmployeeData delete(String id) {
         return employeeRepository.delete(id);
     }
+    
     @Override
     public EmployeeData getByEmail(String email) {
         return employeeRepository.getByEmail(email);
+    }
+    
+    /**
+     * Hashes a password using BCrypt
+     *
+     * @param plainTextPassword The password to hash
+     * @return The hashed password
+     */
+    private String hashPassword(String plainTextPassword) {
+        // Generate a salt with a cost factor of 12 rounds (recommended)
+        return BCrypt.hashpw(plainTextPassword, BCrypt.gensalt(12));
+    }
+    
+    /**
+     * Verifies a password against a hashed password
+     *
+     * @param plainTextPassword The password to check
+     * @param hashedPassword The hashed password to check against
+     * @return True if password matches, false otherwise
+     */
+    public boolean verifyPassword(String plainTextPassword, String hashedPassword) {
+        return BCrypt.checkpw(plainTextPassword, hashedPassword);
     }
 }

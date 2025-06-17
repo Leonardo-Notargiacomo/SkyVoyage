@@ -9,16 +9,14 @@ import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import io.github.fontysvenlo.ais.businesslogic.api.DiscountManager;
 import io.github.fontysvenlo.ais.businesslogic.api.PriceManager;
 import io.github.fontysvenlo.ais.datarecords.FlightData;
 
@@ -27,13 +25,13 @@ import io.github.fontysvenlo.ais.datarecords.FlightData;
  */
 public class AviationStackClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(AviationStackClient.class);
     private static final String API_BASE_URL = "http://api.aviationstack.com/v1";
 
     private final String apiKey;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private PriceManager priceManager;
+    private DiscountManager discountManager;
 
     /**
      * Creates a new AviationStackClient.
@@ -44,8 +42,48 @@ public class AviationStackClient {
         this.apiKey = apiKey;
         this.httpClient = HttpClient.newHttpClient();
         this.objectMapper = new ObjectMapper();
+    }
 
-        logger.info("AviationStackClient initialized with API key: {}", apiKey);
+    /**
+     * Sets the PriceManager for this client.
+     *
+     * @param priceManager The PriceManager to use
+     */
+    public void setPriceManager(PriceManager priceManager) {
+        this.priceManager = priceManager;
+    }
+
+    /**
+     * Sets the DiscountManager for this client.
+     *
+     * @param discountManager The DiscountManager to use
+     */
+    public void setDiscountManager(DiscountManager discountManager) {
+        this.discountManager = discountManager;
+    }
+
+    /**
+     * Calculate a flight price based on duration.
+     * 
+     * @param duration The duration in minutes
+     * @param departure The departure date and time
+     * @return The calculated price
+     */
+    private int flightPrice(int duration, OffsetDateTime departure) {
+        if (priceManager == null) {
+            throw new IllegalStateException("PriceManager is not set");
+        }
+        
+        // Calculate base price
+        int basePrice = priceManager.calculateBasePrice(duration);
+
+        // Apply discount if available and departure time is provided
+        if (departure != null && discountManager != null) {
+            double discountedPrice = discountManager.calculateDiscountedPrice(basePrice, departure);
+            return (int) Math.floor(discountedPrice);
+        }
+        
+        return basePrice;
     }
 
     /**
@@ -56,7 +94,6 @@ public class AviationStackClient {
     public JsonNode getAllFlights() {
         try {
             String url = API_BASE_URL + "/flights?access_key=" + apiKey;
-            logger.info("Fetching flights from URL: {}", url);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -64,16 +101,13 @@ public class AviationStackClient {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            logger.info("API response status: {}", Optional.of(response.statusCode()));
 
             if (response.statusCode() != 200) {
-                logger.error("Failed to get flights from API: {}", response.body());
                 return objectMapper.createArrayNode();
             }
 
             return parseFlightResponse(response.body());
         } catch (IOException | InterruptedException e) {
-            logger.error("Error while fetching flights", e);
             return objectMapper.createArrayNode();
         }
     }
@@ -87,7 +121,6 @@ public class AviationStackClient {
     public JsonNode getAllFlightsHome() {
         try {
             String url = API_BASE_URL + "/flights?access_key=" + apiKey + "&dep_iata=AMS&flight_status=scheduled";
-            logger.info("Fetching flights from URL: {}", url);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -95,10 +128,8 @@ public class AviationStackClient {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            logger.info("API response status: {}", Optional.of(response.statusCode()));
 
             if (response.statusCode() != 200) {
-                logger.error("Failed to get flights from API: {}", response.body());
                 return objectMapper.createArrayNode();
             }
 
@@ -129,7 +160,6 @@ public class AviationStackClient {
 
             return uniqueDestinationFlights;
         } catch (IOException | InterruptedException e) {
-            logger.error("Error while fetching flights", e);
             return objectMapper.createArrayNode();
         }
     }
@@ -170,13 +200,11 @@ public class AviationStackClient {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
-                logger.error("Failed to search flights from API: {}", response.body());
                 return objectMapper.createArrayNode();
             }
 
             return parseFlightResponse(response.body());
         } catch (IOException | InterruptedException e) {
-            logger.error("Error while searching flights", e);
             return objectMapper.createArrayNode();
         }
     }
@@ -195,7 +223,6 @@ public class AviationStackClient {
         JsonNode dataNode = rootNode.get("data");
 
         if (dataNode == null || !dataNode.isArray()) {
-            logger.error("Invalid response format from API");
             return objectMapper.createArrayNode();
         }
 
@@ -216,7 +243,6 @@ public class AviationStackClient {
                 // Create a unique ID using flight number, departure, arrival, and timestamp
                 String timestamp = String.valueOf(System.currentTimeMillis()).substring(6);
                 id = flightNumber + "_" + depIata + "_" + arrIata + "_" + timestamp;
-                logger.debug("Generated ID {} for flight with no IATA", id);
             }
             
             formattedFlight.put("id", id);
@@ -267,21 +293,13 @@ public class AviationStackClient {
             formattedFlight.put("duration", Duration);
 
             //add price of flight according to the duration
-            int price = flightPrice(Integer.parseInt(Duration)) / 100;
+            int price = flightPrice(Integer.parseInt(Duration), OffsetDateTime.parse(scheduledDeparture));
             formattedFlight.put("price", price);
 
             formattedFlights.add(formattedFlight);
         }
 
         return formattedFlights;
-    }
-
-    public void setPriceManager(PriceManager priceManager) {
-        this.priceManager = priceManager;
-    }
-
-    private int flightPrice(int duration) {
-        return (duration * 15) * priceManager.getPrice();
     }
 
     /**
@@ -303,7 +321,6 @@ public class AviationStackClient {
             if (departureTimezone != null && !departureTimezone.isEmpty()
                     && arrivalTimezone != null && !arrivalTimezone.isEmpty()) {
 
-                try {
                     java.time.ZoneId depZone = java.time.ZoneId.of(departureTimezone);
                     java.time.ZoneId arrZone = java.time.ZoneId.of(arrivalTimezone);
 
@@ -329,19 +346,15 @@ public class AviationStackClient {
                     }
 
                     return (int) durationMinutes;
-                } catch (Exception e) {
-                    logger.error("Error calculating with timezones, falling back to direct UTC calculation", e);
-                }
             }
             long durationMinutes = ChronoUnit.MINUTES.between(departureTimeUTC, arrivalTimeUTC);
 
-            if (durationMinutes <= 0 || durationMinutes < 30) {
+            if (durationMinutes < 30) {
                 return 45;
             }
 
             return (int) durationMinutes;
         } catch (Exception e) {
-            logger.error("Error calculating flight duration: ", e);
             return 90;
         }
     }
@@ -361,7 +374,6 @@ public class AviationStackClient {
                 String arrIata = flightNode.path("arrival").path("iata").asText("");
                 String timestamp = String.valueOf(System.currentTimeMillis()).substring(6);
                 id = depIata + "_" + arrIata + "_" + timestamp;
-                logger.debug("Generated ID {} for flight with no ID during conversion", id);
             }
 
             // Departure information
@@ -423,7 +435,6 @@ public class AviationStackClient {
                     duration
             );
         } catch (Exception e) {
-            logger.error("Error converting flight JSON to FlightData: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -467,7 +478,9 @@ public class AviationStackClient {
         formattedFlight.put("duration", flight.duration().toString());
 
         // Add price of flight according to the duration
-        int price = (flight.duration() * 15 * priceManager.getPrice()) / 100;
+        // Convert LocalDateTime to OffsetDateTime with system default offset
+        OffsetDateTime departureTime = flight.departureScheduledTime().atOffset(java.time.ZoneOffset.systemDefault().getRules().getOffset(flight.departureScheduledTime()));
+        int price = flightPrice(Integer.parseInt(flight.duration().toString()), departureTime);
         formattedFlight.put("price", price);
 
         return formattedFlight;
@@ -509,7 +522,9 @@ public class AviationStackClient {
         result.put("airline", "Unknown Airline"); // Placeholder
 
         // Calculate a price based on duration (similar to AviationStackClient logic)
-        int price = (flight.duration() * 15 * priceManager.getPrice()) / 100;
+        // Convert LocalDateTime to OffsetDateTime with system default offset
+        OffsetDateTime departureTime = flight.departureScheduledTime().atOffset(java.time.ZoneOffset.systemDefault().getRules().getOffset(flight.departureScheduledTime()));
+        int price = flightPrice(Integer.parseInt(flight.duration().toString()), departureTime);
         result.put("price", price);
 
         return result;
@@ -527,7 +542,6 @@ public class AviationStackClient {
                 String depIata = flightNode.path("departure").path("iata").asText("");
                 String arrIata = flightNode.path("arrival").path("iata").asText("");
                 id = depIata + "-" + arrIata + "-" + System.currentTimeMillis();
-                logger.debug("Generated ID {} for flight with no ID", id);
             }
 
             // Departure info
@@ -560,7 +574,6 @@ public class AviationStackClient {
                     duration
             );
         } catch (Exception e) {
-            logger.error("Error converting flight JSON to FlightData: {}", e.getMessage(), e);
             return null;
         }
     }

@@ -10,6 +10,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Map;
 
+import io.github.fontysvenlo.ais.businesslogic.api.PriceManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +24,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @ExtendWith(MockitoExtension.class)
 class AmadeusClientTest {
+
+    @Mock
+    private PriceManager priceManager;
 
     @Mock
     private HttpClient httpClient;
@@ -50,6 +54,8 @@ class AmadeusClientTest {
                 return httpClient;
             }
         };
+
+        amadeusClient.setPriceManager(priceManager);
     }
 
     @Test

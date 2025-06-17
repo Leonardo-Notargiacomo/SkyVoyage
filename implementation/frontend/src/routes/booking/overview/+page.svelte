@@ -1,72 +1,60 @@
 <script>
   import { bookingStore } from "$lib/stores/bookingStore";
   import { goto } from "$app/navigation";
-  import DankMode from "$lib/components/DankMode.svelte";
+  import { api } from "$lib/api.js"; 
 
-  let discountInput;
+  let discountInput = 0;
   let discountReason = "";
-  let isDank = false;
 
   // Reactive values from store
   $: booking = $bookingStore;
-  $: discountInput = booking.discount;
-  $: isDank = booking.discount === 69;
-
-  const formatDateTime = (date) =>
-          new Date(date).toLocaleString("en-GB", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-
-  const formatDuration = (mins) => {
-    if (!mins) return "—";
-    return mins < 60 ? `${mins}min` : `${Math.floor(mins / 60)}h ${mins % 60}min`;
-  };
-
-  function applyDiscount() {
-    const parsed = parseInt(discountInput);
-    if (!isNaN(parsed) && parsed >= 0 && parsed <= 100) {
-      bookingStore.update((b) => ({
-        ...b,
-        discount: parsed,
-        discountReason: discountReason.trim(),
-      }));
+  $: flight = booking?.flight;
+  
+  // Sync discountInput with store value when loaded
+  $: {
+    if (booking?.discount !== undefined && discountInput !== booking.discount) {
+      discountInput = booking.discount;
     }
   }
 
-  const discountedAmount = () =>
-          (booking.flight.price * booking.passengers * booking.discount) / 100;
-
-  const finalPrice = () =>
-          (booking.flight.price * booking.passengers - discountedAmount()).toFixed(2);
-
-  function confirmBooking() {
-    sessionStorage.setItem("confirmedBooking", JSON.stringify($bookingStore));
-    alert("Booking confirmed! ✅");
-    goto("/home");
-  }
-
-  function reserveBooking() {
-    sessionStorage.setItem("reservedBooking", JSON.stringify($bookingStore));
-    alert("Booking reserved for later payment! ⏳");
-    goto("/home");
-  }
-
-  function cancelBooking() {
-    bookingStore.set({
-      flight: null,
-      passengers: 1,
-      customers: [],
-      discount: 0,
+  // Format helpers
+  function formatDateTime(date) {
+    if (!date) return "";
+    return new Date(date).toLocaleString("en-GB", {
+      day: "2-digit", month: "2-digit", year: "numeric",
+      hour: "2-digit", minute: "2-digit"
     });
-    alert("Booking cancelled.");
-    goto("/home");
   }
 
-  // Helper to get full trip details
+  function formatDuration(mins) {
+    if (!mins) return "—";
+    const hours = Math.floor(mins / 60);
+    const minutes = mins % 60;
+    return hours > 0 
+      ? (minutes > 0 ? `${hours}h ${minutes}min` : `${hours}h`) 
+      : `${minutes}min`;
+  }
+  
+  function formatTravelClass() {
+    const travelClass = booking.travelClass || "ECONOMY";
+    return travelClass.charAt(0) + travelClass.slice(1).toLowerCase();
+  }
+
+  function formatDate(dateString) {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleString("en-GB", {
+      day: "2-digit", month: "2-digit", year: "numeric"
+    });
+  }
+
+  function formatTime(dateString) {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleString("en-GB", {
+      hour: "2-digit", minute: "2-digit"
+    });
+  }
+
+  // Helper to check if we have an itinerary with connection flights
   function hasFullItinerary() {
     return booking.flight?.fullOffer?.trips && booking.flight.fullOffer.trips.length > 0;
   }
@@ -85,110 +73,273 @@
     return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}min`;
   }
 
-  // Helper to format connection time in minutes to hours and minutes
   function formatConnectionTime(minutes) {
-    if (!minutes) return "—";
-    const hours = Math.floor(minutes / 60);
-    const remainingMins = minutes % 60;
-    
-    if (hours === 0) return `${remainingMins}min`;
-    return remainingMins === 0 ? `${hours}h` : `${hours}h ${remainingMins}min`;
+    return formatDuration(minutes);
   }
   
-  // Format trip type for display
   function formatTripType(type) {
     return type.charAt(0).toUpperCase() + type.slice(1);
   }
   
-  // Get travel class for display
-  function formatTravelClass() {
-    return booking.travelClass ? booking.travelClass.charAt(0) + booking.travelClass.slice(1).toLowerCase() : "Economy";
+  // Business logic
+  function applyDiscount() {
+    const parsed = parseInt(discountInput);
+    if (!isNaN(parsed) && parsed >= 0 && parsed <= 100) {
+      bookingStore.update((b) => ({
+        ...b,
+        discount: parsed,
+        discountReason: discountReason.trim(),
+      }));
+    }
   }
 
-  // Helper function to format date
-  function formatDate(dateString) {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+  function discountedAmount() {
+    const passengers = booking.AdultPassengers || 1;
+    return (booking.flight.price * passengers * booking.discount) / 100;
   }
 
-  // Helper function to format time
-  function formatTime(dateString) {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleString("en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  function finalPrice() {
+    const passengers = booking.AdultPassengers || 1;
+    return (booking.flight.price * passengers - discountedAmount()).toFixed(2);
+  }
+
+  // Creates a standardized format for all flights from fullOffer
+  function prepareFlightsForBooking() {
+    const flights = [];
+    const flightOffer = booking.flight;
+    
+    // Function to convert flight to standard format
+    function standardizeFlightFormat(flight, tripType) {
+      const number = flight.number || "0";
+      const iataFrom = flight.departure.iata;
+      const iataTo = flight.arrival.iata;
+      
+      return {
+        id: `${number}-${iataFrom}-${iataTo}`,
+        number: number,
+        airline: flight.carrierCode || booking.flight.airline,
+        departureAirport: flight.departure.airport || `Airport ${iataFrom}`,
+        departureAirportShort: iataFrom,
+        departureTerminal: flight.departure.terminal,
+        departureGate: flight.departure.gate,
+        departureScheduledTime: flight.departure.scheduled,
+        arrivalAirport: flight.arrival.airport || `Airport ${iataTo}`,
+        arrivalAirportShort: iataTo,
+        arrivalTerminal: flight.arrival.terminal,
+        arrivalGate: flight.arrival.gate,
+        arrivalScheduledTime: flight.arrival.scheduled,
+        duration: parseDurationToMinutes(flight.duration) || 0,
+        status: "SCHEDULED",
+        tripType: tripType
+      };
+    }
+    
+    // First try to extract from fullOffer if available
+    if (flightOffer.fullOffer?.trips) {
+      flightOffer.fullOffer.trips.forEach(trip => {
+        if (trip.flights && trip.flights.length > 0) {
+          trip.flights.forEach(flight => {
+            flights.push(standardizeFlightFormat(flight, trip.type));
+          });
+        }
+      });
+    }
+    
+    // If no flights were found in fullOffer, use the main flight data
+    if (flights.length === 0) {
+      flights.push({
+        id: `${flightOffer.departure.iata}-${flightOffer.arrival.iata}`,
+        airline: flightOffer.airline,
+        price: flightOffer.price,
+        departureAirport: flightOffer.departure.airport,
+        departureAirportShort: flightOffer.departure.iata,
+        departureTerminal: flightOffer.departure.terminal,
+        departureGate: flightOffer.departure.gate,
+        departureScheduledTime: flightOffer.departure.scheduled,
+        arrivalAirport: flightOffer.arrival.airport,
+        arrivalAirportShort: flightOffer.arrival.iata,
+        arrivalTerminal: flightOffer.arrival.terminal,
+        arrivalGate: flightOffer.arrival.gate,
+        arrivalScheduledTime: flightOffer.arrival.scheduled,
+        duration: flightOffer.duration || 0,
+        status: flightOffer.status || "SCHEDULED",
+        tripType: "outbound"
+      });
+    }
+    
+    return flights;
+  }
+
+  // Parse duration strings like PT2H30M to minutes
+  function parseDurationToMinutes(duration) {
+    if (!duration || typeof duration !== 'string') return 0;
+    
+    let minutes = 0;
+    
+    try {
+      if (duration.startsWith('PT')) {
+        const timeStr = duration.substring(2);
+        
+        const hourMatch = timeStr.match(/(\d+)H/);
+        if (hourMatch && hourMatch[1]) {
+          minutes += parseInt(hourMatch[1], 10) * 60;
+        }
+        
+        const minMatch = timeStr.match(/(\d+)M/);
+        if (minMatch && minMatch[1]) {
+          minutes += parseInt(minMatch[1], 10);
+        }
+      }
+    } catch (e) {
+      console.error("Error parsing duration:", e);
+    }
+    
+    return minutes || 0;
+  }
+
+  // Booking actions
+  async function confirmBooking() {
+    try {
+      // Get all flights in standardized format
+      const allFlights = prepareFlightsForBooking();
+      
+      // Build the booking data object
+      const bookingData = {
+        flightId: allFlights[0].id, // First flight ID for compatibility
+        airline: booking.flight.airline,
+        price: booking.flight.price,
+        adultPassengers: booking.AdultPassengers || 1,
+        infantPassengers: booking.infantsPassengers || 0,
+        travelClass: booking.travelClass || "ECONOMY",
+        discount: booking.discount || 0,
+        discountReason: booking.discountReason || "",
+        status: "CONFIRMED", 
+        customers: booking.customers || [],
+        mainFlights: allFlights // Send all flights as mainFlights
+      };
+      
+      // Send booking to API
+      const result = await api.create("bookings", JSON.stringify(bookingData));
+      
+      // Save confirmation and redirect
+      sessionStorage.setItem("confirmedBooking", JSON.stringify($bookingStore));
+      
+      // Check if we have a booking ID in the result
+      if (result && result.id) {
+        // Redirect to tickets page with the booking ID
+        goto(`/tickets/${result.id}`);
+      } else {
+        // Fallback if no ID is returned
+        alert("Booking confirmed! ✅");
+        goto("/home");
+      }
+    } catch (error) {
+      console.error("Error confirming booking:", error);
+      alert("Failed to confirm booking. Please try again.");
+    }
+  }
+
+  function cancelBooking() {
+    if (confirm("Are you sure you want to cancel this booking?")) {
+      bookingStore.set({
+        flight: null,
+        customers: [],
+        AdultPassengers: 1,
+        infantsPassengers: 0,
+        travelClass: "ECONOMY",
+        discount: 0,
+        discountReason: ""
+      });
+      alert("Booking has been cancelled.");
+      goto("/home");
+    }
   }
 </script>
+
+<style>
+  .card-hover {
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+  }
+  
+  .header-gradient {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+  
+  .flight-card {
+    border-left: 4px solid transparent;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px rgba(37, 99, 235, 0.2);
+  }
+</style>
 
 <nav class="flex my-4 px-4 md:px-6 max-w-7xl mx-auto" aria-label="Breadcrumb">
   <ol class="inline-flex items-center space-x-2">
     <li class="inline-flex items-center">
-      <a
-        href="/home"
-        class="inline-flex items-center text-sm font-medium text-gray-600 hover:text-blue-500 transition-colors"
-      >
-        <svg
-          class="w-4 h-4 me-2"
-          aria-hidden="true"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z"
-          />
+      <a href="/home" class="inline-flex items-center text-sm font-medium text-gray-600 hover:text-blue-500 transition-colors">
+        <svg class="w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+          <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z" />
         </svg>
-        Dashboard
+        Home
       </a>
     </li>
     <li>
       <div class="flex items-center">
-        <svg
-          class="w-4 h-4 text-gray-400 mx-1"
-          aria-hidden="true"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 6 10"
-        >
-          <path
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="m1 9 4-4-4-4"
-          />
+        <svg class="w-4 h-4 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4" />
         </svg>
-        <span class="ms-1 text-sm font-medium text-gray-400"
-          >Booking Summary</span
-        >
+        <span class="ms-1 text-sm font-medium text-gray-400">Booking Summary</span>
       </div>
     </li>
   </ol>
 </nav>
 
-<div class={`max-w-7xl mx-auto px-4 py-4 md:px-6 ${isDank ? "dank-mode" : ""}`}>
-  {#if isDank}
-    <DankMode />
-  {/if}
-
-  <div class="mb-6">
-    <h1 class="text-2xl font-bold text-center md:text-left text-gray-800">Booking Summary</h1>
-    <p class="text-gray-500 text-center md:text-left">Review your booking details before confirming</p>
+<div class="max-w-7xl mx-auto px-4 py-4 md:px-6">
+  <div class="mb-8 bg-gradient-to-r from-blue-50 to-indigo-100 rounded-lg shadow-sm border border-blue-200 overflow-hidden p-6">
+    <h1 class="text-3xl font-bold header-gradient flex items-center">
+      <div class="bg-blue-600 p-2 rounded-lg shadow-md mr-3">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+      </div>
+      Booking Summary
+    </h1>
+    <p class="text-blue-700 ml-14">Review your booking details before confirming</p>
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <div class={`lg:col-span-2 space-y-6 ${isDank ? "shake" : ""}`}>
+    <div class="lg:col-span-2 space-y-6">
       <!-- Flight Info -->
-      <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+      <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden card-hover">
         <div class="bg-blue-50 p-4 border-b border-gray-200">
           <div class="flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-700 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
             <h2 class="text-lg font-medium text-blue-800">Flight Overview</h2>
           </div>
@@ -196,57 +347,49 @@
         
         <div class="p-4">
           <div class="grid grid-cols-2 gap-6 mb-4">
-            <div>
-              <div class="flex items-center">
-                <div class="bg-blue-100 p-2 rounded-full mr-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 9a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 17.75a6.5 6.5 0 10-13 0h13z" />
-                  </svg>
-                </div>
-                <div>
-                  <p class="text-sm text-gray-500">Airline</p>
-                  <p class="font-medium">{booking.flight.airline}</p>
-                </div>
+            <div class="flex items-center">
+              <div class="bg-blue-100 p-2 rounded-full mr-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 9a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 17.75a6.5 6.5 0 10-13 0h13z" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">Airline</p>
+                <p class="font-medium">{booking.flight.airline}</p>
               </div>
             </div>
-            <div>
-              <div class="flex items-center">
-                <div class="bg-green-100 p-2 rounded-full mr-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <p class="text-sm text-gray-500">Price</p>
-                  <p class="font-medium text-blue-700">€{booking.flight.price}</p>
-                </div>
+            <div class="flex items-center">
+              <div class="bg-green-100 p-2 rounded-full mr-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">Price</p>
+                <p class="font-medium text-blue-700">€{booking.flight.price}</p>
               </div>
             </div>
-            <div>
-              <div class="flex items-center">
-                <div class="bg-purple-100 p-2 rounded-full mr-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
-                </div>
-                <div>
-                  <p class="text-sm text-gray-500">Flight Status</p>
-                  <p class="font-medium">{booking.flight.status}</p>
-                </div>
+            <div class="flex items-center">
+              <div class="bg-purple-100 p-2 rounded-full mr-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">Flight Status</p>
+                <p class="font-medium">{booking.flight.status || 'SCHEDULED'}</p>
               </div>
             </div>
-            <div>
-              <div class="flex items-center">
-                <div class="bg-yellow-100 p-2 rounded-full mr-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <p class="text-sm text-gray-500">Travel Class</p>
-                  <p class="font-medium">{formatTravelClass()}</p>
-                </div>
+            <div class="flex items-center">
+              <div class="bg-yellow-100 p-2 rounded-full mr-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">Travel Class</p>
+                <p class="font-medium">{formatTravelClass()}</p>
               </div>
             </div>
           </div>
@@ -255,7 +398,7 @@
 
           <!-- Direct flight info (fallback if no full itinerary) -->
           {#if !hasFullItinerary()}
-            <div class="my-4">
+            <div class="my-4 flight-card bg-gray-50/80 p-4 rounded-lg">
               <div class="flex flex-col md:flex-row md:justify-between md:items-center">
                 <div class="mb-4 md:mb-0">
                   <p class="text-sm text-gray-500">From</p>
@@ -270,7 +413,7 @@
 
                 <div class="flex-1 px-4 flex flex-col items-center my-2">
                   <div class="text-xs text-gray-500 mb-2">{formatDuration(booking.flight.duration)}</div>
-                  <div class="w-full h-0.5 bg-gray-200 relative">
+                  <div class="w-full h-0.5 bg-gray-300 relative">
                     <div class="absolute top-0 transform -translate-y-1/2 -translate-x-1/2 left-0">
                       <div class="h-3 w-3 bg-blue-600 rounded-full"></div>
                     </div>
@@ -309,11 +452,11 @@
                 </div>
                 
                 {#each trip.flights as flight, idx}
-                  <div class="mb-3 pb-3 {idx !== trip.flights.length - 1 ? 'border-b border-dashed border-gray-200' : ''}">
+                  <div class="mb-3 pb-3 {idx !== trip.flights.length - 1 ? 'border-b border-dashed border-gray-200' : ''} flight-card bg-gray-50 p-4 rounded-lg">
                     <div class="flex justify-between items-start text-sm">
                       <div>
                         <div class="flex items-center mb-2">
-                          <div class="bg-gray-200 w-8 h-8 rounded-full flex items-center justify-center mr-2">
+                          <div class="bg-gradient-to-r from-blue-500 to-blue-600 w-8 h-8 rounded-full flex items-center justify-center mr-2 text-white">
                             <span class="font-medium">{flight.carrierCode}</span>
                           </div>
                           <p class="font-medium">Flight {flight.carrierCode} {flight.number}</p>
@@ -368,7 +511,7 @@
       </div>
 
       <!-- Passenger Info -->
-      <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+      <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden card-hover">
         <div class="bg-blue-50 p-4 border-b border-gray-200">
           <div class="flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-700 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -379,7 +522,7 @@
         </div>
         
         <div class="p-4">
-          {#if booking.customers.length > 0}
+          {#if booking.customers?.length > 0}
             <div class="space-y-4">
               <!-- Adult Passengers -->
               <div class="mb-4">
@@ -389,16 +532,21 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
-                  <h3 class="font-medium text-gray-800">Adults ({booking.AdultPassengers})</h3>
+                  <h3 class="font-medium text-gray-800">Adults ({booking.AdultPassengers || 1})</h3>
                 </div>
                 
                 <div class="space-y-4">
-                  {#each booking.customers.filter(c => !c.isInfant) as c, index}
-                    <div class="bg-gray-50 p-3 rounded-md border border-gray-200">
+                  {#each booking.customers.filter(c => !c.isInfant) as c}
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-blue-200 transition-colors">
                       <div class="flex flex-col md:flex-row md:justify-between">
                         <div class="mb-2 md:mb-0">
-                          <p class="font-semibold">{c.firstName} {c.lastName}</p>
-                          <div class="text-xs text-gray-500">Adult passenger</div>
+                          <div class="flex items-center">
+                            <div class="bg-gradient-to-r from-blue-500 to-blue-600 w-8 h-8 rounded-full flex items-center justify-center mr-2 text-white">
+                              <span class="font-medium">{c.firstName.charAt(0)}{c.lastName.charAt(0)}</span>
+                            </div>
+                            <p class="font-semibold">{c.firstName} {c.lastName}</p>
+                          </div>
+                          <div class="text-xs text-gray-500 mt-1 ml-10">Adult passenger</div>
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full md:w-2/3">
@@ -432,13 +580,20 @@
                   </div>
                   
                   <div class="space-y-2">
-                    {#each booking.customers.filter(c => c.isInfant) as c, index}
-                      <div class="bg-gray-50 p-3 rounded-md border border-gray-200">
-                        <p class="font-semibold">{c.firstName} {c.lastName}</p>
-                        <div class="text-xs text-gray-500">Infant passenger</div>
-                        {#if c.street && c.houseNumber}
-                          <p class="text-xs text-gray-500 mt-1">{c.street} {c.houseNumber}, {c.city}, {c.country}</p>
-                        {/if}
+                    {#each booking.customers.filter(c => c.isInfant) as c}
+                      <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-pink-200 transition-colors">
+                        <div class="flex items-center">
+                          <div class="bg-gradient-to-r from-pink-400 to-pink-500 w-8 h-8 rounded-full flex items-center justify-center mr-2 text-white">
+                            <span class="font-medium">{c.firstName.charAt(0)}{c.lastName.charAt(0)}</span>
+                          </div>
+                          <div>
+                            <p class="font-semibold">{c.firstName} {c.lastName}</p>
+                            <div class="text-xs text-gray-500">Infant passenger</div>
+                            {#if c.street && c.houseNumber}
+                              <p class="text-xs text-gray-500 mt-1">{c.street} {c.houseNumber}, {c.city}, {c.country}</p>
+                            {/if}
+                          </div>
+                        </div>
                       </div>
                     {/each}
                   </div>
@@ -446,7 +601,7 @@
               {/if}
             </div>
           {:else}
-            <div class="p-4 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded-md">
+            <div class="p-4 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded-md animate-fade-in">
               <div class="flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -459,7 +614,7 @@
       </div>
 
       <!-- Price & Discount -->
-      <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+      <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden card-hover">
         <div class="bg-blue-50 p-4 border-b border-gray-200">
           <div class="flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-700 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -472,8 +627,8 @@
         <div class="p-4">
           <div class="space-y-2">
             <div class="flex justify-between items-center py-2">
-              <span>Base price ({booking.passengers} {booking.passengers > 1 ? 'passengers' : 'passenger'})</span>
-              <span>€{(booking.passengers * booking.flight.price).toFixed(2)}</span>
+              <span>Base price ({booking.AdultPassengers || 1} {(booking.AdultPassengers || 1) > 1 ? 'passengers' : 'passenger'})</span>
+              <span>€{((booking.AdultPassengers || 1) * booking.flight.price).toFixed(2)}</span>
             </div>
             
             {#if booking.discount > 0}
@@ -495,81 +650,37 @@
               <span>Total Price</span>
               <span class="text-blue-700">€{finalPrice()}</span>
             </div>
-            
-            {#if booking.flight.currency && booking.flight.currency !== "EUR"}
-              <div class="text-xs text-gray-500 text-right">
-                Original price in {booking.flight.currency}
-              </div>
-            {/if}
           </div>
         </div>
       </div>
     </div>
 
     <!-- Side Actions -->
-    <div class={`${isDank ? "shake" : ""} h-fit`}>
-      <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden sticky top-4">
-        <div class="bg-blue-50 p-4 border-b border-gray-200">
-          <h2 class="font-medium text-blue-800">Complete Your Booking</h2>
+    <div class="h-fit">
+      <div class="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-sm overflow-hidden sticky top-4 card-hover">
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-4 border-b border-blue-700">
+          <h2 class="font-medium text-white flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Complete Your Booking
+          </h2>
         </div>
         
-        <div class="p-4 space-y-4">
+        <div class="p-6 space-y-4">
           <div>
-            <label for="discount" class="block text-sm text-gray-700 mb-1">Discount (%)</label>
-            <input
-              type="number"
-              min="0"
-              max="100"
-              bind:value={discountInput}
-              placeholder="e.g. 10"
-              class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-            />
-          </div>
-          
-          <div>
-            <label for="reason" class="block text-sm text-gray-700 mb-1">Reason for Discount</label>
-            <input
-              type="text"
-              bind:value={discountReason}
-              placeholder="e.g. loyal customer"
-              class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-            />
-          </div>
-          
-          <button
-            on:click={applyDiscount}
-            class="w-full bg-gray-700 hover:bg-gray-800 text-white font-medium py-2 rounded-md transition-colors flex items-center justify-center"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Apply Discount
-          </button>
-          
-          <div class="border-t border-gray-200 my-4 pt-4">
             <button
               on:click={confirmBooking}
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-md font-medium mb-4 transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transform hover:-translate-y-0.5"
+              class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-lg font-medium mb-4 transition-all duration-300 flex items-center justify-center shadow-md transform hover:-translate-y-1 hover:shadow-lg"
             >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
               Confirm Booking
             </button>
-            
-            <button
-              on:click={reserveBooking}
-              class="w-full bg-yellow-400 hover:bg-yellow-500 text-black py-3 rounded-md font-medium mb-4 transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50 transform hover:-translate-y-0.5"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Reserve (Pay Later)
-            </button>
-            
             <button
               on:click={cancelBooking}
-              class="w-full bg-red-100 hover:bg-red-200 text-red-600 py-3 rounded-md font-medium transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transform hover:-translate-y-0.5"
+              class="w-full bg-gradient-to-r from-red-100 to-red-200 hover:from-red-200 hover:to-red-300 text-red-600 py-3 rounded-lg font-medium transition-all duration-300 flex items-center justify-center shadow-md transform hover:-translate-y-1 hover:shadow-lg"
             >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -582,27 +693,3 @@
     </div>
   </div>
 </div>
-
-<style>
-  .dank-mode {
-    background: #111 !important;
-    color: #0ff !important;
-    transition: all 0.5s ease-in-out;
-  }
-
-  .shake {
-    animation: shake 0.6s infinite;
-  }
-
-  @keyframes shake {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-3px); }
-    50% { transform: translateX(3px); }
-    75% { transform: translateX(-2px); }
-    100% { transform: translateX(0); }
-  }
-
-  .card {
-    transition: all 0.3s ease;
-  }
-</style>

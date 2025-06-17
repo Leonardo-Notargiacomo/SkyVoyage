@@ -7,22 +7,22 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import io.github.fontysvenlo.ais.businesslogic.api.DiscountManager;
 import io.github.fontysvenlo.ais.businesslogic.api.PriceManager;
-import io.github.fontysvenlo.ais.datarecords.PricePerKmData;
 
 public class AmadeusClient {
 
@@ -37,6 +37,7 @@ public class AmadeusClient {
     private String accessToken;
     private long tokenExpiry = 0;
     private PriceManager priceManager;
+    private DiscountManager discountManager;
 
     public AmadeusClient(String clientId, String clientSecret) {
         this.clientId = clientId;
@@ -329,8 +330,11 @@ public class AmadeusClient {
         // Process segments (individual flights in this trip)
         List<Map<String, Object>> flights = new ArrayList<>();
         int totalFlightMinutes = 0; // Track actual flight time only
-        
+        OffsetDateTime departureDateTime = null; // Will be set from first segment
+
         if (itinerary.has("segments")) {
+            boolean isFirstSegment = true;
+
             for (JsonNode segment : itinerary.get("segments")) {
                 Map<String, Object> flight = new LinkedHashMap<>();
                 flight.put("id", segment.get("id").asText());
@@ -341,6 +345,15 @@ public class AmadeusClient {
                 // Add the segment duration to our total flight time
                 int segmentDuration = parseDurationToMinutes(segment.get("duration").asText());
                 totalFlightMinutes += segmentDuration;
+
+                // Extract departure date from first segment for discount calculation
+                if (isFirstSegment && segment.has("departure") && segment.get("departure").has("at")) {
+                    String departureTimeStr = segment.get("departure").get("at").asText();
+                    LocalDateTime localDt = LocalDateTime.parse(departureTimeStr);
+                    ZoneOffset offset = ZoneOffset.systemDefault().getRules().getOffset(localDt);
+                    departureDateTime = localDt.atOffset(offset);
+                    isFirstSegment = false;
+                }
 
                 // Process departure first
                 JsonNode departureNode = segment.get("departure");
@@ -367,7 +380,8 @@ public class AmadeusClient {
         }
 
         // Calculate price using actual flight minutes, not total itinerary duration
-        int tripPrice = flightPrice(totalFlightMinutes);
+        // Apply discounts based on departure date
+        int tripPrice = flightPrice(totalFlightMinutes, departureDateTime);
         trip.put("price", tripPrice);
 
         trip.put("flights", flights);
@@ -382,12 +396,47 @@ public class AmadeusClient {
     public void setPriceManager(PriceManager priceManager) {
         this.priceManager = priceManager;
     }
+    
+    /**
+     * Sets the DiscountManager for this client.
+     *
+     * @param discountManager The DiscountManager to use
+     */
+    public void setDiscountManager(DiscountManager discountManager) {
+        this.discountManager = discountManager;
+    }
 
     /**
-     * Calculate flight price based on duration
+     * Calculate flight price based on duration and apply discounts if applicable
+     * 
+     * @param duration The flight duration in minutes
+     * @param departureTime The departure date and time if available, or null
+     * @return The final price after applying discounts
+     */
+    private int flightPrice(int duration, OffsetDateTime departureTime) {
+        if (priceManager == null) {
+            throw new IllegalStateException("PriceManager is not set");
+        }
+        
+        // Calculate base price
+        int basePrice = priceManager.calculateBasePrice(duration);
+
+        // Apply discount if available and departure time is provided
+        if (departureTime != null && discountManager != null) {
+            double discountedPrice = discountManager.calculateDiscountedPrice(basePrice, departureTime);
+            return (int) Math.floor(discountedPrice);
+        }
+        
+        return basePrice;
+    }
+    
+    /**
+     * Overloaded method for backward compatibility
      */
     private int flightPrice(int duration) {
-        return (duration * 15) * priceManager.getPrice() / 100;
+        // Use current time plus 1 week as default departure time if not provided
+        OffsetDateTime defaultDeparture = OffsetDateTime.now().plusWeeks(1);
+        return flightPrice(duration, defaultDeparture);
     }
 
     /**

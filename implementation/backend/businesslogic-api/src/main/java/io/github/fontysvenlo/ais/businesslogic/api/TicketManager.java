@@ -1,0 +1,16 @@
+package io.github.fontysvenlo.ais.businesslogic.api;
+
+import java.util.List;
+import java.util.Optional;
+
+import io.github.fontysvenlo.ais.datarecords.TicketData;
+
+public interface TicketManager {
+
+    /**
+     * @param id the booking ID
+     * @return a list of ticket IDs
+     */
+    public List<TicketData> getTicketData(String id);
+
+}
