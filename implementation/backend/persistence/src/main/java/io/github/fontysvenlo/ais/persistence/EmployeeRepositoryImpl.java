@@ -71,28 +71,35 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
 
     @Override
     public EmployeeData add(EmployeeData employeeData) {
+        // Try-with-resources to ensure connection and statement are closed automatically
         try (Connection connection = db.getConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "INSERT INTO public.employee (firstname, lastname, email, password, roleid) VALUES (?, ?, ?, ?, ?)",
                 Statement.RETURN_GENERATED_KEYS)) {
 
+            // Get the role ID from the employee type name
             int roleId = getRoleIdByTypeName(employeeData.Type());
+            // Convert email to lowercase for consistency
             String lowercaseEmail = employeeData.Email().toLowerCase();
 
+            // Set parameters for the insert statement
             stmt.setString(1, employeeData.Firstname());
             stmt.setString(2, employeeData.Lastname());
             stmt.setString(3, lowercaseEmail);
             stmt.setString(4, employeeData.Password());
             stmt.setInt(5, roleId);
 
+            // Execute the insert and check if a row was affected
             int affectedRows = stmt.executeUpdate();
 
             if (affectedRows == 0) {
                 throw new SQLException("Creating employee failed, no rows affected.");
             }
 
+            // Retrieve the generated ID for the new employee
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     int id = generatedKeys.getInt(1);
+                    // Return a new EmployeeData object with the generated ID
                     return new EmployeeData(id, employeeData.Firstname(), employeeData.Lastname(),
                             lowercaseEmail, employeeData.Password(), employeeData.Type());
                 } else {
@@ -100,6 +107,7 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
                 }
             }
         } catch (SQLException e) {
+            // Return null if any SQL exception occurs
             return null;
         }
     }
