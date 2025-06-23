@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
+  import { browser } from "$app/environment";
   import "../app.css";
 
   let firstname = "";
@@ -13,6 +14,9 @@
   let userMenuTransition = false;
 
   function logout() {
+    // Only run in browser
+    if (!browser) return;
+    
     // Clear cookies
     document.cookie =
       "firstname=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
@@ -28,6 +32,9 @@
   }
 
   function getCookie(name) {
+    // Only run in browser
+    if (!browser) return "";
+    
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(";").shift();
@@ -35,6 +42,9 @@
   }
 
   function updateUserInfo() {
+    // Only run in browser
+    if (!browser) return;
+    
     firstname = getCookie("firstname") || "";
     lastname = getCookie("lastname") || "";
     const rawType = getCookie("type") || "";
@@ -57,6 +67,9 @@
   }
 
   function handleClickOutside(event) {
+    // Only run in browser
+    if (!browser) return;
+    
     const userProfile = document.getElementById("user-profile");
     if (userProfile && !userProfile.contains(event.target)) {
       dropdownOpen = false;
@@ -64,26 +77,29 @@
   }
 
   onMount(() => {
-    updateUserInfo();
+    // Only run in browser
+    if (browser) {
+      updateUserInfo();
 
-    if (activeUser === false) {
-      // Check if user is logged in
-      const userType = getCookie("type");
-      if (!userType) {
-        goto("/");
+      if (activeUser === false) {
+        // Check if user is logged in
+        const userType = getCookie("type");
+        if (!userType) {
+          goto("/");
+        }
       }
+
+      // Listen for changes after login
+      window.addEventListener("userInfoChanged", updateUserInfo);
+
+      // Add event listener for clicks outside dropdown
+      document.addEventListener("click", handleClickOutside);
+
+      return () => {
+        window.removeEventListener("userInfoChanged", updateUserInfo);
+        document.removeEventListener("click", handleClickOutside);
+      };
     }
-
-    // Listen for changes after login
-    window.addEventListener("userInfoChanged", updateUserInfo);
-
-    // Add event listener for clicks outside dropdown
-    document.addEventListener("click", handleClickOutside);
-
-    return () => {
-      window.removeEventListener("userInfoChanged", updateUserInfo);
-      document.removeEventListener("click", handleClickOutside);
-    };
   });
 </script>
 

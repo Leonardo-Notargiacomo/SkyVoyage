@@ -1,5 +1,6 @@
 <script>
     import { goto } from '$app/navigation';
+    import { browser } from '$app/environment';
     import { api } from "$lib/api";
     import { onMount, onDestroy } from 'svelte';
 
@@ -10,16 +11,25 @@
 
     // Add onMount and onDestroy to handle body overflow
     onMount(() => {
-        // Prevent scrolling on the body when this component is mounted
-        document.body.style.overflow = 'hidden';
+        // Only run in browser
+        if (browser) {
+            // Prevent scrolling on the body when this component is mounted
+            document.body.style.overflow = 'hidden';
+        }
     });
     
     onDestroy(() => {
-        // Restore scrolling when this component is destroyed
-        document.body.style.overflow = '';
+        // Only run in browser
+        if (browser) {
+            // Restore scrolling when this component is destroyed
+            document.body.style.overflow = '';
+        }
     });
 
     const handleLogin = async () => {
+        // Only run in browser
+        if (!browser) return;
+        
         try {
             const response = await api.fetchAPI("login", {
                 method: "POST",
@@ -46,6 +56,7 @@
             console.error(err);
         }
     };
+    
     const handleKeyDown = (event) => {
         if (event.key === "Enter") {
             handleLogin();
