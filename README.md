@@ -1,38 +1,69 @@
-# PRJ2 - Airline Information System
+# SkyVoyage — Airline Booking System
 
-The purpose of this repository is to document your project work.
+Full-stack airline booking platform built by a 4-person team at Fontys University.
+Handles real-time flight search, seat booking, customer management, and employee administration with discount and pricing rules.
 
-***Your group is responsible for the repository structure and content***, but we created some template folders for you. You do not have to stick to this. However make sure everything has a logical place.
+## What it does
 
-## Documentation
+- Search live flights via Amadeus and AviationStack APIs
+- Book tickets with passenger details and tariff selection
+- Apply time-based discounts to flight prices
+- Manage employees and roles (admin vs standard access)
+- View booking history and active tickets
 
-GitHub documentation is part of the communication grade for project 2. Therefore it is important to make sure to write proper documentation and to write that in a format that can be rendered by GitHub.
-GitHub supports a multitude of languages for this [purpose](git@github.com:FontysVenlo/PRJ2-template.git), however you are only allowed to use:
+## Architecture
 
-- [Markdown](https://www.markdownguide.org/) - Have a look at the [GitHub flavored markdown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax)
-- [AsciiDoc](https://asciidoc-py.github.io/index.html) - Have a look at the [AsciiDoctor cheatsheet](https://docs.asciidoctor.org/asciidoc/latest/syntax-quick-reference/)
+```
+frontend/          SvelteKit (TypeScript)
+backend/
+  restapi/         Javalin HTTP layer — 27 REST endpoints
+  businesslogic/   Service layer (managers)
+  persistence/     PostgreSQL via JDBC
+  assembler/       Module wiring, produces runnable JAR
+```
 
-## Diagrams
+Three-tier architecture with strict module boundaries via Java Platform Module System.
 
-In the AADE course you will learn how to develop diagrams with the use of [Visual Paradigm](https://www.visual-paradigm.com/). You are free to use this program also for the diagrams for project 2.
+## Tech stack
 
-**However** Visual Paradigm creates `binary` files which don't play nice with version control systems (VCS) such as Git. If using Visual Paradigm to create artefacts, make sure to export to an image format that can be embedded inside your documentation.
+- Backend: Java 21, Javalin, Maven (multi-module)
+- Frontend: SvelteKit, TypeScript
+- Database: PostgreSQL (10 tables, init scripts included)
+- Auth: BCrypt password hashing, role-based access control
+- External APIs: Amadeus (flight search), AviationStack (real-time status)
+- Infrastructure: Docker Compose (backend + frontend + postgres), GitHub Actions CI
 
-We recommend to also have a look at the following ways of creating diagrams, based on text files (which is what VCSs excel at).
+## Running locally
 
-- [Mermaid.js](https://mermaid.js.org/): Mermaid diagrams can be directly rendered from Markdown by GitHub, so no need to export diagrams to images and keep them in sync. There are also multiple [VSCode extensions](https://marketplace.visualstudio.com/items?itemName=bierner.markdown-mermaid) available. 
-- [PlantUML](https://plantuml.com/) - PlantUml let's you easily create unified modelling languages (UML) diagrams in a text based manner. There is a [VSCode extension available](https://marketplace.visualstudio.com/items?itemName=jebbs.plantuml) for live previews and exporting of diagrams.
-- [Diagrams.net](https://app.diagrams.net/) - Drag and drop editor that works in the browser. There is also a [VSCode extension available](https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio). By using `.drawio.png` or `.drawio.svg` you can keep the files always in sync, without the need to export.
+Requirements: Docker
 
-Examples of these diagrams can be found in the [design](/design) directory.
+```bash
+git clone https://github.com/Leonardo-Notargiacomo/SkyVoyage
+cd SkyVoyage/implementation
+cp backend/.env.example backend/.env  # add Amadeus and AviationStack API keys
+docker compose up
+```
 
+- Frontend: http://localhost:5173
+- Backend: http://localhost:8080
 
-> [!WARNING]
-> Make sure there is always an image available of all diagrams (preferably as SVG)
+The compose setup starts PostgreSQL, runs the init SQL, then boots frontend and backend.
 
-## Structure
+## Testing
 
-- [Project Management](/project-management) - For all project management related artefacts, e.g. meetings outcomes, retrospectives, screenshots, minutes, planning.
-- [Analysis](/analysis) - For all analysis artefacts
-- [Design](/design) - For all design artefacts
-- [Implementation](/implementation) - For the implementation of the Airline Information System
+```bash
+cd implementation/backend
+mvn verify
+```
+
+70 tests across 8 classes covering business logic, persistence, and REST layers (JUnit 5 + Mockito).
+
+## My contributions
+
+Owned the discount and pricing system end-to-end:
+
+- Built `DiscountManager` and `PriceManager` — business logic for time-based discounts and base price calculation
+- Implemented `DiscountRepository` for CRUD operations and `DiscountResource` (REST endpoints)
+- Integrated discount/price pipeline into both Amadeus and AviationStack clients so returned prices reflect active discounts
+- Built the discount management UI page and wired it to the backend
+- Wrote DiscountManager tests and validation test cases
