@@ -1,0 +1,11 @@
+module-info.class
+io\github\fontysvenlo\ais\businesslogic\api\TicketManager.class
+io\github\fontysvenlo\ais\businesslogic\api\ValidatorInterface.class
+io\github\fontysvenlo\ais\businesslogic\api\LoginService.class
+io\github\fontysvenlo\ais\businesslogic\api\BookingManager.class
+io\github\fontysvenlo\ais\businesslogic\api\BusinessLogic.class
+io\github\fontysvenlo\ais\businesslogic\api\DiscountManager.class
+io\github\fontysvenlo\ais\businesslogic\api\EmployeeManager.class
+io\github\fontysvenlo\ais\businesslogic\api\FlightManager.class
+io\github\fontysvenlo\ais\businesslogic\api\FlightStatsManager.class
+io\github\fontysvenlo\ais\businesslogic\api\PriceManager.class
